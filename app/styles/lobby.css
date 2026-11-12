@@ -1,0 +1,148 @@
+.connection-status {
+  margin: 8px 0 16px;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.offline-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #bd665b;
+  margin-left: auto;
+}
+
+.lobby-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 22px 0;
+  text-align: left;
+}
+
+.lobby-section h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.lobby-section p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+.lobby-section label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.lobby-section input,
+.lobby-section select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 8px;
+  background: #142c24;
+  color: #fff;
+  font: inherit;
+}
+
+.lobby-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.room-code {
+  padding: 7px 12px;
+  border-radius: 7px;
+  background: rgba(201, 169, 97, 0.16);
+  color: #d9bd7b;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.seat-list,
+.public-room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.seat,
+.lobby-room-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 9px;
+  background: rgba(255,255,255,0.035);
+}
+
+.seat-number {
+  display: grid;
+  place-items: center;
+  flex: 0 0 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(201, 169, 97, 0.15);
+  color: #d9bd7b;
+  font-weight: 700;
+}
+
+.seat > div:last-child,
+.lobby-room-card > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.seat strong,
+.lobby-room-card strong {
+  font-size: 0.88rem;
+}
+
+.seat span,
+.lobby-room-card p {
+  font-size: 0.76rem;
+  opacity: 0.72;
+}
+
+.lobby-room-card {
+  justify-content: space-between;
+}
+
+.lobby-room-card p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.lobby-room-card button {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 10px 12px;
+  font-size: 0.78rem;
+}
+
+.lobby-section .primary-button,
+.lobby-section .secondary-button {
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .lobby-room-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .lobby-room-card button {
+    width: 100%;
+  }
+}

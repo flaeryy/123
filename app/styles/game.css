@@ -1,0 +1,914 @@
+.belot-game {
+  min-height: 100vh;
+  padding: 24px;
+  color: #f8f5e9;
+  background: #10251d;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.belot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.belot-brand {
+  font-size: 27px;
+  font-weight: 900;
+  letter-spacing: 5px;
+  color: #e9c875;
+}
+
+.belot-subtitle {
+  color: #a9b9ad;
+  font-size: 12px;
+}
+
+.belot-score {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: #1c382c;
+  border: 1px solid #45634e;
+  border-radius: 14px;
+  padding: 12px 22px;
+}
+
+.belot-score div:not(.score-divider) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.belot-score span {
+  font-size: 11px;
+  color: #b6c7b8;
+}
+
+.belot-score strong {
+  font-size: 23px;
+  color: #f2d58a;
+}
+
+.score-divider {
+  width: 1px;
+  height: 35px;
+  background: #597260;
+}
+
+.belot-table {
+  position: relative;
+  width: 100%;
+  max-width: 1050px;
+  height: 490px;
+  margin: 0 auto;
+  border-radius: 48%;
+  background: radial-gradient(ellipse, #28704a 0%, #185438 65%, #103b2b 100%);
+  border: 12px solid #593c27;
+  box-shadow: inset 0 0 0 5px #b28a51, 0 16px 40px #0008;
+}
+
+.table-decoration {
+  position: absolute;
+  inset: 18px;
+  border: 1px solid #ffffff24;
+  border-radius: 48%;
+  pointer-events: none;
+}
+
+.table-player {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 13px;
+  border-radius: 12px;
+  background: #102a20eF;
+  border: 1px solid #78917a;
+  z-index: 2;
+}
+
+.player-bottom {
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.player-top {
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.player-left {
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.player-right {
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.player-avatar {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: #d4b46b;
+  color: #17291e;
+  font-weight: 900;
+}
+
+.player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.player-info strong {
+  font-size: 12px;
+}
+
+.player-info span {
+  font-size: 10px;
+  color: #c2d0c2;
+}
+
+.active-player {
+  border: 2px solid #f1d17e;
+  box-shadow: 0 0 15px #f1d17e70;
+}
+
+.turn-indicator {
+  color: #f1d17e;
+  font-size: 12px;
+}
+
+.trump-indicator {
+  position: absolute;
+  left: 50%;
+  top: 20%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+}
+
+.trump-indicator strong {
+  font-size: 14px;
+}
+
+.red-suit,
+.red-card {
+  color: #c62828;
+}
+
+.black-suit,
+.black-card {
+  color: #171717;
+}
+
+.played-cards {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  min-width: 230px;
+  min-height: 125px;
+}
+
+.played-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.played-card span {
+  color: #fff;
+  font-size: 10px;
+  text-shadow: 0 1px 3px #000;
+}
+
+.empty-table-message {
+  color: #d6e3d6;
+  font-size: 13px;
+}
+
+.belot-card {
+  position: relative;
+  flex: 0 0 auto;
+  width: 76px;
+  height: 112px;
+  border: 1px solid #d9d6cd;
+  border-radius: 9px;
+  background: linear-gradient(145deg, #fff 0%, #f4f0e7 100%);
+  box-shadow: 0 5px 12px #0005;
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  padding: 5px;
+}
+
+.belot-card:hover:not(:disabled) {
+  transform: translateY(-13px);
+  box-shadow: 0 12px 20px #0007;
+}
+
+.belot-card:disabled {
+  cursor: default;
+}
+
+.card-corner {
+  position: absolute;
+  top: 5px;
+  left: 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 15px;
+  line-height: 15px;
+}
+
+.card-corner strong {
+  font-size: 15px;
+}
+
+.card-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 38px;
+}
+
+.card-corner-bottom {
+  top: auto;
+  left: auto;
+  right: 7px;
+  bottom: 5px;
+  transform: rotate(180deg);
+}
+
+.small-card {
+  width: 57px;
+  height: 83px;
+  cursor: default;
+}
+
+.small-card .card-center {
+  font-size: 27px;
+}
+
+.small-card .card-corner {
+  font-size: 11px;
+  line-height: 11px;
+}
+
+.small-card .card-corner strong {
+  font-size: 12px;
+}
+
+.disabled-card {
+  opacity: 0.75;
+}
+
+.belot-hand-area {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 18px;
+  background: #1a382b;
+  border: 1px solid #496750;
+  border-radius: 16px;
+}
+
+.hand-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.hand-heading div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hand-heading strong {
+  color: #f1d17e;
+}
+
+.hand-heading span {
+  color: #b8c9b9;
+  font-size: 12px;
+}
+
+.hand-hint {
+  text-align: right;
+}
+
+.belot-hand {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 120px;
+}
+
+@media (max-width: 650px) {
+  .belot-game {
+    padding: 12px;
+    gap: 15px;
+  }
+
+  .belot-table {
+    height: 390px;
+    border-width: 7px;
+  }
+
+  .table-player {
+    padding: 6px;
+    gap: 5px;
+  }
+
+  .player-avatar {
+    width: 27px;
+    height: 27px;
+  }
+
+  .player-info strong {
+    font-size: 10px;
+  }
+
+  .player-info span {
+    font-size: 9px;
+  }
+
+  .player-left {
+    left: 2px;
+  }
+
+  .player-right {
+    right: 2px;
+  }
+
+  .belot-card {
+    width: 58px;
+    height: 88px;
+  }
+
+  .card-center {
+    font-size: 29px;
+  }
+
+  .belot-hand {
+    gap: 4px;
+  }
+
+  .belot-score {
+    padding: 8px;
+    gap: 10px;
+  }
+
+  .belot-score strong {
+    font-size: 18px;
+  }
+}
+
+
+.trump-controls {
+  width: min(100% - 24px, 900px);
+  margin: 18px auto;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  background: rgba(12, 45, 34, 0.94);
+  color: white;
+  text-align: center;
+}
+
+.trump-controls > strong {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.trump-buttons {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.trump-buttons button {
+  min-width: 105px;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 9px;
+  background: #f8f5ec;
+  color: #202020;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.trump-buttons button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.trump-buttons .pass-trump-button {
+  background: #713d35;
+  color: white;
+}
+
+.red-suit {
+  color: #d71936;
+}
+
+.black-suit {
+  color: #171717;
+}
+
+.game-finished-message {
+  width: fit-content;
+  margin: 20px auto;
+  padding: 14px 24px;
+  border-radius: 10px;
+  background: #f5e8bd;
+  color: #382b12;
+  font-weight: 800;
+}
+
+.belot-card {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  width: 76px;
+  height: 112px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #d7d1c5;
+  border-radius: 9px;
+  background: #fffdf7;
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.belot-card:not(:disabled):hover {
+  transform: translateY(-10px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+}
+
+.belot-card:disabled {
+  cursor: default;
+}
+
+.belot-card .card-corner {
+  position: absolute;
+  top: 5px;
+  left: 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.belot-card .card-corner strong {
+  font-size: 17px;
+}
+
+.belot-card .card-corner-bottom {
+  top: auto;
+  right: 7px;
+  bottom: 5px;
+  left: auto;
+  transform: rotate(180deg);
+}
+
+.belot-card .card-center {
+  font-size: 39px;
+}
+
+.belot-card.red-card {
+  color: #c51e36;
+}
+
+.belot-card.black-card {
+  color: #202020;
+}
+
+.belot-card.small-card {
+  width: 54px;
+  height: 78px;
+  border-radius: 7px;
+}
+
+.belot-card.small-card .card-corner {
+  top: 4px;
+  left: 5px;
+  font-size: 10px;
+}
+
+.belot-card.small-card .card-corner strong {
+  font-size: 12px;
+}
+
+.belot-card.small-card .card-corner-bottom {
+  top: auto;
+  right: 5px;
+  bottom: 4px;
+  left: auto;
+}
+
+.belot-card.small-card .card-center {
+  font-size: 27px;
+}
+
+.disabled-card {
+  opacity: 0.75;
+}
+
+@media (max-width: 600px) {
+  .belot-card {
+    width: 58px;
+    height: 88px;
+  }
+
+  .belot-card .card-center {
+    font-size: 30px;
+  }
+
+  .belot-hand {
+    gap: 2px;
+    overflow-x: auto;
+    padding: 12px 4px;
+  }
+
+  .trump-buttons button {
+    min-width: 90px;
+  }
+}
+
+
+/* Igralište preko cijelog ekrana */
+.page-shell:has(.belot-game) {
+  width: 100%;
+  min-height: 100dvh;
+  padding: 0;
+}
+
+.hero:has(.belot-game) {
+  display: block;
+  width: 100%;
+  max-width: none;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+}
+
+.auth-panel:has(.belot-game) {
+  width: 100%;
+  max-width: none;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.logged-in:has(.belot-game) {
+  width: 100%;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+}
+
+/* Glavni prostor igre */
+.belot-game {
+  display: flex;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+  padding: 10px;
+  background:
+    radial-gradient(ellipse at center, #079b69 0%, #007c50 65%, #075b3d 100%);
+}
+
+/* Zaglavlje igre */
+.belot-header {
+  flex: 0 0 auto;
+  min-height: 38px;
+  margin: 0;
+}
+
+/* Stol zauzima sav raspoloživ prostor */
+.belot-table {
+  position: relative;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  flex: 1 1 auto;
+  margin: 0 auto;
+  border: 9px solid #e8e5d8;
+  border-radius: 48%;
+  background:
+    radial-gradient(ellipse at center, #08a875 0%, #009666 55%, #00764c 100%);
+  box-shadow:
+    inset 0 0 35px #003e2c88,
+    0 4px 16px #0005;
+}
+
+/* Karte igrača pri dnu */
+.belot-hand-area {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 8px 10px;
+  border: 2px solid #e8e5d8;
+  border-radius: 12px;
+  background: #164c39;
+}
+
+.belot-hand {
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 5px;
+  min-height: 105px;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 8px 4px 12px;
+}
+
+/* Karte prilagođene veličini ekrana */
+.belot-card {
+  width: clamp(48px, 7vw, 82px);
+  height: clamp(72px, 10vw, 120px);
+  border: 2px solid #e8e2d4;
+  border-radius: 7px;
+  background: #fffdf5;
+  box-shadow: 0 3px 8px #0006;
+}
+
+.played-cards {
+  z-index: 3;
+}
+
+/* Kontrole aduta */
+.trump-controls {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 10px;
+}
+
+/* Na manjim ekranima */
+@media (max-width: 700px) {
+  .belot-game {
+    padding: 5px;
+    gap: 5px;
+  }
+
+  .belot-table {
+    border-width: 5px;
+  }
+
+  .belot-hand-area {
+    padding: 5px;
+  }
+
+  .belot-hand {
+    justify-content: flex-start;
+    gap: 3px;
+  }
+
+  .belot-card {
+    width: clamp(43px, 12vw, 62px);
+    height: clamp(65px, 18vw, 92px);
+  }
+
+  .table-player {
+    padding: 5px;
+  }
+}
+
+
+/* Mađarske karte */
+
+.hungarian-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  flex: 0 0 auto;
+  width: 88px;
+  height: 132px;
+  padding: 9px 6px;
+  border: 2px solid #e8dfc9;
+  border-radius: 9px;
+  background: linear-gradient(145deg, #fffef8, #e9e1ce);
+  color: #222;
+  box-shadow: 0 5px 12px #0005;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.hungarian-card:hover:not(:disabled) {
+  transform: translateY(-12px);
+  box-shadow: 0 10px 18px #0006;
+}
+
+.hungarian-card.selected {
+  transform: translateY(-20px);
+  border-color: #f2c14e;
+  box-shadow: 0 0 0 2px #f2c14e, 0 10px 18px #0007;
+}
+
+.hungarian-card:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.hungarian-card-rank {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.hungarian-card-symbol {
+  font-size: 38px;
+  line-height: 1;
+}
+
+.hungarian-card-suit {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.hungarian-card.red {
+  color: #b5232d;
+}
+
+.hungarian-card.gold {
+  color: #a87513;
+}
+
+.hungarian-card.brown {
+  color: #70401f;
+}
+
+.hungarian-card.green {
+  color: #287044;
+}
+
+/* Raspored karata u ruci */
+
+.player-hand {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 7px;
+  width: 100%;
+  padding: 24px 12px 12px;
+  overflow-x: auto;
+}
+
+@media (max-width: 700px) {
+  .hungarian-card {
+    width: 62px;
+    height: 98px;
+    padding: 6px 4px;
+  }
+
+  .hungarian-card-symbol {
+    font-size: 28px;
+  }
+
+  .hungarian-card-rank {
+    font-size: 12px;
+  }
+
+  .player-hand {
+    gap: 3px;
+  }
+}
+
+
+/* Prikaz originalnih mađarskih karata */
+
+.hungarian-card {
+  position: relative;
+  flex: 0 0 auto;
+  width: 88px;
+  height: 142px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 160ms ease;
+}
+
+.hungarian-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+}
+
+.hungarian-card:hover:not(:disabled) {
+  transform: translateY(-12px);
+}
+
+.hungarian-card.selected {
+  transform: translateY(-20px);
+}
+
+.hungarian-card:disabled {
+  cursor: default;
+}
+
+@media (max-width: 700px) {
+  .hungarian-card {
+    width: 58px;
+    height: 94px;
+  }
+}
+
+
+
+/* Originalne mađarice na stolu */
+
+.played-hungarian-card .hungarian-card {
+  width: 65px;
+  height: 105px;
+}
+
+.hand-hungarian-card .hungarian-card {
+  width: 88px;
+  height: 142px;
+}
+
+.played-hungarian-card {
+  display: flex;
+  justify-content: center;
+}
+
+.hand-hungarian-card {
+  flex: 0 0 auto;
+}
+
+.belot-hand {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 25px 12px 12px;
+}
+
+@media (max-width: 700px) {
+  .hand-hungarian-card .hungarian-card {
+    width: 53px;
+    height: 86px;
+  }
+
+  .played-hungarian-card .hungarian-card {
+    width: 48px;
+    height: 78px;
+  }
+
+  .belot-hand {
+    gap: 3px;
+  }
+}
+
+

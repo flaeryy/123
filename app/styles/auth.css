@@ -1,0 +1,254 @@
+.auth-panel {
+  width: 100%;
+  max-width: 440px;
+  justify-self: end;
+  padding: 38px;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  background: linear-gradient(145deg, rgba(24, 43, 32, 0.97), rgba(13, 27, 19, 0.98));
+  box-shadow: 0 25px 90px rgba(0, 0, 0, 0.28);
+}
+
+.panel-symbol {
+  display: grid;
+  width: 43px;
+  height: 43px;
+  place-items: center;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--gold);
+  font-size: 25px;
+}
+
+.auth-panel h2 {
+  margin: 12px 0 9px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+  font-weight: 500;
+}
+
+.panel-description {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin: 29px 0 25px;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.auth-tabs button {
+  padding: 11px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.auth-tabs button.active {
+  background: #263b2d;
+  color: var(--gold-light);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 19px;
+}
+
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  color: #b8c4b9;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.auth-form input {
+  width: 100%;
+  height: 47px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 7px;
+  outline: none;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--text);
+  font-size: 13px;
+  letter-spacing: normal;
+  transition: border-color 0.2s ease;
+}
+
+.auth-form input::placeholder {
+  color: #69796d;
+}
+
+.auth-form input:focus {
+  border-color: var(--gold);
+}
+
+.primary-button,
+.secondary-button {
+  display: flex;
+  min-height: 49px;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 5px;
+  border: 0;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 800;
+  transition: 0.2s ease;
+}
+
+.primary-button {
+  background: linear-gradient(110deg, #d3ad62, #ead19a);
+  color: #18251b;
+}
+
+.primary-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(216, 180, 106, 0.18);
+}
+
+.primary-button span {
+  font-size: 18px;
+}
+
+.secondary-button {
+  width: 100%;
+  margin-top: 24px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--gold-light);
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: rgba(216, 180, 106, 0.08);
+}
+
+.terms-note {
+  margin: 21px 0 0;
+  color: #77877a;
+  font-size: 10px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.message {
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.message.error {
+  border-color: rgba(218, 104, 94, 0.3);
+  background: rgba(218, 104, 94, 0.09);
+  color: #f0a39a;
+}
+
+.message.success {
+  border-color: rgba(123, 197, 140, 0.3);
+  background: rgba(123, 197, 140, 0.08);
+  color: #a9d9b4;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-top: 28px;
+  padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.avatar {
+  display: grid;
+  width: 39px;
+  height: 39px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 50%;
+  background: #344c38;
+  color: var(--gold-light);
+  font-weight: 800;
+}
+
+.user-card div:nth-child(2) {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.user-card strong {
+  font-size: 12px;
+}
+
+.user-card span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+}
+
+.user-card .online-dot {
+  flex-shrink: 0;
+}
+
+.coming-soon {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 15px 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.coming-soon-icon {
+  color: var(--gold);
+  font-size: 24px;
+}
+
+.coming-soon div {
+  min-width: 0;
+  flex: 1;
+}
+
+.coming-soon strong {
+  font-size: 11px;
+}
+
+.coming-soon p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.soon-label {
+  color: var(--gold);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}

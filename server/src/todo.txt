@@ -1,0 +1,1 @@
+pametno igraj nije proslo > mora biti izmedu 3 - 30 znakova a pametno proslo.
