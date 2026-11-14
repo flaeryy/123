@@ -6,6 +6,7 @@ import {
   registerUser,
   verifyEmail,
   loginUser,
+  loginWithGoogle,
   logoutUser,
 } from "./auth-service.js";
 
@@ -18,6 +19,10 @@ type RegisterBody = {
 type LoginBody = {
   email: string;
   password: string;
+};
+
+type GoogleLoginBody = {
+  credential: string;
 };
 
 type VerifyQuery = {
@@ -121,6 +126,35 @@ export function registerAuthRoutes(app: FastifyInstance) {
       return reply.code(500).send({
         success: false,
         message: "Greška pri prijavi.",
+      });
+    }
+  });
+
+  app.post<{ Body: GoogleLoginBody }>("/auth/google", async (request, reply) => {
+    try {
+      const { credential } = request.body ?? {};
+
+      if (typeof credential !== "string" || credential.length === 0) {
+        return reply.code(400).send({
+          success: false,
+          message: "Google vjerodajnica nedostaje.",
+        });
+      }
+
+      return reply.send(await loginWithGoogle(credential));
+    } catch (error) {
+      if (error instanceof AuthError) {
+        return reply.code(error.statusCode).send({
+          success: false,
+          message: error.message,
+        });
+      }
+
+      request.log.error(error);
+
+      return reply.code(500).send({
+        success: false,
+        message: "Greška pri prijavi putem Googlea.",
       });
     }
   });

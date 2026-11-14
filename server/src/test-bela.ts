@@ -77,29 +77,29 @@ state = {
     })),
 };
 
-// Test 1: Bela se mora najaviti.
+const initialState = { ...state };
+
+// Test 1: Bela se mora potvrditi u UI; ako igrač odbije, karta se igra bez dodatnih 20 bodova.
 try {
-    playCard(
-        state,
+    state = playCard(
+        { ...initialState },
         1,
-        { suit: "hearts", rank: "K" }
+        { suit: "hearts", rank: "K" },
+        false
     );
 
-    throw new Error("TEST NIJE PROŠAO: bela nije morala biti najavljena.");
+    console.log("TEST 1 PROŠAO: odbijena bela nije blokirana.");
 } catch (error) {
-    if (
-        error instanceof Error &&
-        error.message.includes("Moraš najaviti belu")
-    ) {
-        console.log("TEST 1 PROŠAO: najava bele je obavezna.");
-    } else {
-        throw error;
-    }
+    throw new Error(
+        `TEST 1 NIJE PROŠAO: odbijena bela ne smije baciti grešku. ${
+            error instanceof Error ? error.message : String(error)
+        }`
+    );
 }
 
 // Test 2: Najavljena bela donosi 20 bodova.
 state = playCard(
-    state,
+    { ...initialState },
     1,
     { suit: "hearts", rank: "K" },
     true

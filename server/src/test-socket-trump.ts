@@ -114,15 +114,15 @@ async function main() {
       throw new Error(trumpResult.message ?? "Odabir aduta nije uspio.");
     }
 
-    const states = await Promise.all(statePromises);
+    let states = await Promise.all(statePromises);
 
-    console.log("Adut uspješno odabran.");
+    console.log("Adut odabran; faza zvanja započela.");
 
     for (let i = 0; i < 4; i++) {
       const view = states[i];
 
-      if (view.phase !== "playing") {
-        throw new Error(`Igrač ${i + 1}: pogrešna faza igre.`);
+      if (view.phase !== "declarations") {
+        throw new Error(`Igrač ${i + 1}: nije u fazi zvanja.`);
       }
 
       if (view.trumpSuit !== "hearts") {
@@ -148,6 +148,29 @@ async function main() {
       }
 
       console.log(`Igrač ${i + 1}: 8 karata i privatnost PROŠLI.`);
+    }
+
+    for (let playerIndex = 0; playerIndex < 4; playerIndex++) {
+      const declarationStates = players.map((socket) =>
+        waitForEvent<GameView>(socket, "game_state"),
+      );
+      const declarationResponse = await emitAck(
+        players[playerIndex],
+        "submit_declarations",
+        { cards: [] },
+      );
+
+      if (!declarationResponse.success) {
+        throw new Error(
+          declarationResponse.message ?? `Igrač ${playerIndex + 1} nije završio zvanje.`,
+        );
+      }
+
+      states = await Promise.all(declarationStates);
+    }
+
+    if (states.some((view) => view.phase !== "playing")) {
+      throw new Error("Igra nije počela nakon završetka kruga zvanja.");
     }
 
     console.log("");

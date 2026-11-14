@@ -1,1 +1,3 @@
 pametno igraj nije proslo > mora biti izmedu 3 - 30 znakova a pametno proslo.
+adut herc i postoji dama al kralj u drugoj boji , dodje da oce li najavi belu ako stisne da, onda kaze da nemoze najavit belu i mora odustati.
+kada je bela kralj stisnem ok i onda za damu opet moram najavit a ne treba i zvanje 20 ne stavi

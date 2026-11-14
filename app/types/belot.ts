@@ -16,9 +16,29 @@ export type ClientGamePlayer = {
 export type ClientGameState = {
   roomCode: string;
   players: ClientGamePlayer[];
-  phase: "dealing" | "trump_call" | "dealing_remaining" | "playing" | "finished";
+  phase: "dealing" | "trump_call" | "dealing_remaining" | "declarations" | "playing" | "round_finished" | "finished";
   trumpSuit: BelotSuit | null;
   trumpTurnPlayerNumber: 1 | 2 | 3 | 4;
+  declarationTurnPlayerNumber: 1 | 2 | 3 | 4 | null;
+  completedDeclarationPlayers: number[];
+  roundNumber: number;
+  dealerPlayerNumber: 1 | 2 | 3 | 4;
+  team1MatchScore: number;
+  team2MatchScore: number;
+  matchWinnerTeam: 1 | 2 | null;
+  team1DeclaredPoints: number;
+  team2DeclaredPoints: number;
+  activeDeclaration: {
+    playerNumber: 1 | 2 | 3 | 4;
+    cards: BelotCard[];
+    points: number;
+  } | null;
+  finalScore: {
+    team1: number;
+    team2: number;
+    winningTeam: 1 | 2 | null;
+    declarationPoints: number;
+  } | null;
   currentPlayerNumber: number;
   currentTrick: PlayedCard[];
   team1TrickPoints: number;

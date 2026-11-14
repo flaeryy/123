@@ -197,6 +197,22 @@ class RoomManager {
     return this.rooms.get(roomCode.trim().toUpperCase());
   }
 
+  getUserRoom(userId: number): Room | undefined {
+    return Array.from(this.rooms.values()).find((room) =>
+      room.players.some((player) => player.userId === userId),
+    );
+  }
+
+  returnToLobby(roomCode: string): Room | undefined {
+    const room = this.getRoom(roomCode);
+
+    if (room) {
+      room.status = "waiting";
+    }
+
+    return room;
+  }
+
   // Dohvaćanje sobe u kojoj se nalazi određena veza
   getPlayerRoom(socketId: string): Room | undefined {
     const roomCode = this.playerRooms.get(socketId);

@@ -1,11 +1,111 @@
 .belot-game {
   min-height: 100vh;
-  padding: 24px;
+  padding: 20px 18px 28px;
   color: #f8f5e9;
-  background: #10251d;
+  background: linear-gradient(180deg, #0f2a20 0%, #0c221b 100%);
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 18px;
+}
+
+.belot-layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.belot-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.belot-sidebar-card {
+  background: rgba(217, 216, 210, 0.82);
+  border: 1px solid rgba(12, 24, 20, 0.2);
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
+  padding: 14px 10px 12px;
+  color: #1f2f29;
+}
+
+.belot-sidebar-title {
+  font-size: 2.1rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+  color: #0f1e1a;
+  line-height: 1;
+}
+
+.result-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+  background: rgba(255,255,255,0.18);
+  border-radius: 8px;
+  padding: 8px 8px 6px;
+}
+
+.result-header,
+.result-row {
+  display: grid;
+  grid-template-columns: 1.4fr 0.6fr 0.6fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.result-header {
+  font-weight: 800;
+  color: #1e322a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(24, 42, 37, 0.15);
+}
+
+.result-row {
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(24, 42, 37, 0.08);
+}
+
+.result-row:last-child {
+  border-bottom: none;
+}
+
+.result-row strong {
+  font-size: 14px;
+  text-align: center;
+}
+
+.total-row {
+  font-weight: 800;
+  padding-top: 8px;
+}
+
+.small-sidebar-button {
+  width: 100%;
+  font-size: 0.7rem;
+  padding: 10px 12px;
+  background: #eae7dd;
+  border: 1px solid rgba(22, 39, 35, 0.18);
+  color: #1d2d28;
+}
+
+.sidebar-send-button {
+  width: 100%;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+.belot-main-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .belot-header {
@@ -13,6 +113,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+  background: rgba(17, 45, 34, 0.9);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 18px 18px 16px;
 }
 
 .belot-brand {
@@ -31,10 +135,11 @@
   display: flex;
   align-items: center;
   gap: 24px;
-  background: #1c382c;
-  border: 1px solid #45634e;
+  background: rgba(19, 42, 33, 0.8);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 14px;
   padding: 12px 22px;
+  color: #f3e9c7;
 }
 
 .belot-score div:not(.score-divider) {
@@ -63,13 +168,14 @@
 .belot-table {
   position: relative;
   width: 100%;
-  max-width: 1050px;
-  height: 490px;
+  max-width: 1040px;
+  height: 500px;
   margin: 0 auto;
   border-radius: 48%;
-  background: radial-gradient(ellipse, #28704a 0%, #185438 65%, #103b2b 100%);
-  border: 12px solid #593c27;
-  box-shadow: inset 0 0 0 5px #b28a51, 0 16px 40px #0008;
+  background: radial-gradient(ellipse, #2c855b 0%, #1e6a48 52%, #113e2c 100%);
+  border: 12px solid #5b3a29;
+  box-shadow: inset 0 0 0 5px rgba(186, 138, 80, 0.9), 0 18px 44px rgba(0,0,0,0.2);
+  overflow: visible;
 }
 
 .table-decoration {
@@ -87,9 +193,10 @@
   gap: 9px;
   padding: 9px 13px;
   border-radius: 12px;
-  background: #102a20eF;
-  border: 1px solid #78917a;
+  background: rgba(9, 28, 21, 0.92);
+  border: 1px solid rgba(255,255,255,0.22);
   z-index: 2;
+  box-shadow: 0 0 0 1px rgba(223,201,140,0.18);
 }
 
 .player-bottom {
@@ -332,6 +439,20 @@
   min-height: 120px;
 }
 
+@media (max-width: 900px) {
+  .belot-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .belot-sidebar {
+    order: 2;
+  }
+
+  .belot-main-panel {
+    order: 1;
+  }
+}
+
 @media (max-width: 650px) {
   .belot-game {
     padding: 12px;
@@ -394,12 +515,13 @@
 
 
 .trump-controls {
-  width: min(100% - 24px, 900px);
-  margin: 18px auto;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
   padding: 18px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 14px;
-  background: rgba(12, 45, 34, 0.94);
+  background: rgba(20, 45, 34, 0.9);
   color: white;
   text-align: center;
 }
@@ -416,25 +538,51 @@
   gap: 10px;
 }
 
-.trump-buttons button {
-  min-width: 105px;
-  padding: 10px 16px;
+.suit-button {
+  width: 54px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+.suit-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.suit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.suit-button img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));
+}
+
+.trump-buttons .pass-trump-button {
+  min-width: 72px;
+  padding: 0 14px;
+  height: 40px;
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 9px;
-  background: #f8f5ec;
-  color: #202020;
+  background: #713d35;
+  color: white;
   font-weight: 700;
   cursor: pointer;
 }
 
-.trump-buttons button:disabled {
-  opacity: 0.4;
+.trump-buttons .pass-trump-button:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
-}
-
-.trump-buttons .pass-trump-button {
-  background: #713d35;
-  color: white;
 }
 
 .red-suit {
@@ -446,13 +594,162 @@
 }
 
 .game-finished-message {
-  width: fit-content;
-  margin: 20px auto;
-  padding: 14px 24px;
+  display: flex;
+  width: min(100%, 900px);
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 8px auto;
+  padding: 10px 16px;
   border-radius: 10px;
   background: #f5e8bd;
   color: #382b12;
-  font-weight: 800;
+  font-size: 12px;
+}
+
+.game-finished-message strong {
+  font-size: 13px;
+}
+
+.game-finished-message span {
+  color: #54482d;
+  font-size: 11px;
+}
+
+.next-deal-button {
+  min-height: 36px;
+  margin: 0;
+  padding: 0 15px;
+  font-size: 10px;
+}
+
+.bela-confirmation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(8, 18, 15, 0.68);
+}
+
+.bela-confirmation-card {
+  width: min(360px, 100%);
+  padding: 24px 20px 18px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(20, 42, 33, 0.98), rgba(12, 28, 23, 0.98));
+  border: 1px solid rgba(243, 216, 153, 0.4);
+  box-shadow: 0 18px 36px rgba(0,0,0,0.35);
+  text-align: center;
+}
+
+.bela-confirmation-title {
+  margin-bottom: 10px;
+  color: #f3d899;
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.bela-confirmation-card p {
+  margin: 0 0 18px;
+  color: #edf3ee;
+  line-height: 1.5;
+}
+
+.bela-confirmation-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.bela-confirmation-actions button {
+  min-width: 90px;
+}
+
+.game-chat-panel {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  background: rgba(16, 36, 29, 0.9);
+  padding: 12px;
+}
+
+.game-chat-header h4 {
+  margin: 0;
+  color: #f3d899;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.game-chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.game-chat-message {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.game-chat-message.self {
+  background: rgba(148, 116, 27, 0.12);
+  border-color: rgba(243, 216, 153, 0.2);
+}
+
+.game-chat-message strong {
+  font-size: 0.72rem;
+  color: #f3d899;
+}
+
+.game-chat-message span {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.game-chat-empty {
+  margin: 0;
+  opacity: 0.7;
+  font-size: 0.75rem;
+}
+
+.game-chat-input-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.game-chat-input-row input {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(9, 18, 17, 0.82);
+  color: #fff;
+  font: inherit;
+}
+
+.game-chat-input-row button {
+  width: auto;
+  padding-inline: 14px;
 }
 
 .belot-card {
@@ -908,6 +1205,614 @@
 
   .belot-hand {
     gap: 3px;
+  }
+}
+
+/* Okrugli stol za prikaz štiha i zvanja aduta */
+.belot-game {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  padding: 10px 12px;
+  gap: 10px;
+  background:
+    radial-gradient(ellipse at 50% 40%, #08704f 0%, #0c3025 65%, #091d16 100%);
+}
+
+.belot-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-template-columns: minmax(190px, 235px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.belot-sidebar {
+  min-height: 0;
+  gap: 10px;
+}
+
+.belot-sidebar-card {
+  flex: 0 0 auto;
+  padding: 13px;
+}
+
+.belot-sidebar-title {
+  font-size: 1.65rem;
+  margin-bottom: 10px;
+}
+
+.belot-main-panel {
+  min-width: 0;
+  min-height: 0;
+  gap: 9px;
+}
+
+.belot-header {
+  min-height: 48px;
+  padding: 8px 13px;
+  border-radius: 9px;
+}
+
+.belot-brand {
+  font-size: 18px;
+}
+
+.belot-subtitle {
+  font-size: 10px;
+}
+
+.belot-score {
+  gap: 14px;
+  padding: 7px 12px;
+  border-radius: 9px;
+}
+
+.belot-score span {
+  font-size: 9px;
+}
+
+.belot-score strong {
+  font-size: 18px;
+}
+
+.score-divider {
+  height: 27px;
+}
+
+.belot-table {
+  width: min(100%, calc(100dvh - 270px));
+  max-width: min(100%, 760px);
+  max-height: calc(100dvh - 270px);
+  height: auto;
+  min-height: 0;
+  flex: 0 1 auto;
+  aspect-ratio: 1 / 1;
+  align-self: center;
+  overflow: hidden;
+  border: 9px solid #e8e5d8;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 44%, #078d63 0%, #087351 58%, #075539 100%);
+  box-shadow:
+    inset 0 0 0 3px rgba(223, 201, 140, 0.58),
+    inset 0 0 42px rgba(0, 41, 28, 0.5),
+    0 8px 24px rgba(0, 0, 0, 0.34);
+}
+
+.table-decoration {
+  inset: 14px;
+  border-radius: 50%;
+  border-color: rgba(232, 229, 216, 0.27);
+}
+
+.table-player {
+  max-width: 34%;
+  padding: 6px 9px;
+  gap: 7px;
+  border-radius: 999px;
+  background: rgba(5, 28, 20, 0.88);
+}
+
+.player-bottom {
+  bottom: 5%;
+}
+
+.player-top {
+  top: 5%;
+}
+
+.player-left {
+  left: 3%;
+}
+
+.player-right {
+  right: 3%;
+}
+
+.player-avatar {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+}
+
+.player-info {
+  min-width: 0;
+}
+
+.player-info strong,
+.player-info span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-info strong {
+  font-size: 10px;
+}
+
+.player-info span {
+  font-size: 9px;
+}
+
+.turn-indicator {
+  flex: 0 0 auto;
+}
+
+.trump-indicator {
+  top: 21%;
+  z-index: 2;
+  padding: 5px 10px;
+  border: 1px solid rgba(232, 229, 216, 0.16);
+  border-radius: 8px;
+  background: rgba(4, 42, 29, 0.68);
+  color: #e8eee8;
+}
+
+.trump-indicator strong {
+  color: #f0d48e;
+}
+
+.played-cards {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  transform: none;
+  pointer-events: none;
+}
+
+.played-card {
+  position: absolute;
+  gap: 3px;
+}
+
+.played-card-bottom {
+  left: 50%;
+  top: 69%;
+  transform: translate(-50%, -50%);
+}
+
+.played-card-top {
+  left: 50%;
+  top: 31%;
+  transform: translate(-50%, -50%);
+}
+
+.played-card-left {
+  left: 32%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.played-card-right {
+  left: 68%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.played-card span {
+  max-width: 74px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty-table-message {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(232, 238, 232, 0.62);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.in-table-trump-controls {
+  position: absolute;
+  z-index: 5;
+  top: 50%;
+  left: 50%;
+  width: min(76%, 340px);
+  transform: translate(-50%, -50%);
+  margin: 0;
+  padding: 12px;
+  border: 1px solid rgba(232, 229, 216, 0.32);
+  border-radius: 12px;
+  background: rgba(4, 38, 27, 0.9);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.24);
+  color: #f0f3ed;
+  font-size: 11px;
+}
+
+.in-table-trump-controls > strong {
+  margin-bottom: 9px;
+}
+
+.in-table-trump-controls .trump-buttons {
+  gap: 7px;
+}
+
+.in-table-trump-controls .suit-button {
+  width: 42px;
+  height: 38px;
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.in-table-trump-controls .suit-button img {
+  width: 24px;
+  height: 24px;
+}
+
+.in-table-trump-controls .pass-trump-button {
+  min-width: 62px;
+  height: 38px;
+}
+
+.declaration-progress {
+  display: block;
+  margin-bottom: 5px;
+  color: #d7bc7a;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.declaration-controls > strong {
+  margin-bottom: 0;
+}
+
+.declaration-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.declaration-actions .primary-button,
+.declaration-actions .pass-trump-button {
+  min-width: 88px;
+  min-height: 34px;
+  margin: 0;
+  padding: 0 11px;
+  font-size: 10px;
+}
+
+.declaration-actions .primary-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.declaration-reveal {
+  position: absolute;
+  z-index: 8;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  width: min(76%, 420px);
+  min-height: 132px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px 16px;
+  border: 1px solid rgba(232, 229, 216, 0.45);
+  border-radius: 12px;
+  background: rgba(5, 42, 30, 0.94);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  transform: translate(-50%, -50%);
+  animation: declaration-reveal-in 180ms ease-out both;
+  pointer-events: none;
+}
+
+.declaration-reveal-player {
+  color: #e8eee8;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.declaration-reveal-cards {
+  display: flex;
+  max-width: 100%;
+  justify-content: center;
+  gap: 3px;
+}
+
+.declaration-reveal-cards .played-hungarian-card .hungarian-card {
+  width: clamp(32px, 3.2vw, 44px);
+  height: clamp(50px, 5vw, 66px);
+}
+
+.declaration-reveal > strong {
+  color: #e6c978;
+  font-size: 11px;
+}
+
+@keyframes declaration-reveal-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -46%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.belot-sidebar .game-chat-panel {
+  min-height: 0;
+  max-width: none;
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 11px;
+  border-radius: 9px;
+}
+
+.belot-sidebar .game-chat-messages {
+  min-height: 0;
+  max-height: none;
+  flex: 1 1 auto;
+}
+
+.belot-sidebar .game-chat-input-row input {
+  padding: 8px;
+  font-size: 11px;
+}
+
+.belot-sidebar .game-chat-input-row button {
+  display: grid;
+  width: 36px;
+  min-height: 37px;
+  place-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.belot-hand-area {
+  max-width: none;
+  padding: 6px 12px;
+  border-color: rgba(232, 229, 216, 0.58);
+  border-radius: 10px;
+}
+
+.hand-heading {
+  margin-bottom: 4px;
+}
+
+.hand-heading strong {
+  font-size: 12px;
+}
+
+.belot-hand {
+  min-height: 100px;
+  padding: 3px 4px 8px;
+}
+
+.hand-hungarian-card .hungarian-card {
+  width: clamp(56px, 6vw, 82px);
+  height: clamp(90px, 10vw, 128px);
+}
+
+.played-hungarian-card .hungarian-card {
+  width: clamp(40px, 4vw, 54px);
+  height: clamp(62px, 6.5vw, 82px);
+}
+
+.belot-sidebar .result-header,
+.belot-sidebar .result-row {
+  grid-template-columns: 1.35fr 0.55fr 0.55fr;
+  gap: 4px;
+  font-size: 10px;
+}
+
+.belot-sidebar .result-row strong {
+  font-size: 12px;
+}
+
+.belot-sidebar .total-row {
+  color: #162c22;
+}
+
+@media (max-width: 900px) {
+  .belot-game {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .belot-layout {
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .belot-main-panel {
+    order: 1;
+  }
+
+  .belot-sidebar {
+    order: 2;
+    min-height: 300px;
+  }
+
+  .belot-table {
+    width: min(100%, calc(100vw - 30px));
+    max-width: min(72vh, 680px);
+    max-height: none;
+    flex: 0 0 auto;
+  }
+
+  .belot-sidebar .game-chat-panel {
+    min-height: 280px;
+  }
+}
+
+@media (max-width: 560px) {
+  .belot-game {
+    padding: 6px;
+    gap: 7px;
+  }
+
+  .belot-header {
+    min-height: 42px;
+    gap: 7px;
+    padding: 6px 8px;
+  }
+
+  .belot-brand {
+    font-size: 15px;
+  }
+
+  .belot-subtitle {
+    display: none;
+  }
+
+  .belot-score {
+    gap: 7px;
+    padding: 5px 7px;
+  }
+
+  .belot-score span {
+    font-size: 8px;
+  }
+
+  .belot-score strong {
+    font-size: 14px;
+  }
+
+  .belot-table {
+    width: min(100%, calc(100vw - 26px));
+    max-width: 64vh;
+    border-width: 6px;
+  }
+
+  .table-player {
+    max-width: 38%;
+    gap: 4px;
+    padding: 4px 6px;
+  }
+
+  .player-avatar {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+    font-size: 11px;
+  }
+
+  .player-info strong {
+    max-width: 70px;
+    font-size: 8px;
+  }
+
+  .player-info span {
+    font-size: 7px;
+  }
+
+  .trump-indicator {
+    top: 22%;
+    padding: 3px 7px;
+    font-size: 8px;
+  }
+
+  .played-card-bottom {
+    top: 68%;
+  }
+
+  .played-card-top {
+    top: 32%;
+  }
+
+  .played-card-left {
+    left: 31%;
+  }
+
+  .played-card-right {
+    left: 69%;
+  }
+
+  .played-card span {
+    max-width: 48px;
+    font-size: 7px;
+  }
+
+  .played-hungarian-card .hungarian-card {
+    width: 35px;
+    height: 55px;
+  }
+
+  .in-table-trump-controls {
+    width: 82%;
+    padding: 8px 6px;
+    font-size: 9px;
+  }
+
+  .in-table-trump-controls .suit-button {
+    width: 34px;
+    height: 32px;
+  }
+
+  .in-table-trump-controls .suit-button img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .in-table-trump-controls .pass-trump-button {
+    min-width: 50px;
+    height: 32px;
+    padding-inline: 8px;
+    font-size: 10px;
+  }
+
+  .declaration-actions .primary-button,
+  .declaration-actions .pass-trump-button {
+    min-width: 75px;
+    min-height: 30px;
+    padding-inline: 8px;
+    font-size: 9px;
+  }
+
+  .declaration-reveal {
+    width: 84%;
+    min-height: 105px;
+    gap: 5px;
+    padding: 9px 10px;
+  }
+
+  .hand-heading > .hand-hint {
+    display: none;
+  }
+
+  .hand-hungarian-card .hungarian-card {
+    width: clamp(42px, 12vw, 56px);
+    height: clamp(68px, 19vw, 90px);
+  }
+
+  .belot-hand-area {
+    padding: 5px 7px;
   }
 }
 

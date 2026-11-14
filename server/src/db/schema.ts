@@ -82,6 +82,18 @@ export const games = pgTable("games", {
   team2Bela: integer("team2_bela"),
 });
 
+// Poruke iz chat-a po sobi, zadržane i nakon što partija započne
+export const roomMessages = pgTable("room_messages", {
+  id: serial("id").primaryKey(),
+  roomCode: varchar("room_code", { length: 8 }).notNull(),
+  userId: integer("user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  username: varchar("username", { length: 30 }).notNull(),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Igrači koji sudjeluju u pojedinoj partiji
 export const gamePlayers = pgTable(
   "game_players",

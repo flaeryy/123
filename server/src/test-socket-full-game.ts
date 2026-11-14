@@ -146,11 +146,44 @@ async function main() {
 
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        console.log("Adut je odabran.");
+        console.log("Adut je odabran; zvanja počinju.");
+
+        for (let declarationPlayer = 0; declarationPlayer < 4; declarationPlayer++) {
+            const declarationStatePromises = sockets.map((socket) =>
+                waitForEvent<GameView>(socket, "game_state"),
+            );
+            const declarationResponse = await emitAck(
+                sockets[declarationPlayer],
+                "submit_declarations",
+                { cards: [] },
+            );
+
+            if (!declarationResponse.success) {
+                throw new Error(
+                    declarationResponse.message ??
+                    `Igrač ${declarationPlayer + 1} nije završio zvanje.`,
+                );
+            }
+
+            const declarationViews = await Promise.all(declarationStatePromises);
+            declarationViews.forEach((view, index) => {
+                views[index] = view;
+            });
+        }
+
+        if (views.some((view) => view?.phase !== "playing")) {
+            throw new Error("Igra nije počela nakon kruga zvanja.");
+        }
+
+        console.log("Krug zvanja završen.");
 
         let playedCards = 0;
 
-        while (views[0]?.phase !== "finished" && playedCards < 32) {
+        while (
+            views[0]?.phase !== "round_finished" &&
+            views[0]?.phase !== "finished" &&
+            playedCards < 32
+        ) {
             const currentView = views[0];
 
             if (!currentView) {
@@ -245,8 +278,11 @@ async function main() {
 
         const finalView = views[0];
 
-        if (!finalView || finalView.phase !== "finished") {
-            throw new Error("Partija nije završila nakon 32 karte.");
+        if (
+            !finalView ||
+            (finalView.phase !== "round_finished" && finalView.phase !== "finished")
+        ) {
+            throw new Error("Dijeljenje nije završilo nakon 32 karte.");
         }
 
         if (finalView.completedTricks !== 8) {
@@ -268,8 +304,11 @@ async function main() {
                 throw new Error(`Nedostaje završno stanje igrača ${i + 1}.`);
             }
 
-            if (playerView.phase !== "finished") {
-                throw new Error(`Igrač ${i + 1} nije dobio završno stanje partije.`);
+            if (
+                playerView.phase !== "round_finished" &&
+                playerView.phase !== "finished"
+            ) {
+                throw new Error(`Igrač ${i + 1} nije dobio završno stanje dijeljenja.`);
             }
 
             if (playerView.finalScore === null) {

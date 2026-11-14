@@ -1,5 +1,5 @@
 
-import type { Card, Suit } from "./cards.js";
+import type { Card, Rank, Suit } from "./cards.js";
 import {
     getLegalCards,
     getTrickWinner,
@@ -10,6 +10,8 @@ import {
     findFourOfAKinds,
     compareAllDeclarations,
     type DeclarationResult,
+    type SequenceDeclaration,
+    type FourOfAKindDeclaration,
         createGameDeclarations,
     calculateFinalScore,
     type FinalGameResult,
@@ -29,7 +31,9 @@ export type GamePhase =
     | "dealing"
     | "trump_call"
     | "dealing_remaining"
+    | "declarations"
     | "playing"
+    | "round_finished"
     | "finished";
 
 // Podaci o jednom igraču.
@@ -46,6 +50,11 @@ export type GamePlayer = {
 export type GameState = {
     roomCode: string;
     players: GamePlayer[];
+    roundNumber: number;
+    dealerPlayerNumber: 1 | 2 | 3 | 4;
+    team1MatchScore: number;
+    team2MatchScore: number;
+    matchWinnerTeam: TeamNumber | null;
     declarationHands: Card[][];
     phase: GamePhase;
     remainingCards: Card[];
@@ -63,6 +72,17 @@ export type GameState = {
     team1Bela: number;
     team2Bela: number;
     belaAnnouncedBy: 1 | 2 | 3 | 4 | null;
+    declarationTurnPlayerNumber: 1 | 2 | 3 | 4 | null;
+    completedDeclarationPlayers: number[];
+    declaredSequences: SequenceDeclaration[];
+    declaredFourOfAKind: FourOfAKindDeclaration[];
+    team1DeclaredPoints: number;
+    team2DeclaredPoints: number;
+    activeDeclaration: {
+        playerNumber: 1 | 2 | 3 | 4;
+        cards: Card[];
+        points: number;
+    } | null;
     declarationResult: DeclarationResult | null;
      finalScore: FinalGameResult | null;
 };
@@ -74,7 +94,13 @@ export function createGameState(
         socketId: string;
         username: string;
     }[],
-    startPlayerNumber: 1 | 2 | 3 | 4
+    startPlayerNumber: 1 | 2 | 3 | 4,
+    matchProgress: {
+        roundNumber?: number;
+        dealerPlayerNumber?: 1 | 2 | 3 | 4;
+        team1MatchScore?: number;
+        team2MatchScore?: number;
+    } = {},
 ): GameState {
     if (players.length !== 4) {
         throw new Error("Za Belot su potrebna točno 4 igrača.");
@@ -83,25 +109,33 @@ export function createGameState(
     const deck = shuffleDeck(createDeck());
     const initialDeal = dealInitialCards(deck);
 
+    const dealerPlayerNumber = matchProgress.dealerPlayerNumber ??
+        (((startPlayerNumber + 2) % 4) + 1) as 1 | 2 | 3 | 4;
+
     const gamePlayers: GamePlayer[] = players.map((player, index) => ({
         playerNumber: (index + 1) as 1 | 2 | 3 | 4,
         socketId: player.socketId,
         username: player.username,
         team: index % 2 === 0 ? 1 : 2,
         hand: initialDeal.hands[index],
-        isDealer: index === 3,
+        isDealer: index + 1 === dealerPlayerNumber,
     }));
 
     return {
         roomCode,
         players: gamePlayers,
+        roundNumber: matchProgress.roundNumber ?? 1,
+        dealerPlayerNumber,
+        team1MatchScore: matchProgress.team1MatchScore ?? 0,
+        team2MatchScore: matchProgress.team2MatchScore ?? 0,
+        matchWinnerTeam: null,
         declarationHands: initialDeal.hands.map((hand) => [...hand]),
         phase: "trump_call",
         remainingCards: initialDeal.remainingCards,
         trumpSuit: null,
         trumpCallerPlayerNumber: null,
         callingTeam: null,
-        trumpTurnPlayerNumber: 1,
+        trumpTurnPlayerNumber: startPlayerNumber,
         currentPlayerNumber: startPlayerNumber,
         currentTrick: [],
         completedTricks: 0,
@@ -112,6 +146,13 @@ export function createGameState(
         team1Bela: 0,
         team2Bela: 0,
         belaAnnouncedBy: null,
+        declarationTurnPlayerNumber: null,
+        completedDeclarationPlayers: [],
+        declaredSequences: [],
+        declaredFourOfAKind: [],
+        team1DeclaredPoints: 0,
+        team2DeclaredPoints: 0,
+        activeDeclaration: null,
         declarationResult: null,
              finalScore: null,
     };
@@ -125,7 +166,7 @@ export function passTrump(state: GameState): GameState {
         throw new Error("Trenutno nije faza biranja aduta.");
     }
 
-    if (currentPlayer === 4) {
+    if (currentPlayer === state.dealerPlayerNumber) {
         throw new Error("Djelitelj mora odabrati adut.");
     }
 
@@ -149,7 +190,7 @@ export function chooseTrump(
         throw new Error("Nisi ti na redu za biranje aduta.");
     }
 
-    if (playerNumber === 4 && !trumpSuit) {
+    if (playerNumber === state.dealerPlayerNumber && !trumpSuit) {
         throw new Error("Djelitelj mora odabrati adut.");
     }
 
@@ -157,20 +198,6 @@ export function chooseTrump(
         hands: state.players.map((player) => player.hand),
         remainingCards: state.remainingCards,
     });
-
-    const sequences = completedDeal.players.flatMap((player, index) =>
-  findSequences(player.cards, index + 1)
-);
-
-const fourOfAKinds = completedDeal.players.flatMap((player, index) =>
-  findFourOfAKinds(player.cards, index + 1)
-);
-
-const declarationResult = compareAllDeclarations(
-  sequences,
-  fourOfAKinds,
-  1,
-);
 
     const updatedPlayers = state.players.map((player, index) => ({
         ...player,
@@ -183,13 +210,177 @@ const declarationResult = compareAllDeclarations(
         declarationHands: completedDeal.players.map((player) => [
             ...player.cards,
         ]),
-        phase: "playing",
+        phase: "declarations",
         remainingCards: [],
         trumpSuit,
         trumpCallerPlayerNumber: playerNumber,
         callingTeam: playerNumber === 1 || playerNumber === 3 ? 1 : 2,
-        currentPlayerNumber: 1,
-        declarationResult
+        currentPlayerNumber: state.currentPlayerNumber,
+        declarationTurnPlayerNumber: 1,
+        completedDeclarationPlayers: [],
+        declaredSequences: [],
+        declaredFourOfAKind: [],
+        declarationResult: null,
+    };
+}
+
+export function createNextDeal(state: GameState): GameState {
+    if (state.phase !== "round_finished") {
+        throw new Error("Novo dijeljenje može početi tek nakon završetka runde.");
+    }
+
+    const dealerPlayerNumber = ((state.dealerPlayerNumber % 4) + 1) as 1 | 2 | 3 | 4;
+    const firstPlayerNumber = ((dealerPlayerNumber % 4) + 1) as 1 | 2 | 3 | 4;
+
+    return createGameState(
+        state.roomCode,
+        state.players.map((player) => ({
+            socketId: player.socketId,
+            username: player.username,
+        })),
+        firstPlayerNumber,
+        {
+            roundNumber: state.roundNumber + 1,
+            dealerPlayerNumber,
+            team1MatchScore: state.team1MatchScore,
+            team2MatchScore: state.team2MatchScore,
+        },
+    );
+}
+
+const declarationRankOrder: Rank[] = [
+    "7", "8", "9", "10", "J", "Q", "K", "A",
+];
+
+function cardKey(card: Card): string {
+    return `${card.suit}:${card.rank}`;
+}
+
+export function submitDeclarations(
+    state: GameState,
+    playerNumber: 1 | 2 | 3 | 4,
+    selectedCards: Card[],
+): GameState {
+    if (state.phase !== "declarations") {
+        throw new Error("Trenutno nije faza zvanja.");
+    }
+
+    if (state.declarationTurnPlayerNumber !== playerNumber) {
+        throw new Error("Nisi ti na redu za zvanje.");
+    }
+
+    if (state.completedDeclarationPlayers.includes(playerNumber)) {
+        throw new Error("Već si završio svoj red za zvanje.");
+    }
+
+    const player = state.players.find((item) => item.playerNumber === playerNumber);
+
+    if (!player) {
+        throw new Error("Igrač nije pronađen.");
+    }
+
+    const selectedKeys = selectedCards.map(cardKey);
+
+    if (
+        selectedKeys.length > player.hand.length ||
+        new Set(selectedKeys).size !== selectedKeys.length ||
+        selectedCards.some((selected) =>
+            !player.hand.some(
+                (card) => card.suit === selected.suit && card.rank === selected.rank,
+            ),
+        )
+    ) {
+        throw new Error("Odabrane karte nisu u tvojoj ruci.");
+    }
+
+    let newSequences: SequenceDeclaration[] = [];
+    let newFourOfAKind: FourOfAKindDeclaration[] = [];
+
+    if (selectedCards.length > 0) {
+        newSequences = findSequences(selectedCards, playerNumber);
+        newFourOfAKind = findFourOfAKinds(selectedCards, playerNumber);
+
+        const declaredCardKeys = new Set<string>();
+
+        for (const sequence of newSequences) {
+            const highestIndex = declarationRankOrder.indexOf(sequence.highestRank);
+            const sequenceRanks = declarationRankOrder.slice(
+                highestIndex - sequence.length + 1,
+                highestIndex + 1,
+            );
+
+            for (const card of selectedCards) {
+                if (card.suit === sequence.suit && sequenceRanks.includes(card.rank)) {
+                    declaredCardKeys.add(cardKey(card));
+                }
+            }
+        }
+
+        for (const four of newFourOfAKind) {
+            for (const card of selectedCards) {
+                if (card.rank === four.rank) {
+                    declaredCardKeys.add(cardKey(card));
+                }
+            }
+        }
+
+        if (declaredCardKeys.size !== selectedKeys.length) {
+            throw new Error("Odabrane karte ne čine valjano zvanje.");
+        }
+    }
+
+    const completedDeclarationPlayers = [...state.completedDeclarationPlayers, playerNumber];
+    const declaredSequences = [...state.declaredSequences, ...newSequences];
+    const declaredFourOfAKind = [...state.declaredFourOfAKind, ...newFourOfAKind];
+    const newDeclarationPoints =
+        newSequences.reduce((total, declaration) => total + declaration.points, 0) +
+        newFourOfAKind.reduce((total, declaration) => total + declaration.points, 0);
+    let team1DeclaredPoints =
+        state.team1DeclaredPoints + (player.team === 1 ? newDeclarationPoints : 0);
+    let team2DeclaredPoints =
+        state.team2DeclaredPoints + (player.team === 2 ? newDeclarationPoints : 0);
+    const activeDeclaration = selectedCards.length > 0
+        ? { playerNumber, cards: selectedCards, points: newDeclarationPoints }
+        : null;
+
+    if (completedDeclarationPlayers.length < 4) {
+        return {
+            ...state,
+            completedDeclarationPlayers,
+            declaredSequences,
+            declaredFourOfAKind,
+            team1DeclaredPoints,
+            team2DeclaredPoints,
+            activeDeclaration,
+            declarationTurnPlayerNumber: ((playerNumber % 4) + 1) as 1 | 2 | 3 | 4,
+        };
+    }
+
+    const declarationResult = compareAllDeclarations(
+        declaredSequences,
+        declaredFourOfAKind,
+        1,
+    );
+
+    team1DeclaredPoints = declarationResult?.winningTeam === 1
+        ? declarationResult.points
+        : 0;
+    team2DeclaredPoints = declarationResult?.winningTeam === 2
+        ? declarationResult.points
+        : 0;
+
+    return {
+        ...state,
+        phase: "playing",
+        currentPlayerNumber: state.currentPlayerNumber,
+        declarationTurnPlayerNumber: null,
+        completedDeclarationPlayers,
+        declaredSequences,
+        declaredFourOfAKind,
+        team1DeclaredPoints,
+        team2DeclaredPoints,
+        activeDeclaration,
+        declarationResult,
     };
 }
 
@@ -260,12 +451,6 @@ export function playCard(
     // Bela se može najaviti samo jednom u partiji.
     if (mustAnnounceBela && state.belaAnnouncedBy !== null) {
         throw new Error("Bela je već najavljena u ovoj partiji.");
-    }
-
-    if (mustAnnounceBela && !announceBela) {
-        throw new Error(
-            "Moraš najaviti belu kada odigraš kralja ili damu aduta."
-        );
     }
 
     if (announceBela && !mustAnnounceBela) {
@@ -379,6 +564,15 @@ export function playCard(
             declarations
         );
     }
+    const team1MatchScore = state.team1MatchScore + (finalScore?.team1 ?? 0);
+    const team2MatchScore = state.team2MatchScore + (finalScore?.team2 ?? 0);
+    const matchWinnerTeam =
+        team1MatchScore >= 1001 && team1MatchScore > team2MatchScore
+            ? 1
+            : team2MatchScore >= 1001 && team2MatchScore > team1MatchScore
+                ? 2
+                : null;
+
     // Vraćamo ažurirano stanje nakon završenog štiha.
     return {
         ...state,
@@ -392,8 +586,15 @@ export function playCard(
         team1Bela: belaTeam1,
         team2Bela: belaTeam2,
         belaAnnouncedBy,
+        team1MatchScore,
+        team2MatchScore,
+        matchWinnerTeam,
         currentPlayerNumber: winningPlayedCard.playerNumber,
-        phase: isLastTrick ? "finished" : "playing",
+        phase: isLastTrick
+            ? matchWinnerTeam === null
+                ? "round_finished"
+                : "finished"
+            : "playing",
         finalScore,
     };
 }

@@ -2,6 +2,7 @@
 import {
     createGameState,
     chooseTrump,
+    submitDeclarations,
     playCard,
 } from "./game/game-engine.js";
 
@@ -43,7 +44,11 @@ const initialState = createGameState(
 );
 
 // Igrač 1 odabire adut.
-const gameState = chooseTrump(initialState, 1, "hearts");
+let gameState = chooseTrump(initialState, 1, "hearts");
+
+for (const playerNumber of [1, 2, 3, 4] as const) {
+    gameState = submitDeclarations(gameState, playerNumber, []);
+}
 
 // TEST 1: Igrač 2 pokušava igrati prije svog reda.
 checkRejected("TEST 1 - potez izvan reda", () => {

@@ -1,6 +1,7 @@
 
 import { randomBytes, createHash } from "node:crypto";
 import { and, eq, isNull, gt } from "drizzle-orm";
+import { OAuth2Client } from "google-auth-library";
 
 import { db } from "../db/index.js";
 import {
@@ -18,6 +19,8 @@ import {
 import { sendEmail } from "../services/email.js";
 import { createEmailVerificationToken } from "./auth-tokens.js";
 
+const googleOAuthClient = new OAuth2Client();
+
 // Standardizirana greška autentifikacije
 export class AuthError extends Error {
   constructor(
@@ -32,6 +35,34 @@ export class AuthError extends Error {
 // Hashiranje sigurnosnih tokena
 function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
+}
+
+async function createSession(account: {
+  accountId: number;
+  userId: number;
+  username: string;
+  email: string;
+}) {
+  const sessionToken = randomBytes(32).toString("hex");
+  const sessionTokenHash = hashToken(sessionToken);
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+  await db.insert(sessions).values({
+    accountId: account.accountId,
+    tokenHash: sessionTokenHash,
+    expiresAt,
+  });
+
+  return {
+    success: true,
+    sessionToken,
+    expiresAt,
+    user: {
+      id: account.userId,
+      username: account.username,
+      email: account.email,
+    },
+  };
 }
 
 // Registracija novog korisnika
@@ -246,27 +277,140 @@ export async function loginUser(email: string, password: string) {
     throw new AuthError(403, "Prvo potvrdi svoju e-mail adresu.");
   }
 
-  // Generiranje nove korisničke sesije
-  const sessionToken = randomBytes(32).toString("hex");
-  const sessionTokenHash = hashToken(sessionToken);
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  return createSession(account);
+}
 
-  await db.insert(sessions).values({
-    accountId: account.accountId,
-    tokenHash: sessionTokenHash,
-    expiresAt,
-  });
+export async function loginWithGoogle(credential: string) {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
 
-  return {
-    success: true,
-    sessionToken,
-    expiresAt,
-    user: {
-      id: account.userId,
-      username: account.username,
-      email: account.email,
-    },
-  };
+  if (!clientId) {
+    throw new AuthError(503, "Google prijava još nije konfigurirana.");
+  }
+
+  let payload;
+
+  try {
+    const ticket = await googleOAuthClient.verifyIdToken({
+      idToken: credential,
+      audience: clientId,
+    });
+    payload = ticket.getPayload();
+  } catch {
+    throw new AuthError(401, "Google prijava nije valjana. Pokušaj ponovno.");
+  }
+
+  if (!payload?.sub || !payload.email || payload.email_verified !== true) {
+    throw new AuthError(401, "Google račun nema potvrđenu e-mail adresu.");
+  }
+
+  const email = payload.email.trim().toLowerCase();
+  const [googleAccount] = await db
+    .select({
+      accountId: accounts.id,
+      userId: users.id,
+      username: users.username,
+      email: accounts.email,
+    })
+    .from(accounts)
+    .innerJoin(users, eq(accounts.userId, users.id))
+    .where(eq(accounts.googleId, payload.sub))
+    .limit(1);
+
+  if (googleAccount) {
+    return createSession(googleAccount);
+  }
+
+  const [emailAccount] = await db
+    .select({
+      accountId: accounts.id,
+      userId: users.id,
+      username: users.username,
+      email: accounts.email,
+      googleId: accounts.googleId,
+      emailVerifiedAt: accounts.emailVerifiedAt,
+    })
+    .from(accounts)
+    .innerJoin(users, eq(accounts.userId, users.id))
+    .where(eq(accounts.email, email))
+    .limit(1);
+
+  if (emailAccount) {
+    if (emailAccount.googleId && emailAccount.googleId !== payload.sub) {
+      throw new AuthError(409, "Ovaj e-mail već je povezan s drugim Google računom.");
+    }
+
+    await db
+      .update(accounts)
+      .set({
+        googleId: payload.sub,
+        emailVerifiedAt: emailAccount.emailVerifiedAt ?? new Date(),
+      })
+      .where(eq(accounts.id, emailAccount.accountId));
+
+    return createSession(emailAccount);
+  }
+
+  const suggestedName = (payload.name ?? email.split("@")[0])
+    .normalize("NFKC")
+    .replace(/[^\p{L}\p{N}_-]/gu, "")
+    .slice(0, 30);
+  const baseUsername = suggestedName.length >= 3
+    ? suggestedName
+    : `google${randomBytes(3).toString("hex")}`;
+
+  let username = baseUsername;
+  let suffix = 0;
+
+  while (
+    (await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.username, username))
+      .limit(1)).length > 0
+  ) {
+    suffix += 1;
+    const suffixText = `_${suffix}`;
+    username = `${baseUsername.slice(0, 30 - suffixText.length)}${suffixText}`;
+  }
+
+  try {
+    const account = await db.transaction(async (tx) => {
+      const [newUser] = await tx
+        .insert(users)
+        .values({ username })
+        .returning({ id: users.id });
+
+      const [newAccount] = await tx
+        .insert(accounts)
+        .values({
+          userId: newUser.id,
+          email,
+          googleId: payload.sub,
+          emailVerifiedAt: new Date(),
+        })
+        .returning({ id: accounts.id });
+
+      return {
+        accountId: newAccount.id,
+        userId: newUser.id,
+        username,
+        email,
+      };
+    });
+
+    return createSession(account);
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "23505"
+    ) {
+      throw new AuthError(409, "Google račun je već registriran. Pokušaj se prijaviti ponovno.");
+    }
+
+    throw error;
+  }
 }
 
 // Odjava i poništavanje sesije
@@ -296,6 +440,7 @@ export async function getSessionUser(sessionToken: string) {
       accountId: accounts.id,
       userId: users.id,
       username: users.username,
+      email: accounts.email,
     })
     .from(sessions)
     .innerJoin(accounts, eq(sessions.accountId, accounts.id))
