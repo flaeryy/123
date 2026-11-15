@@ -92,8 +92,8 @@ game = submitDeclarations(game, 1, [
 if (
   game.declaredSequences.length !== 1 ||
   game.phase !== "declarations" ||
-  game.activeDeclaration?.playerNumber !== 1 ||
-  game.activeDeclaration.points !== 20 ||
+ game.activeDeclarations[0]?.playerNumber !== 1 ||
+game.activeDeclarations[0]?.points !== 20 ||
   game.team1DeclaredPoints !== 20
 ) {
   throw new Error("Valjano zvanje nije prihvaćeno ili je partija prerano počela.");

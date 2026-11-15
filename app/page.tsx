@@ -76,11 +76,13 @@ type ClientGameState = {
   matchWinnerTeam: 1 | 2 | null;
   team1DeclaredPoints: number;
   team2DeclaredPoints: number;
-  activeDeclaration: {
+  team1Bela: number;
+  team2Bela: number;
+  activeDeclarations: {
     playerNumber: 1 | 2 | 3 | 4;
     cards: BelotCard[];
     points: number;
-  } | null;
+  }[];
   finalScore: {
     team1: number;
     team2: number;
@@ -166,6 +168,7 @@ function HomeContent() {
   const [chatMessages, setChatMessages] = useState<RoomChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [pendingBelaCard, setPendingBelaCard] = useState<BelotCard | null>(null);
+  const [belaDecisionMade, setBelaDecisionMade] = useState(false);
 
   const socketRef = useRef<Socket | null>(null);
   const autoJoinRoomCodeRef = useRef<string | null>(null);
@@ -469,15 +472,24 @@ function HomeContent() {
       return;
     }
 
-    const mustConfirmBela =
-      currentGame.trumpSuit !== null &&
-      card.suit === currentGame.trumpSuit &&
-      (card.rank === "K" || card.rank === "Q") &&
-      currentPlayer.hand.some(
-        (handCard) =>
-          handCard.suit === currentGame.trumpSuit &&
-          (handCard.rank === "K" || handCard.rank === "Q"),
-      );
+  const hasTrumpKing = currentPlayer.hand.some(
+  (handCard) =>
+    handCard.suit === currentGame.trumpSuit &&
+    handCard.rank === "K",
+);
+
+const hasTrumpQueen = currentPlayer.hand.some(
+  (handCard) =>
+    handCard.suit === currentGame.trumpSuit &&
+    handCard.rank === "Q",
+);
+
+const mustConfirmBela =
+  currentGame.trumpSuit !== null &&
+  card.suit === currentGame.trumpSuit &&
+  (card.rank === "K" || card.rank === "Q") &&
+  hasTrumpKing &&
+  hasTrumpQueen;
 
     if (mustConfirmBela) {
       setPendingBelaCard(card);
@@ -502,6 +514,8 @@ function HomeContent() {
     if (!socket || !card) {
       return;
     }
+
+    setBelaDecisionMade(true);
 
     setPendingBelaCard(null);
 
@@ -588,6 +602,9 @@ function HomeContent() {
       setError("Nisi povezan s poslužiteljem.");
       return;
     }
+
+    setBelaDecisionMade(false);
+    setPendingBelaCard(null);
 
     setLoading(true);
     setError("");
@@ -1058,6 +1075,100 @@ function HomeContent() {
     );
   }
 
+
+  if (user && gameStarted) {
+    if (!gameState) {
+      return (
+        <main className="game-only-page">
+          <p>Partija se učitava...</p>
+        </main>
+      );
+    }
+    return (
+      <main className="game-only-page">
+        <GameTable
+          players={gameState.players.map((player) => ({
+            id: player.socketId,
+            username: player.username,
+            seat: (player.playerNumber - 1) as 0 | 1 | 2 | 3,
+          }))}
+          hand={gameState.myHand}
+          playedCards={gameState.currentTrick}
+          currentPlayerId={
+            gameState.players.find(
+              (player) =>
+                player.playerNumber === gameState.currentPlayerNumber,
+            )?.socketId ?? null
+          }
+          viewerId={socketRef.current?.id ?? ""}
+          currentUserId={user.id}
+          messages={chatMessages}
+          chatInput={chatInput}
+          onChatInputChange={setChatInput}
+          onSendChat={sendChatMessage}
+          trump={gameState.trumpSuit}
+          team1Score={gameState.team1TrickPoints}
+          team2Score={gameState.team2TrickPoints}
+          phase={gameState.phase}
+          roundNumber={gameState.roundNumber}
+          team1MatchScore={gameState.team1MatchScore}
+          team2MatchScore={gameState.team2MatchScore}
+          matchWinnerTeam={gameState.matchWinnerTeam}
+          finalScore={gameState.finalScore}
+          team1DeclarationPoints={gameState.team1DeclaredPoints}
+          team2DeclarationPoints={gameState.team2DeclaredPoints}
+          team1Bela={gameState.team1Bela}
+          team2Bela={gameState.team2Bela}
+          activeDeclarations={gameState.activeDeclarations}
+          canStartNextDeal={
+            gameState.phase === "round_finished" &&
+            currentRoom?.players.some(
+              (player) => player.userId === user.id && player.isHost,
+            ) === true
+          }
+          nextDealLoading={loading}
+          declarationTurnPlayerNumber={gameState.declarationTurnPlayerNumber}
+          completedDeclarationPlayers={gameState.completedDeclarationPlayers}
+          canDeclare={
+            gameState.phase === "declarations" &&
+            gameState.players.some(
+              (player) =>
+                player.socketId === socketRef.current?.id &&
+                player.playerNumber === gameState.declarationTurnPlayerNumber,
+            )
+          }
+          canPlay={
+            gameState.phase === "playing" &&
+            gameState.activeDeclarations.length === 0 &&
+            gameState.players.some(
+              (player) =>
+                player.socketId === socketRef.current?.id &&
+                player.playerNumber === gameState.currentPlayerNumber,
+            )
+          }
+          canChooseTrump={
+            gameState.phase === "trump_call" &&
+            gameState.activeDeclarations.length === 0 &&
+            gameState.players.some(
+              (player) =>
+                player.socketId === socketRef.current?.id &&
+                player.playerNumber === gameState.trumpTurnPlayerNumber,
+            )
+          }
+          trumpTurnPlayerNumber={gameState.trumpTurnPlayerNumber}
+          onPlayCard={sendCardToServer}
+          belaDecisionOpen={!!pendingBelaCard}
+          pendingBelaCard={pendingBelaCard}
+          onConfirmBela={confirmBelaDecision}
+          onChooseTrump={chooseTrumpOnServer}
+          onPassTrump={passTrumpOnServer}
+          onSubmitDeclarations={submitDeclarations}
+          onStartNextDeal={startNextDeal}
+        />
+      </main>
+    );
+  }
+
   return (
     <main className="page-shell">
       {GOOGLE_CLIENT_ID && !user && (
@@ -1093,12 +1204,12 @@ function HomeContent() {
             najbolje poznaje Belot.
           </p>
 
-   <div className="suit-decoration" aria-hidden="true">
-  <span className="suit-icon suit-spades" />
-  <span className="suit-icon suit-hearts" />
-  <span className="suit-icon suit-diamonds" />
-  <span className="suit-icon suit-clubs" />
-</div>
+          <div className="suit-decoration" aria-hidden="true">
+            <span className="suit-icon suit-spades" />
+            <span className="suit-icon suit-hearts" />
+            <span className="suit-icon suit-diamonds" />
+            <span className="suit-icon suit-clubs" />
+          </div>
 
           <div className="hero-note">
             <span className="note-line" />
@@ -1136,92 +1247,7 @@ function HomeContent() {
               {error && <div className="message error">{error}</div>}
               {message && <div className="message success">{message}</div>}
 
-
-              {gameStarted ? (
-                gameState ? (
-                  <GameTable
-                    players={gameState.players.map((player) => ({
-                      id: player.socketId,
-                      username: player.username,
-                      seat: (player.playerNumber - 1) as 0 | 1 | 2 | 3,
-                    }))}
-                    hand={gameState.myHand}
-                    playedCards={gameState.currentTrick}
-                    currentPlayerId={
-                      gameState.players.find(
-                        (player) =>
-                          player.playerNumber === gameState.currentPlayerNumber,
-                      )?.socketId ?? null
-                    }
-                    viewerId={socketRef.current?.id ?? ""}
-                    currentUserId={user.id}
-                    messages={chatMessages}
-                    chatInput={chatInput}
-                    onChatInputChange={setChatInput}
-                    onSendChat={sendChatMessage}
-                    trump={gameState.trumpSuit}
-                    team1Score={gameState.team1TrickPoints}
-                    team2Score={gameState.team2TrickPoints}
-                    phase={gameState.phase}
-                    roundNumber={gameState.roundNumber}
-                    team1MatchScore={gameState.team1MatchScore}
-                    team2MatchScore={gameState.team2MatchScore}
-                    matchWinnerTeam={gameState.matchWinnerTeam}
-                    finalScore={gameState.finalScore}
-                                        team1DeclarationPoints={gameState.team1DeclaredPoints}
-                                        team2DeclarationPoints={gameState.team2DeclaredPoints}
-                                        activeDeclaration={gameState.activeDeclaration}
-                    canStartNextDeal={
-                      gameState.phase === "round_finished" &&
-                      currentRoom?.players.some(
-                        (player) => player.userId === user.id && player.isHost,
-                      ) === true
-                    }
-                    nextDealLoading={loading}
-                    declarationTurnPlayerNumber={gameState.declarationTurnPlayerNumber}
-                    completedDeclarationPlayers={gameState.completedDeclarationPlayers}
-                    canDeclare={
-                      gameState.phase === "declarations" &&
-                      gameState.players.some(
-                        (player) =>
-                          player.socketId === socketRef.current?.id &&
-                          player.playerNumber === gameState.declarationTurnPlayerNumber,
-                      )
-                    }
-                    canPlay={
-                      gameState.phase === "playing" &&
-                      gameState.activeDeclaration === null &&
-                      gameState.players.some(
-                        (player) =>
-                          player.socketId === socketRef.current?.id &&
-                          player.playerNumber === gameState.currentPlayerNumber,
-                      )
-                    }
-                    canChooseTrump={
-                      gameState.phase === "trump_call" &&
-                      gameState.activeDeclaration === null &&
-                      gameState.players.some(
-                        (player) =>
-                          player.socketId === socketRef.current?.id &&
-                          player.playerNumber === gameState.trumpTurnPlayerNumber,
-                      )
-                    }
-                    trumpTurnPlayerNumber={gameState.trumpTurnPlayerNumber}
-                    onPlayCard={sendCardToServer}
-                    belaDecisionOpen={!!pendingBelaCard}
-                    pendingBelaCard={pendingBelaCard}
-                    onConfirmBela={confirmBelaDecision}
-                    onChooseTrump={chooseTrumpOnServer}
-                    onPassTrump={passTrumpOnServer}
-                    onSubmitDeclarations={submitDeclarations}
-                    onStartNextDeal={startNextDeal}
-                  />
-                ) : (
-                  <div className="lobby-section">
-                    <h3>Partija se učitava...</h3>
-                  </div>
-                )
-              ) : currentRoom ? (
+              {currentRoom ? (
                 <WaitingRoom
                   room={currentRoom}
                   userId={user.id}
@@ -1239,7 +1265,9 @@ function HomeContent() {
                 />
               ) : pathname.startsWith("/room/") ? (
                 <div className="lobby-section">
-                  <h3>{loading ? "Soba se učitava..." : "Povezivanje sa sobom..."}</h3>
+                  <h3>
+                    {loading ? "Soba se učitava..." : "Povezivanje sa sobom..."}
+                  </h3>
                 </div>
               ) : (
                 <Lobby

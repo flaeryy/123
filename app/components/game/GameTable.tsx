@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import HungarianCard from "./HungarianCard";
+import "./GameTable.css";
 
 export type BelotSuit = "hearts" | "diamonds" | "clubs" | "spades";
 export type BelotRank = "7" | "8" | "9" | "10" | "J" | "Q" | "K" | "A";
@@ -49,11 +50,11 @@ type GameTableProps = {
   matchWinnerTeam?: 1 | 2 | null;
   team1DeclarationPoints?: number;
   team2DeclarationPoints?: number;
-  activeDeclaration?: {
+  activeDeclarations?: {
     playerNumber: 1 | 2 | 3 | 4;
     cards: BelotCard[];
     points: number;
-  } | null;
+  }[];
   finalScore?: {
     team1: number;
     team2: number;
@@ -78,6 +79,8 @@ type GameTableProps = {
   onPassTrump?: () => void;
   onSubmitDeclarations?: (cards: BelotCard[]) => void;
   onStartNextDeal?: () => void;
+  team1Bela?: number;
+team2Bela?: number;
 };
 
 const SUITS: Record<BelotSuit, { symbol: string; name: string; red: boolean; icon: string }> = {
@@ -137,7 +140,7 @@ export default function GameTable({
   matchWinnerTeam = null,
   team1DeclarationPoints = 0,
   team2DeclarationPoints = 0,
-  activeDeclaration = null,
+  activeDeclarations = [],
   finalScore = null,
   canStartNextDeal = false,
   nextDealLoading = false,
@@ -151,6 +154,8 @@ export default function GameTable({
   viewerPlayerNumber,
   belaDecisionOpen = false,
   pendingBelaCard = null,
+  team1Bela = 0,
+team2Bela = 0,
   onConfirmBela,
   onPlayCard,
   onChooseTrump,
@@ -181,8 +186,8 @@ export default function GameTable({
         turnKey: declarationTurnKey,
         cards: isSelected
           ? currentCards.filter(
-              (selected) => selected.suit !== card.suit || selected.rank !== card.rank,
-            )
+            (selected) => selected.suit !== card.suit || selected.rank !== card.rank,
+          )
           : [...currentCards, card],
       };
     });
@@ -224,13 +229,11 @@ export default function GameTable({
                 <strong>{finalScore?.team1 ?? team1Score}</strong>
                 <strong>{finalScore?.team2 ?? team2Score}</strong>
               </div>
-              <div className="result-row">
-                <span>Zvanje</span>
-                <strong>{finalScore?.winningTeam === 1 ? finalScore.declarationPoints : 0}</strong>
-                <strong>{finalScore?.winningTeam === 2 ? finalScore.declarationPoints : 0}</strong>
-                              <strong>{team1DeclarationPoints}</strong>
-                              <strong>{team2DeclarationPoints}</strong>
-              </div>
+          <div className="result-row">
+  <span>Zvanja</span>
+  <strong>{team1DeclarationPoints + team1Bela}</strong>
+  <strong>{team2DeclarationPoints + team2Bela}</strong>
+</div>
               <div className="result-row total-row">
                 <span>MEČ</span>
                 <strong>{team1MatchScore}</strong>
@@ -296,6 +299,17 @@ export default function GameTable({
           <header className="belot-header">
             <div>
               <div className="belot-brand">BELOT</div>
+              {trump && (
+                <div className="trump-indicator-header">
+                  <span>ADUT</span>
+                  <img
+                    src={SUITS[trump].icon}
+                    alt={`Adut ${SUITS[trump].name}`}
+                    className="trump-icon"
+                  />
+                  <strong>{SUITS[trump].name}</strong>
+                </div>
+              )}
               <div className="belot-subtitle">Klasična kartaška igra</div>
             </div>
 
@@ -313,158 +327,217 @@ export default function GameTable({
           </header>
 
           <section className="belot-table">
+
+
+            {activeDeclarations.length > 0 && (
+              <div className="declaration-reveal" aria-live="polite">
+                <strong>ZVANJA POBJEDNIČKE EKIPE</strong>
+
+                {activeDeclarations.map((declaration) => (
+                  <div
+                    key={declaration.playerNumber}
+                    className="declaration-reveal"
+                  >
+                    <span className="declaration-reveal-player">
+                      {players.find(
+                        (player) => player.seat + 1 === declaration.playerNumber
+                      )?.username ?? `Igrač ${declaration.playerNumber}`} zove
+                    </span>
+
+                    <div className="declaration-reveal-cards">
+                      {declaration.cards.map((card) => (
+                        <PlayingCard
+                          key={`${declaration.playerNumber}-${card.suit}-${card.rank}`}
+                          card={card}
+                          small
+                          disabled
+                        />
+                      ))}
+                    </div>
+
+                    <strong>{declaration.points} bodova</strong>
+                  </div>
+                ))}
+
+                <strong>
+                  Ukupno bodova:{" "}
+                  {activeDeclarations.reduce(
+                    (total, declaration) => total + declaration.points,
+                    0
+                  )}
+                </strong>
+              </div>
+            )}
+
             <div className="table-decoration" />
 
-        {sortedPlayers.map((player, index) => {
-          const position = positions[index];
-          const isCurrent = player.id === currentPlayerId;
-          const isMe = player.id === viewerId;
+            {sortedPlayers.map((player, index) => {
+              const position = positions[index];
+              const isCurrent = player.id === currentPlayerId;
+              const isMe = player.id === viewerId;
 
-          return (
-            <div
-              key={player.id}
-              className={`table-player player-${position} ${
-                isCurrent ? "active-player" : ""
-              }`}
-            >
-              <div className="player-avatar">
-                {player.username.slice(0, 1).toUpperCase()}
-              </div>
-              <div className="player-info">
-                <strong>{player.username}</strong>
-                <span>
-                  {isMe ? "Ti" : isCurrent ? "Na potezu" : "Igrač"}
-                </span>
-              </div>
-              {isCurrent && <span className="turn-indicator">●</span>}
-            </div>
-          );
-        })}
-
-        {phase !== "trump_call" && (
-          <div className="trump-indicator">
-            <span>ADUT</span>
-            <strong>
-              {trump ? (
-                <span className={SUITS[trump].red ? "red-suit" : "black-suit"}>
-                  {SUITS[trump].symbol} {SUITS[trump].name}
-                </span>
-              ) : (
-                "Još nije određen"
-              )}
-            </strong>
-          </div>
-        )}
-
-        <div className="played-cards">
-          {playedCards.map((played, index) => {
-            const player = playerByNumber(played.playerNumber);
-            const playerPosition = player
-              ? positions[(player.seat - viewerSeat + 4) % 4]
-              : positions[index];
-
-            return (
-              <div
-                className={`played-card played-card-${playerPosition}`}
-                key={`${played.playerNumber}-${index}`}
-              >
-                <PlayingCard card={played.card} small />
-                <span>{player?.username ?? `Igrač ${played.playerNumber}`}</span>
-              </div>
-            );
-          })}
-
-          {playedCards.length === 0 && phase === "playing" && (
-            <div className="empty-table-message">Čeka se prva karta...</div>
-          )}
-        </div>
-
-        {phase === "trump_call" && (
-          <section className="trump-controls in-table-trump-controls">
-            <strong>
-              {canChooseTrump
-                ? "Odaberi adut ili prođi"
-                : `Čeka se odabir igrača ${trumpTurnPlayerNumber ?? ""}`}
-            </strong>
-
-            <div className="trump-buttons">
-              {SUIT_ORDER.map((suit) => (
-                <button
-                  type="button"
-                  key={suit}
-                  disabled={!canChooseTrump}
-                  onClick={() => onChooseTrump?.(suit)}
-                  className={`suit-button ${SUITS[suit].red ? "red-suit" : "black-suit"}`}
-                  aria-label={SUITS[suit].name}
+              return (
+                <div
+                  key={player.id}
+                  className={`table-player player-${position} ${isCurrent ? "active-player" : ""
+                    }`}
                 >
-                  <img src={SUITS[suit].icon} alt={SUITS[suit].name} />
-                </button>
-              ))}
-
-              <button
-                type="button"
-                className="pass-trump-button"
-                disabled={!canChooseTrump}
-                onClick={onPassTrump}
-              >
-                Prođi
-              </button>
-            </div>
-          </section>
-        )}
-
-        {phase === "declarations" && !activeDeclaration && (
-          <section className="trump-controls in-table-trump-controls declaration-controls">
-            <span className="declaration-progress">
-              ZVANJA · {completedDeclarationPlayers.length}/4
-            </span>
-            <strong>
-              {activeDeclaration
-                ? "Zvanje se prikazuje svim igračima"
-                : canDeclare
-                ? "Odaberi karte i pozovi zvanje"
-                : `Čeka se ${players.find((player) => player.seat + 1 === declarationTurnPlayerNumber)?.username ?? `igrač ${declarationTurnPlayerNumber ?? ""}`}`}
-            </strong>
-            {canDeclare && (
-              <div className="declaration-actions">
-                <button
-                  type="button"
-                  className="primary-button"
-                  disabled={selectedDeclarationCards.length === 0}
-                  onClick={() => onSubmitDeclarations?.(selectedDeclarationCards)}
-                >
-                  Pozovi
-                </button>
-                <button
-                  type="button"
-                  className="pass-trump-button"
-                  onClick={() => onSubmitDeclarations?.([])}
-                >
-                  Nemam zvanja
-                </button>
-              </div>
-            )}
-
-            {activeDeclaration && (
-              <div className="declaration-reveal" aria-live="polite">
-                <span className="declaration-reveal-player">
-                  {players.find((player) => player.seat + 1 === activeDeclaration.playerNumber)?.username ?? "Igrač"} zove
-                </span>
-                <div className="declaration-reveal-cards">
-                  {activeDeclaration.cards.map((card) => (
-                    <PlayingCard
-                      key={`${card.suit}-${card.rank}`}
-                      card={card}
-                      small
-                      disabled
-                    />
-                  ))}
+                  <div className="player-avatar">
+                    {player.username.slice(0, 1).toUpperCase()}
+                  </div>
+                  <div className="player-info">
+                    <strong>{player.username}</strong>
+                    <span>
+                      {isMe ? "Ti" : isCurrent ? "Na potezu" : "Igrač"}
+                    </span>
+                  </div>
+                  {isCurrent && <span className="turn-indicator">●</span>}
                 </div>
-                <strong>{activeDeclaration.points} bodova</strong>
-              </div>
+              );
+            })}
+
+            <div className="played-cards">
+              {playedCards.map((played, index) => {
+                const player = playerByNumber(played.playerNumber);
+                const playerPosition = player
+                  ? positions[(player.seat - viewerSeat + 4) % 4]
+                  : positions[index];
+
+                return (
+                  <div
+                    className={`played-card played-card-${playerPosition}`}
+                    key={`${played.playerNumber}-${index}`}
+                  >
+                    <PlayingCard card={played.card} small />
+                    <span>{player?.username ?? `Igrač ${played.playerNumber}`}</span>
+                  </div>
+                );
+              })}
+
+              {playedCards.length === 0 && phase === "playing" && (
+                <div className="empty-table-message">Čeka se prva karta...</div>
+              )}
+            </div>
+
+            {phase === "trump_call" && (
+              <section className="trump-controls in-table-trump-controls">
+                <strong>
+                  {canChooseTrump
+                    ? "Odaberi adut ili prođi"
+                    : `Čeka se odabir igrača ${trumpTurnPlayerNumber ?? ""}`}
+                </strong>
+
+                <div className="trump-buttons">
+                  {SUIT_ORDER.map((suit) => (
+                    <button
+                      type="button"
+                      key={suit}
+                      disabled={!canChooseTrump}
+                      onClick={() => onChooseTrump?.(suit)}
+                      className={`suit-button ${SUITS[suit].red ? "red-suit" : "black-suit"}`}
+                      aria-label={SUITS[suit].name}
+                    >
+                      <img src={SUITS[suit].icon} alt={SUITS[suit].name} />
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    className="pass-trump-button"
+                    disabled={!canChooseTrump}
+                    onClick={onPassTrump}
+                  >
+                    Prođi
+                  </button>
+                </div>
+              </section>
             )}
-          </section>
-        )}
+
+            {(phase === "declarations" || activeDeclarations.length > 0) && (
+              <section className="trump-controls in-table-trump-controls declaration-controls">
+
+                {phase === "declarations" && (
+                  <>
+                    <span className="declaration-progress">
+                      ZVANJA · {completedDeclarationPlayers.length}/4
+                    </span>
+
+                    <strong>
+                      {canDeclare
+                        ? "Odaberi karte i pozovi zvanje"
+                        : `Čeka se ${players.find(
+                          (player) =>
+                            player.seat + 1 === declarationTurnPlayerNumber
+                        )?.username ?? `igrač ${declarationTurnPlayerNumber ?? ""}`
+                        }`}
+                    </strong>
+
+                    {canDeclare && (
+                      <div className="declaration-actions">
+                        <button
+                          type="button"
+                          className="primary-button"
+                          disabled={selectedDeclarationCards.length === 0}
+                          onClick={() =>
+                            onSubmitDeclarations?.(selectedDeclarationCards)
+                          }
+                        >
+                          Pozovi
+                        </button>
+
+                        <button
+                          type="button"
+                          className="pass-trump-button"
+                          onClick={() => onSubmitDeclarations?.([])}
+                        >
+                          Nemam zvanja
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {activeDeclarations.length > 0 && (
+                  <div className="declaration-reveal" aria-live="polite">
+                    <strong>ZVANJA POBJEDNIČKE EKIPE</strong>
+
+                    {activeDeclarations.map((declaration) => (
+                      <div
+                        key={declaration.playerNumber}
+                        className="declaration-reveal"
+                      >
+                        <span className="declaration-reveal-player">
+                          {playerByNumber(declaration.playerNumber)?.username ??
+                            `Igrač ${declaration.playerNumber}`}{" "}
+                          zove
+                        </span>
+
+                        <div className="declaration-reveal-cards">
+                          {declaration.cards.map((card) => (
+                            <PlayingCard
+                              key={`${declaration.playerNumber}-${card.suit}-${card.rank}`}
+                              card={card}
+                              small
+                              disabled
+                            />
+                          ))}
+                        </div>
+
+                        <strong>{declaration.points} bodova</strong>
+                      </div>
+                    ))}
+
+                    <strong>
+                      Ukupno bodova:{" "}
+                      {activeDeclarations.reduce(
+                        (total, declaration) => total + declaration.points,
+                        0
+                      )}
+                    </strong>
+                  </div>
+                )}
+              </section>
+            )}
           </section>
         </section>
       </div>
@@ -482,20 +555,6 @@ export default function GameTable({
           <span>
             Meč do 1001: {team1MatchScore} : {team2MatchScore}
           </span>
-          {phase === "round_finished" && (
-            canStartNextDeal ? (
-              <button
-                className="primary-button next-deal-button"
-                type="button"
-                onClick={onStartNextDeal}
-                disabled={nextDealLoading}
-              >
-                {nextDealLoading ? "Pokrećem..." : "Sljedeće dijeljenje"}
-              </button>
-            ) : (
-              <span>Čeka se domaćin da pokrene sljedeće dijeljenje.</span>
-            )
-          )}
         </div>
       )}
 

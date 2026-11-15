@@ -1817,3 +1817,392 @@
 }
 
 
+/* Sužena i centrirana zona karata */
+.belot-hand-area {
+  width: min(100%, 850px);
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 10px 16px;
+  border-radius: 14px;
+}
+
+/* Malo veće karte u ruci */
+.belot-hand {
+  justify-content: center;
+  gap: 9px;
+  padding: 20px 8px 12px;
+}
+
+.hand-hungarian-card .hungarian-card {
+  width: 96px;
+  height: 154px;
+}
+
+/* Adut u gornjem lijevom kutu stola */
+.trump-indicator {
+  top: 22px;
+  left: 26px;
+  transform: none;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  background: rgba(5, 35, 24, 0.85);
+  z-index: 4;
+}
+
+.trump-indicator span {
+  color: #d8e8d9;
+}
+
+.trump-indicator strong {
+  font-size: 16px;
+}
+
+/* Prilagodba mobitelima */
+@media (max-width: 700px) {
+  .belot-hand-area {
+    width: 100%;
+    max-width: 100%;
+    padding: 5px 7px;
+  }
+
+  .belot-hand {
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .hand-hungarian-card .hungarian-card {
+    width: clamp(48px, 13vw, 62px);
+    height: clamp(76px, 20vw, 98px);
+  }
+
+  .trump-indicator {
+    top: 12px;
+    left: 12px;
+    padding: 5px 8px;
+    font-size: 9px;
+  }
+
+  .trump-indicator strong {
+    font-size: 13px;
+  }
+}
+
+
+/* Malo veće odigrane karte na stolu */
+.played-hungarian-card .hungarian-card {
+  width: 76px;
+  height: 122px;
+}
+
+/* Prilagodba za mobitele */
+@media (max-width: 700px) {
+  .played-hungarian-card .hungarian-card {
+    width: 48px;
+    height: 78px;
+  }
+}
+
+
+.trump-indicator-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 7px 16px;
+  margin-left: 12px;
+  border: 1px solid rgba(240, 212, 142, 0.55);
+  border-radius: 10px;
+  background: rgba(4, 42, 29, 0.9);
+  min-width: 85px;
+  flex-shrink: 0;
+}
+
+.trump-indicator-header span {
+  color: #e8eee8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.trump-indicator-header strong {
+  font-size: 20px;
+}
+
+@media (max-width: 560px) {
+  .trump-indicator-header {
+    min-width: 65px;
+    padding: 5px 9px;
+    margin-left: 4px;
+  }
+
+  .trump-indicator-header strong {
+    font-size: 16px;
+  }
+}
+
+.trump-indicator-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 7px 14px;
+  margin-left: 12px;
+  border: 1px solid rgba(240, 212, 142, 0.55);
+  border-radius: 10px;
+  background: rgba(4, 42, 29, 0.9);
+  min-width: 85px;
+  flex-shrink: 0;
+}
+
+.trump-indicator-header span {
+  color: #e8eee8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.trump-indicator-header .trump-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.trump-indicator-header strong {
+  color: white;
+  font-size: 13px;
+}
+
+@media (max-width: 560px) {
+  .trump-indicator-header {
+    min-width: 60px;
+    padding: 5px 8px;
+    margin-left: 4px;
+  }
+
+  .trump-indicator-header .trump-icon {
+    width: 25px;
+    height: 25px;
+  }
+}
+
+/* REZULTAT - sidebar */
+.belot-sidebar-card {
+  width: 100%;
+  overflow: hidden;
+  padding: 0;
+  border: 2px solid rgba(220, 235, 224, 0.85);
+  border-radius: 18px;
+  background: rgba(76, 99, 83, 0.94);
+  color: #f3f5ef;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.25),
+    inset 0 0 8px rgba(255, 255, 255, 0.08);
+}
+
+/* Tablica rezultata */
+.belot-sidebar-card table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  margin: 0;
+}
+
+/* Zaglavlje */
+.belot-sidebar-card thead th {
+  height: 52px;
+  padding: 8px 5px;
+  color: #f5f5ef;
+  background: rgba(35, 53, 43, 0.65);
+  font-size: 20px;
+  font-weight: 800;
+  text-align: center;
+  border-bottom: 2px solid rgba(225, 237, 225, 0.8);
+  border-right: 2px solid rgba(225, 237, 225, 0.55);
+}
+
+.belot-sidebar-card thead th:first-child {
+  width: 53%;
+  text-align: left;
+  padding-left: 14px;
+}
+
+.belot-sidebar-card thead th:last-child {
+  border-right: 0;
+}
+
+/* Redovi rezultata */
+.belot-sidebar-card tbody td {
+  height: 27px;
+  padding: 3px 8px;
+  background: rgba(105, 126, 108, 0.55);
+  border-bottom: 1px solid rgba(225, 237, 225, 0.55);
+  border-right: 2px solid rgba(225, 237, 225, 0.45);
+  font-size: 14px;
+}
+
+.belot-sidebar-card tbody td:first-child {
+  text-align: right;
+  color: rgba(240, 245, 237, 0.85);
+  font-weight: 600;
+}
+
+.belot-sidebar-card tbody td:not(:first-child) {
+  text-align: right;
+  color: #fff;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.belot-sidebar-card tbody td:last-child {
+  border-right: 0;
+}
+
+/* Ukupno */
+.belot-sidebar-card tfoot td {
+  height: 43px;
+  padding: 6px 8px;
+  background: rgba(65, 87, 71, 0.9);
+  border-top: 2px solid rgba(225, 237, 225, 0.8);
+  border-right: 2px solid rgba(225, 237, 225, 0.45);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.belot-sidebar-card tfoot td:first-child {
+  text-align: right;
+}
+
+.belot-sidebar-card tfoot td:last-child {
+  border-right: 0;
+}
+
+/* Pregled cijele partije */
+.belot-sidebar-card button {
+  width: 100%;
+  min-height: 39px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0;
+  padding: 7px 10px;
+  border: 0;
+  border-top: 2px solid rgba(225, 237, 225, 0.8);
+  border-radius: 0;
+  background: rgba(30, 49, 39, 0.95);
+  color: #f5f5ef;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.belot-sidebar-card button:hover {
+  background: rgba(45, 68, 52, 1);
+}
+
+
+/* SIDEBAR - KARTICA REZULTATA */
+.belot-sidebar-card {
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid rgba(225, 238, 228, 0.85);
+  border-radius: 18px;
+  background: #536b5a;
+  color: #f5f5ef;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* Sakrij naslov BELO T */
+.belot-sidebar-title {
+  display: none;
+}
+
+/* Tablica rezultata */
+.belot-sidebar-card .result-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Zaglavlje */
+.belot-sidebar-card .result-header,
+.belot-sidebar-card .result-row {
+  display: grid;
+  grid-template-columns: 1.4fr 0.6fr 0.6fr;
+  align-items: center;
+  gap: 0;
+}
+
+.belot-sidebar-card .result-header {
+  min-height: 36px;
+  padding: 5px 8px;
+  background: rgba(35, 52, 42, 0.65);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 900;
+  text-align: center;
+  border-bottom: 2px solid rgba(225, 238, 228, 0.8);
+}
+
+.belot-sidebar-card .result-header span:first-child {
+  text-align: left;
+}
+
+/* Redovi */
+.belot-sidebar-card .result-row {
+  min-height: 26px;
+  padding: 2px 8px;
+  border-bottom: 1px solid rgba(225, 238, 228, 0.55);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.belot-sidebar-card .result-row span {
+  text-align: right;
+  padding-right: 8px;
+  color: #e3eae2;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.belot-sidebar-card .result-row strong {
+  min-height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 2px solid rgba(225, 238, 228, 0.45);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+/* Ukupno / MEČ */
+.belot-sidebar-card .total-row {
+  min-height: 30px;
+  padding-top: 0;
+  border-top: 1px solid rgba(225, 238, 228, 0.8);
+  border-bottom: 0;
+  background: rgba(35, 52, 42, 0.45);
+}
+
+.belot-sidebar-card .total-row span {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.belot-sidebar-card .total-row strong {
+  font-size: 19px;
+}
+
+
+

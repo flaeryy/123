@@ -78,11 +78,17 @@ export type GameState = {
     declaredFourOfAKind: FourOfAKindDeclaration[];
     team1DeclaredPoints: number;
     team2DeclaredPoints: number;
-    activeDeclaration: {
-        playerNumber: 1 | 2 | 3 | 4;
-        cards: Card[];
-        points: number;
-    } | null;
+pendingDeclarations: {
+    playerNumber: 1 | 2 | 3 | 4;
+    cards: Card[];
+    points: number;
+}[];
+
+activeDeclarations: {
+    playerNumber: 1 | 2 | 3 | 4;
+    cards: Card[];
+    points: number;
+}[];
     declarationResult: DeclarationResult | null;
      finalScore: FinalGameResult | null;
 };
@@ -152,7 +158,8 @@ export function createGameState(
         declaredFourOfAKind: [],
         team1DeclaredPoints: 0,
         team2DeclaredPoints: 0,
-        activeDeclaration: null,
+        pendingDeclarations: [],
+activeDeclarations: [],
         declarationResult: null,
              finalScore: null,
     };
@@ -256,6 +263,7 @@ function cardKey(card: Card): string {
     return `${card.suit}:${card.rank}`;
 }
 
+
 export function submitDeclarations(
     state: GameState,
     playerNumber: 1 | 2 | 3 | 4,
@@ -273,7 +281,9 @@ export function submitDeclarations(
         throw new Error("Već si završio svoj red za zvanje.");
     }
 
-    const player = state.players.find((item) => item.playerNumber === playerNumber);
+    const player = state.players.find(
+        (item) => item.playerNumber === playerNumber
+    );
 
     if (!player) {
         throw new Error("Igrač nije pronađen.");
@@ -286,7 +296,9 @@ export function submitDeclarations(
         new Set(selectedKeys).size !== selectedKeys.length ||
         selectedCards.some((selected) =>
             !player.hand.some(
-                (card) => card.suit === selected.suit && card.rank === selected.rank,
+                (card) =>
+                    card.suit === selected.suit &&
+                    card.rank === selected.rank,
             ),
         )
     ) {
@@ -303,14 +315,20 @@ export function submitDeclarations(
         const declaredCardKeys = new Set<string>();
 
         for (const sequence of newSequences) {
-            const highestIndex = declarationRankOrder.indexOf(sequence.highestRank);
+            const highestIndex = declarationRankOrder.indexOf(
+                sequence.highestRank
+            );
+
             const sequenceRanks = declarationRankOrder.slice(
                 highestIndex - sequence.length + 1,
                 highestIndex + 1,
             );
 
             for (const card of selectedCards) {
-                if (card.suit === sequence.suit && sequenceRanks.includes(card.rank)) {
+                if (
+                    card.suit === sequence.suit &&
+                    sequenceRanks.includes(card.rank)
+                ) {
                     declaredCardKeys.add(cardKey(card));
                 }
             }
@@ -329,45 +347,75 @@ export function submitDeclarations(
         }
     }
 
-    const completedDeclarationPlayers = [...state.completedDeclarationPlayers, playerNumber];
-    const declaredSequences = [...state.declaredSequences, ...newSequences];
-    const declaredFourOfAKind = [...state.declaredFourOfAKind, ...newFourOfAKind];
-    const newDeclarationPoints =
-        newSequences.reduce((total, declaration) => total + declaration.points, 0) +
-        newFourOfAKind.reduce((total, declaration) => total + declaration.points, 0);
-    let team1DeclaredPoints =
-        state.team1DeclaredPoints + (player.team === 1 ? newDeclarationPoints : 0);
-    let team2DeclaredPoints =
-        state.team2DeclaredPoints + (player.team === 2 ? newDeclarationPoints : 0);
-    const activeDeclaration = selectedCards.length > 0
-        ? { playerNumber, cards: selectedCards, points: newDeclarationPoints }
-        : null;
+    const completedDeclarationPlayers = [
+        ...state.completedDeclarationPlayers,
+        playerNumber,
+    ];
 
+    const declaredSequences = [
+        ...state.declaredSequences,
+        ...newSequences,
+    ];
+
+    const declaredFourOfAKind = [
+        ...state.declaredFourOfAKind,
+        ...newFourOfAKind,
+    ];
+
+    const newDeclarationPoints =
+        newSequences.reduce(
+            (total, declaration) => total + declaration.points,
+            0,
+        ) +
+        newFourOfAKind.reduce(
+            (total, declaration) => total + declaration.points,
+            0,
+        );
+
+    const pendingDeclarations = selectedCards.length > 0
+        ? [
+            ...state.pendingDeclarations,
+            {
+                playerNumber,
+                cards: [...selectedCards],
+                points: newDeclarationPoints,
+            },
+        ]
+        : [...state.pendingDeclarations];
+
+    // Dok sva četiri igrača ne završe, ništa se ne otkriva.
     if (completedDeclarationPlayers.length < 4) {
         return {
             ...state,
             completedDeclarationPlayers,
             declaredSequences,
             declaredFourOfAKind,
-            team1DeclaredPoints,
-            team2DeclaredPoints,
-            activeDeclaration,
-            declarationTurnPlayerNumber: ((playerNumber % 4) + 1) as 1 | 2 | 3 | 4,
+            pendingDeclarations,
+            activeDeclarations: [],
+            declarationTurnPlayerNumber:
+                ((playerNumber % 4) + 1) as 1 | 2 | 3 | 4,
         };
     }
 
+    // Uspoređujemo najjača zvanja obiju ekipa.
     const declarationResult = compareAllDeclarations(
         declaredSequences,
         declaredFourOfAKind,
-        1,
+        state.currentPlayerNumber as 1 | 2 | 3 | 4,
     );
 
-    team1DeclaredPoints = declarationResult?.winningTeam === 1
-        ? declarationResult.points
-        : 0;
-    team2DeclaredPoints = declarationResult?.winningTeam === 2
-        ? declarationResult.points
-        : 0;
+    const winningTeam = declarationResult?.winningTeam ?? null;
+
+    // Otkrivamo samo zvanja igrača pobjedničke ekipe.
+    const activeDeclarations = winningTeam === null
+        ? []
+        : pendingDeclarations.filter((declaration) => {
+            const declarationPlayer = state.players.find(
+                (item) => item.playerNumber === declaration.playerNumber,
+            );
+
+            return declarationPlayer?.team === winningTeam;
+        });
 
     return {
         ...state,
@@ -377,12 +425,16 @@ export function submitDeclarations(
         completedDeclarationPlayers,
         declaredSequences,
         declaredFourOfAKind,
-        team1DeclaredPoints,
-        team2DeclaredPoints,
-        activeDeclaration,
+        pendingDeclarations,
+        activeDeclarations,
+        team1DeclaredPoints:
+            winningTeam === 1 ? declarationResult!.points : 0,
+        team2DeclaredPoints:
+            winningTeam === 2 ? declarationResult!.points : 0,
         declarationResult,
     };
 }
+
 
 // Vraća sljedećeg igrača u smjeru kazaljke na satu.
 function getNextPlayer(
@@ -447,11 +499,6 @@ export function playCard(
 
     const mustAnnounceBela =
         isTrumpKingOrQueen && playerHasBela;
-
-    // Bela se može najaviti samo jednom u partiji.
-    if (mustAnnounceBela && state.belaAnnouncedBy !== null) {
-        throw new Error("Bela je već najavljena u ovoj partiji.");
-    }
 
     if (announceBela && !mustAnnounceBela) {
         throw new Error("Nemaš pravo najaviti belu.");
