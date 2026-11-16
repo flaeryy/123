@@ -790,6 +790,16 @@ io.on("connection", (socket) => {
         }
 
         const selectedCards = (data.cards ?? []) as Card[];
+
+        console.log("ZAPRIMLJENO ZVANJE:", {
+  phase: gameState.phase,
+  roundNumber: gameState.roundNumber,
+  playerNumber: player.playerNumber,
+  declarationTurnPlayerNumber: gameState.declarationTurnPlayerNumber,
+  completedDeclarationPlayers: gameState.completedDeclarationPlayers,
+  selectedCards,
+});
+
         const updatedState = submitDeclarations(
           gameState,
           player.playerNumber,
@@ -881,6 +891,33 @@ if (updatedState.activeDeclarations.length > 0) {
       });
     }
   });
+
+// TODO OBRISATI
+  socket.on("test_next_deal", () => {
+  try {
+    const room = roomManager.getPlayerRoom(socket.id);
+
+    if (!room) {
+      throw new Error("Nisi u sobi.");
+    }
+
+    const gameState = activeGames.get(room.code);
+
+    if (!gameState) {
+      throw new Error("Partija nije pronađena.");
+    }
+
+    const nextState = createNextDeal({
+      ...gameState,
+      phase: "round_finished",
+    });
+
+    activeGames.set(room.code, nextState);
+    broadcastGameState(nextState);
+  } catch (error) {
+    console.error("Greška testnog dijeljenja:", error);
+  }
+});
 
 
   // IGRANJE KARTE

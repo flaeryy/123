@@ -1,0 +1,45 @@
+
+.declaration-progress {
+  display: block;
+  margin-bottom: 5px;
+  color: #d7bc7a;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.declaration-controls > strong {
+  margin-bottom: 0;
+}
+
+.declaration-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.declaration-actions .primary-button,
+.declaration-actions .pass-trump-button {
+  min-width: 88px;
+  min-height: 34px;
+  margin: 0;
+  padding: 0 11px;
+  font-size: 10px;
+}
+
+.declaration-actions .primary-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 560px) {
+  .declaration-actions .primary-button,
+  .declaration-actions .pass-trump-button {
+    min-width: 75px;
+    min-height: 30px;
+    padding-inline: 8px;
+    font-size: 9px;
+  }
+}

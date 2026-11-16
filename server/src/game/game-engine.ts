@@ -179,7 +179,7 @@ export function passTrump(state: GameState): GameState {
 
     return {
         ...state,
-        trumpTurnPlayerNumber: (currentPlayer + 1) as 1 | 2 | 3 | 4,
+        trumpTurnPlayerNumber: (currentPlayer % 4 + 1) as 1 | 2 | 3 | 4,
     };
 }
 
@@ -223,7 +223,7 @@ export function chooseTrump(
         trumpCallerPlayerNumber: playerNumber,
         callingTeam: playerNumber === 1 || playerNumber === 3 ? 1 : 2,
         currentPlayerNumber: state.currentPlayerNumber,
-        declarationTurnPlayerNumber: 1,
+        declarationTurnPlayerNumber: state.currentPlayerNumber as 1 | 2 | 3 | 4,
         completedDeclarationPlayers: [],
         declaredSequences: [],
         declaredFourOfAKind: [],

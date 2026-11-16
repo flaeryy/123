@@ -1,0 +1,183 @@
+
+.in-table-trump-controls {
+  position: absolute;
+  z-index: 10;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+
+  width: min(76%, 340px);
+  margin: 0;
+  padding: 0;
+
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.trump-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  width: 100%;
+  min-height: 82px;
+  padding: 10px;
+
+  background: rgba(220, 242, 235, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 9px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+  box-sizing: border-box;
+}
+
+.trump-prompt > strong {
+  color: #273b39;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.trump-prompt .pass-trump-button {
+  min-width: 112px;
+  height: 30px;
+  padding: 2px 18px;
+
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+
+  background: #64a9c4;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.trump-prompt .pass-trump-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.in-table-trump-controls .trump-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.in-table-trump-controls .suit-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  height: 38px;
+  padding: 0;
+
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.in-table-trump-controls .suit-button img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+@media (max-width: 560px) {
+  .in-table-trump-controls {
+    width: 82%;
+    gap: 6px;
+  }
+
+  .trump-prompt {
+    min-height: 76px;
+    padding: 8px;
+  }
+
+  .trump-prompt > strong {
+    font-size: 13px;
+  }
+
+  .trump-prompt .pass-trump-button {
+    min-width: 105px;
+    height: 29px;
+    font-size: 15px;
+  }
+
+  .in-table-trump-controls .trump-buttons {
+    gap: 6px;
+  }
+
+  .in-table-trump-controls .suit-button {
+    width: 34px;
+    height: 34px;
+  }
+
+  .in-table-trump-controls .suit-button img {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+
+/* Hover na znakove aduta */
+.in-table-trump-controls .suit-button {
+  transition:
+    transform 160ms ease,
+    filter 160ms ease;
+  cursor: pointer;
+}
+
+.in-table-trump-controls .suit-button:hover:not(:disabled) {
+  transform: translateY(-6px) scale(1.18);
+  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.45));
+}
+
+/* Klik na znak aduta */
+.in-table-trump-controls .suit-button:active:not(:disabled) {
+  transform: translateY(-2px) scale(1.08);
+}
+
+/* Hover na gumb DALJE */
+.trump-prompt .pass-trump-button {
+  transition:
+    transform 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.trump-prompt .pass-trump-button:hover:not(:disabled) {
+  background: #438eae;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* Klik na DALJE */
+.trump-prompt .pass-trump-button:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Onemogućeni elementi */
+.in-table-trump-controls .suit-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.trump-prompt .pass-trump-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
