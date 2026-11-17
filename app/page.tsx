@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useEffect, useRef, useState, useContext, type FormEvent } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Script from "next/script";
-import { io, type Socket } from "socket.io-client";
+//import { io, type Socket } from "socket.io-client";
 import { AppShellContext } from "./AppShellContext";
 import GameTable, {
   type BelotCard,
@@ -14,9 +13,11 @@ import GameTable, {
 } from "./components/game/GameTable";
 import Lobby from "./components/lobby/Lobby";
 import WaitingRoom from "./components/lobby/WaitingRoom";
+import { useRoomChat } from "./hooks/useRoomChat";
+import { useSocket } from "./hooks/useSocket";
+import { useAuth } from "./hooks/useAuth";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 type GoogleCredentialResponse = {
@@ -51,7 +52,6 @@ declare global {
   }
 }
 
-
 type ClientGamePlayer = {
   playerNumber: 1 | 2 | 3 | 4;
   socketId: string;
@@ -64,7 +64,14 @@ type ClientGamePlayer = {
 type ClientGameState = {
   roomCode: string;
   players: ClientGamePlayer[];
-  phase: "dealing" | "trump_call" | "dealing_remaining" | "declarations" | "playing" | "round_finished" | "finished";
+  phase:
+    | "dealing"
+    | "trump_call"
+    | "dealing_remaining"
+    | "declarations"
+    | "playing"
+    | "round_finished"
+    | "finished";
   trumpSuit: BelotSuit | null;
   trumpTurnPlayerNumber: 1 | 2 | 3 | 4;
   declarationTurnPlayerNumber: 1 | 2 | 3 | 4 | null;
@@ -73,6 +80,11 @@ type ClientGameState = {
   dealerPlayerNumber: 1 | 2 | 3 | 4;
   team1MatchScore: number;
   team2MatchScore: number;
+  roundHistory: {
+    roundNumber: number;
+    team1: number;
+    team2: number;
+  }[];
   matchWinnerTeam: 1 | 2 | null;
   team1DeclaredPoints: number;
   team2DeclaredPoints: number;
@@ -136,15 +148,6 @@ type RoomResponse = {
   rooms?: Room[];
 };
 
-type RoomChatMessage = {
-  id: number;
-  roomCode: string;
-  userId: number | null;
-  username: string;
-  message: string;
-  createdAt: string | Date;
-};
-
 function HomeContent() {
   const pathname = usePathname();
   const router = useRouter();
@@ -158,19 +161,28 @@ function HomeContent() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [socketConnected, setSocketConnected] = useState(false);
   const [publicRooms, setPublicRooms] = useState<Room[]>([]);
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
   const [roomCode, setRoomCode] = useState("");
   const [isPublic, setIsPublic] = useState(true);
   const [minRating, setMinRating] = useState("0");
   const [gameStarted, setGameStarted] = useState(false);
-  const [chatMessages, setChatMessages] = useState<RoomChatMessage[]>([]);
-  const [chatInput, setChatInput] = useState("");
-  const [pendingBelaCard, setPendingBelaCard] = useState<BelotCard | null>(null);
-  const [belaDecisionMade, setBelaDecisionMade] = useState(false);
+  // Upravljanje Socket.IO vezom izdvojeno je u zaseban hook.
+  const { socketRef, socketConnected } = useSocket(user, API_URL);
+  const { logout, restoreSession } = useAuth(API_URL);
 
-  const socketRef = useRef<Socket | null>(null);
+  const {
+    chatMessages,
+    chatInput,
+    setChatInput,
+    sendChatMessage,
+    registerChatListeners,
+    clearChat,
+  } = useRoomChat(socketRef, setError, user?.id ?? null);
+  const [pendingBelaCard, setPendingBelaCard] = useState<BelotCard | null>(
+    null,
+  );
+  const [belaDecisionMade, setBelaDecisionMade] = useState(false);
   const autoJoinRoomCodeRef = useRef<string | null>(null);
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
   const googleInitializedRef = useRef(false);
@@ -239,16 +251,10 @@ function HomeContent() {
   }
 
   useEffect(() => {
-    const savedToken = sessionStorage.getItem("belot_session");
-    const savedUser = sessionStorage.getItem("belot_user");
+    const restoredUser = restoreSession();
 
-    if (savedToken && savedUser) {
-      try {
-        setUser(JSON.parse(savedUser) as User);
-      } catch {
-        sessionStorage.removeItem("belot_session");
-        sessionStorage.removeItem("belot_user");
-      }
+    if (restoredUser) {
+      setUser(restoredUser);
     }
 
     const params = new URLSearchParams(window.location.search);
@@ -257,7 +263,6 @@ function HomeContent() {
     if (verificationToken) {
       void verifyEmail(verificationToken);
     }
-
   }, []);
 
   useEffect(() => {
@@ -293,7 +298,11 @@ function HomeContent() {
 
     const roomRouteMatch = pathname.match(/^\/room\/([A-HJ-NP-Z2-9]{6})$/);
 
-    if (roomRouteMatch && currentRoom && currentRoom.code !== roomRouteMatch[1]) {
+    if (
+      roomRouteMatch &&
+      currentRoom &&
+      currentRoom.code !== roomRouteMatch[1]
+    ) {
       router.replace(`/room/${currentRoom.code}`);
     }
   }, [pathname, user, currentRoom, router]);
@@ -339,75 +348,53 @@ function HomeContent() {
   }, [pathname, user, socketConnected, currentRoom, router]);
 
   useEffect(() => {
-    if (!user) {
+    const socket = socketRef.current;
+
+    if (!user || !socket) {
       return;
     }
 
-    const token = sessionStorage.getItem("belot_session");
+    // Registracija listenera za chat.
+    const cleanupChatListeners = registerChatListeners(socket);
 
-    if (!token) {
-      setError("Sesija nije pronađena. Prijavi se ponovno.");
-      setUser(null);
-      return;
-    }
-
-    const socket = io(API_URL, {
-      auth: { token },
-      reconnection: true,
-    });
-
-    socketRef.current = socket;
-
-    socket.on("connect", () => {
-      setSocketConnected(true);
+    // Uspješno povezivanje.
+    function handleConnect() {
       setError("");
 
-      socket.emit(
-        "get_public_rooms",
-        (response: RoomResponse) => {
-          if (response.success && response.rooms) {
-            setPublicRooms(response.rooms);
-          }
-        },
-      );
-    });
+      socket!.emit("get_public_rooms", (response: RoomResponse) => {
+        if (response.success && response.rooms) {
+          setPublicRooms(response.rooms);
+        }
+      });
+    }
 
-    socket.on("disconnect", () => {
-      setSocketConnected(false);
-    });
-
-    socket.on("connect_error", (err) => {
-      setSocketConnected(false);
+    // Greška prilikom povezivanja.
+    function handleConnectError(err: Error) {
       setError(err.message || "Povezivanje s poslužiteljem nije uspjelo.");
-    });
+    }
 
-    socket.on("public_rooms_updated", (rooms: Room[]) => {
+    // Ažuriranje javnih soba.
+    function handlePublicRoomsUpdated(rooms: Room[]) {
       setPublicRooms(rooms);
-    });
+    }
 
-    socket.on("room_updated", (room: Room) => {
+    // Ažuriranje trenutne sobe.
+    function handleRoomUpdated(room: Room) {
       setCurrentRoom(room);
-    });
+    }
 
-    socket.on("room_chat_history", (messages: RoomChatMessage[]) => {
-      setChatMessages([...messages].reverse());
-    });
-
-    socket.on("room_chat_message", (message: RoomChatMessage) => {
-      setChatMessages((prev) => [...prev, message]);
-    });
-
-    socket.on("room_closed", () => {
+    // Soba je zatvorena.
+    function handleRoomClosed() {
       setCurrentRoom(null);
       setGameState(null);
       setGameStarted(false);
-      setChatMessages([]);
-      setChatInput("");
+      clearChat();
       setMessage("Soba je zatvorena.");
       router.replace("/lobby");
-    });
+    }
 
-    socket.on("player_kicked", (data: { message: string }) => {
+    // Igrač je izbačen iz sobe.
+    function handlePlayerKicked(data: { message: string }) {
       const roomCodeFromPath = window.location.pathname.match(
         /^\/room\/([A-HJ-NP-Z2-9]{6})$/,
       )?.[1];
@@ -419,41 +406,62 @@ function HomeContent() {
       setCurrentRoom(null);
       setGameState(null);
       setGameStarted(false);
-      setChatMessages([]);
-      setChatInput("");
+      clearChat();
       setError("");
       setMessage(data.message);
       router.replace("/lobby");
-    });
+    }
 
-    socket.on(
-      "game_aborted",
-      (data: { room: Room; message: string }) => {
-        setCurrentRoom(data.room);
-        setGameState(null);
-        setGameStarted(false);
-        setError("");
-        setMessage(data.message);
-      },
-    );
+    // Partija je prekinuta.
+    function handleGameAborted(data: { room: Room; message: string }) {
+      setCurrentRoom(data.room);
+      setGameState(null);
+      setGameStarted(false);
+      setError("");
+      setMessage(data.message);
+    }
 
-    socket.on("game_started", (state: ClientGameState) => {
+    // Početak partije.
+    function handleGameStarted(state: ClientGameState) {
       setGameState(state);
       setGameStarted(true);
-    });
+    }
 
-    socket.on("game_state", (state: ClientGameState) => {
+    // Ažuriranje stanja partije.
+    function handleGameState(state: ClientGameState) {
       setGameState(state);
       setGameStarted(true);
-    });
+    }
 
+    // Registracija svih Socket.IO događaja.
+    socket.on("connect", handleConnect);
+    socket.on("connect_error", handleConnectError);
+    socket.on("public_rooms_updated", handlePublicRoomsUpdated);
+    socket.on("room_updated", handleRoomUpdated);
+    socket.on("room_closed", handleRoomClosed);
+    socket.on("player_kicked", handlePlayerKicked);
+    socket.on("game_aborted", handleGameAborted);
+    socket.on("game_started", handleGameStarted);
+    socket.on("game_state", handleGameState);
 
+    // Vezu pokrećemo tek nakon registracije svih listenera.
+    socket.connect();
+
+    // Uklanjanje listenera.
     return () => {
-      socket.disconnect();
-      socketRef.current = null;
-      setSocketConnected(false);
+      cleanupChatListeners();
+
+      socket.off("connect", handleConnect);
+      socket.off("connect_error", handleConnectError);
+      socket.off("public_rooms_updated", handlePublicRoomsUpdated);
+      socket.off("room_updated", handleRoomUpdated);
+      socket.off("room_closed", handleRoomClosed);
+      socket.off("player_kicked", handlePlayerKicked);
+      socket.off("game_aborted", handleGameAborted);
+      socket.off("game_started", handleGameStarted);
+      socket.off("game_state", handleGameState);
     };
-  }, [user, router]);
+  }, [user, router, registerChatListeners, clearChat]);
 
   function sendCardToServer(card: BelotCard) {
     const socket = socketRef.current;
@@ -472,24 +480,22 @@ function HomeContent() {
       return;
     }
 
-  const hasTrumpKing = currentPlayer.hand.some(
-  (handCard) =>
-    handCard.suit === currentGame.trumpSuit &&
-    handCard.rank === "K",
-);
+    const hasTrumpKing = currentPlayer.hand.some(
+      (handCard) =>
+        handCard.suit === currentGame.trumpSuit && handCard.rank === "K",
+    );
 
-const hasTrumpQueen = currentPlayer.hand.some(
-  (handCard) =>
-    handCard.suit === currentGame.trumpSuit &&
-    handCard.rank === "Q",
-);
+    const hasTrumpQueen = currentPlayer.hand.some(
+      (handCard) =>
+        handCard.suit === currentGame.trumpSuit && handCard.rank === "Q",
+    );
 
-const mustConfirmBela =
-  currentGame.trumpSuit !== null &&
-  card.suit === currentGame.trumpSuit &&
-  (card.rank === "K" || card.rank === "Q") &&
-  hasTrumpKing &&
-  hasTrumpQueen;
+    const mustConfirmBela =
+      currentGame.trumpSuit !== null &&
+      card.suit === currentGame.trumpSuit &&
+      (card.rank === "K" || card.rank === "Q") &&
+      hasTrumpKing &&
+      hasTrumpQueen;
 
     if (mustConfirmBela) {
       setPendingBelaCard(card);
@@ -640,9 +646,7 @@ const mustConfirmBela =
       setMessage("E-mail je potvrđen. Sada se možeš prijaviti.");
       router.replace("/login");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Došlo je do pogreške.",
-      );
+      setError(err instanceof Error ? err.message : "Došlo je do pogreške.");
     } finally {
       setLoading(false);
     }
@@ -655,13 +659,10 @@ const mustConfirmBela =
     setMessage("");
 
     try {
-      const endpoint =
-        mode === "login" ? "/auth/login" : "/auth/register";
+      const endpoint = mode === "login" ? "/auth/login" : "/auth/register";
 
       const body =
-        mode === "login"
-          ? { email, password }
-          : { username, email, password };
+        mode === "login" ? { email, password } : { username, email, password };
 
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
@@ -679,8 +680,7 @@ const mustConfirmBela =
 
       if (mode === "register") {
         setMessage(
-          data.message ??
-          "Registracija je uspješna. Provjeri svoj e-mail.",
+          data.message ?? "Registracija je uspješna. Provjeri svoj e-mail.",
         );
         setPassword("");
         return;
@@ -699,40 +699,18 @@ const mustConfirmBela =
       setError("");
       router.replace("/lobby");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Došlo je do pogreške.",
-      );
+      setError(err instanceof Error ? err.message : "Došlo je do pogreške.");
     } finally {
       setLoading(false);
     }
   }
 
   async function handleLogout() {
-    const token = sessionStorage.getItem("belot_session");
-
     setLoading(true);
     setError("");
 
     try {
-      if (token) {
-        const response = await fetch(`${API_URL}/auth/logout`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          const data = (await response.json()) as AuthResponse;
-          throw new Error(data.message ?? "Odjava nije uspjela.");
-        }
-      }
-
-      sessionStorage.removeItem("belot_session");
-      sessionStorage.removeItem("belot_user");
-
-      socketRef.current?.disconnect();
-      socketRef.current = null;
+      await logout();
 
       setCurrentRoom(null);
       setPublicRooms([]);
@@ -742,9 +720,7 @@ const mustConfirmBela =
       setMessage("Uspješno si se odjavio.");
       router.replace("/login");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Došlo je do pogreške.",
-      );
+      setError(err instanceof Error ? err.message : "Došlo je do pogreške.");
     } finally {
       setLoading(false);
     }
@@ -842,29 +818,25 @@ const mustConfirmBela =
     setLoading(true);
     setError("");
 
-    socket.emit(
-      "leave_room",
-      (response: RoomResponse) => {
-        setLoading(false);
+    socket.emit("leave_room", (response: RoomResponse) => {
+      setLoading(false);
 
-        if (!response.success) {
-          setError(response.message ?? "Napuštanje sobe nije uspjelo.");
-          return;
-        }
+      if (!response.success) {
+        setError(response.message ?? "Napuštanje sobe nije uspjelo.");
+        return;
+      }
 
-        if (currentRoom) {
-          autoJoinRoomCodeRef.current = currentRoom.code;
-        }
+      if (currentRoom) {
+        autoJoinRoomCodeRef.current = currentRoom.code;
+      }
 
-        setCurrentRoom(null);
-        setGameState(null);
-        setGameStarted(false);
-        setChatMessages([]);
-        setChatInput("");
-        setMessage("Napustio si sobu.");
-        router.push("/lobby");
-      },
-    );
+      setCurrentRoom(null);
+      setGameState(null);
+      setGameStarted(false);
+      clearChat();
+      setMessage("Napustio si sobu.");
+      router.push("/lobby");
+    });
   }
 
   function kickRoomPlayer(playerSocketId: string) {
@@ -878,59 +850,40 @@ const mustConfirmBela =
       return;
     }
 
-    if (!window.confirm(`Želiš li ukloniti igrača ${target.username} iz sobe?`)) {
+    if (
+      !window.confirm(`Želiš li ukloniti igrača ${target.username} iz sobe?`)
+    ) {
       return;
     }
 
     setLoading(true);
     setError("");
 
-    socket.timeout(5000).emit(
-      "kick_player",
-      { playerSocketId },
-      (
-        timeoutError: Error | null,
-        response?: { success: boolean; message?: string },
-      ) => {
-        setLoading(false);
+    socket
+      .timeout(5000)
+      .emit(
+        "kick_player",
+        { playerSocketId },
+        (
+          timeoutError: Error | null,
+          response?: { success: boolean; message?: string },
+        ) => {
+          setLoading(false);
 
-        if (timeoutError) {
-          setError("Poslužitelj ne odgovara. Ponovno pokreni backend.");
-          return;
-        }
+          if (timeoutError) {
+            setError("Poslužitelj ne odgovara. Ponovno pokreni backend.");
+            return;
+          }
 
-        if (!response?.success) {
-          setError(response?.message ?? "Uklanjanje igrača nije uspjelo.");
-          return;
-        }
+          if (!response?.success) {
+            setError(response?.message ?? "Uklanjanje igrača nije uspjelo.");
+            return;
+          }
 
-        setMessage(`${target.username} je uklonjen iz sobe.`);
-      },
-    );
+          setMessage(`${target.username} je uklonjen iz sobe.`);
+        },
+      );
   }
-
-  function sendChatMessage() {
-    const socket = socketRef.current;
-    const cleanMessage = chatInput.trim();
-
-    if (!socket?.connected || !cleanMessage) {
-      return;
-    }
-
-    socket.emit(
-      "room_chat_send",
-      { message: cleanMessage },
-      (response: { success: boolean; message?: string }) => {
-        if (!response.success) {
-          setError(response.message ?? "Slanje poruke nije uspjelo.");
-          return;
-        }
-
-        setChatInput("");
-      },
-    );
-  }
-
   function startGame() {
     const socket = socketRef.current;
 
@@ -942,48 +895,20 @@ const mustConfirmBela =
     setLoading(true);
     setError("");
 
-    socket.emit(
-      "start_game",
-      (response: RoomResponse) => {
-        setLoading(false);
+    socket.emit("start_game", (response: RoomResponse) => {
+      setLoading(false);
 
-        if (!response.success) {
-          setError(response.message ?? "Pokretanje partije nije uspjelo.");
-          return;
-        }
+      if (!response.success) {
+        setError(response.message ?? "Pokretanje partije nije uspjelo.");
+        return;
+      }
 
-        if (response.room) {
-          setCurrentRoom(response.room);
-        }
+      if (response.room) {
+        setCurrentRoom(response.room);
+      }
 
-        // Prikaz partije pokreće događaj game_started s početnim stanjem.
-      },
-    );
-  }
-
-  function renderRoom(room: Room) {
-    return (
-      <div className="lobby-room-card" key={room.code}>
-        <div>
-          <strong>Soba {room.code}</strong>
-          <p>
-            {room.players.length}/{room.maxPlayers} igrača ·
-            Minimalni rejting: {room.minRating}
-          </p>
-          <p>
-            {room.players.map((player) => player.username).join(", ")}
-          </p>
-        </div>
-
-        <button
-          className="primary-button"
-          onClick={() => joinRoom(room.code)}
-          disabled={loading || !!currentRoom}
-        >
-          Pridruži se
-        </button>
-      </div>
-    );
+      // Prikaz partije pokreće događaj game_started s početnim stanjem.
+    });
   }
 
   if (user && currentRoom && !gameStarted) {
@@ -1046,13 +971,23 @@ const mustConfirmBela =
             <p>Dobro došao, {user.username}</p>
           </div>
 
-          {error && <div className="message error" role="alert">{error}</div>}
-          {message && <div className="message success" role="status">{message}</div>}
+          {error && (
+            <div className="message error" role="alert">
+              {error}
+            </div>
+          )}
+          {message && (
+            <div className="message success" role="status">
+              {message}
+            </div>
+          )}
 
           {pathname.startsWith("/room/") ? (
             <section className="lobby-panel lobby-route-loading">
               <span className="lobby-panel-kicker">POZIVNICA</span>
-              <h2>{loading ? "Soba se učitava..." : "Povezivanje sa sobom..."}</h2>
+              <h2>
+                {loading ? "Soba se učitava..." : "Povezivanje sa sobom..."}
+              </h2>
             </section>
           ) : (
             <Lobby
@@ -1075,7 +1010,6 @@ const mustConfirmBela =
     );
   }
 
-
   if (user && gameStarted) {
     if (!gameState) {
       return (
@@ -1086,23 +1020,22 @@ const mustConfirmBela =
     }
     return (
       <main className="game-only-page">
-
         <button
-  type="button"
-  onClick={() => {
-    socketRef.current?.emit("test_next_deal");
-  }}
-  style={{
-    background: "#d97706",
-    color: "white",
-    padding: "10px 16px",
-    borderRadius: "8px",
-    marginBottom: "12px",
-    cursor: "pointer",
-  }}
->
-  TEST – Nova runda
-</button>
+          type="button"
+          onClick={() => {
+            socketRef.current?.emit("test_next_deal");
+          }}
+          style={{
+            background: "#d97706",
+            color: "white",
+            padding: "10px 16px",
+            borderRadius: "8px",
+            marginBottom: "12px",
+            cursor: "pointer",
+          }}
+        >
+          TEST – Nova runda
+        </button>
 
         <GameTable
           players={gameState.players.map((player) => ({
@@ -1115,8 +1048,7 @@ const mustConfirmBela =
           playedCards={gameState.currentTrick}
           currentPlayerId={
             gameState.players.find(
-              (player) =>
-                player.playerNumber === gameState.currentPlayerNumber,
+              (player) => player.playerNumber === gameState.currentPlayerNumber,
             )?.socketId ?? null
           }
           viewerId={socketRef.current?.id ?? ""}
@@ -1132,6 +1064,7 @@ const mustConfirmBela =
           roundNumber={gameState.roundNumber}
           team1MatchScore={gameState.team1MatchScore}
           team2MatchScore={gameState.team2MatchScore}
+          roundHistory={gameState.roundHistory}
           matchWinnerTeam={gameState.matchWinnerTeam}
           finalScore={gameState.finalScore}
           team1DeclarationPoints={gameState.team1DeclaredPoints}
@@ -1219,8 +1152,8 @@ const mustConfirmBela =
           </h1>
 
           <p className="hero-description">
-            Okupi četiri igrača, odaberi svoju sobu i pokaži tko
-            najbolje poznaje Belot.
+            Okupi četiri igrača, odaberi svoju sobu i pokaži tko najbolje
+            poznaje Belot.
           </p>
 
           <div className="suit-decoration" aria-hidden="true">
@@ -1319,9 +1252,7 @@ const mustConfirmBela =
               <div className="panel-kicker">TVOJA IGRA POČINJE OVDJE</div>
 
               <h2>
-                {mode === "login"
-                  ? "Dobro nam došao."
-                  : "Pridruži se igri."}
+                {mode === "login" ? "Dobro nam došao." : "Pridruži se igri."}
               </h2>
 
               <p className="panel-description">
@@ -1396,9 +1327,13 @@ const mustConfirmBela =
                       className="password-visibility-button"
                       type="button"
                       onClick={() => setShowPassword((visible) => !visible)}
-                      aria-label={showPassword ? "Sakrij lozinku" : "Prikaži lozinku"}
+                      aria-label={
+                        showPassword ? "Sakrij lozinku" : "Prikaži lozinku"
+                      }
                       aria-pressed={showPassword}
-                      title={showPassword ? "Sakrij lozinku" : "Prikaži lozinku"}
+                      title={
+                        showPassword ? "Sakrij lozinku" : "Prikaži lozinku"
+                      }
                     >
                       {showPassword ? (
                         <svg viewBox="0 0 24 24" aria-hidden="true">

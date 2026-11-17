@@ -4,6 +4,8 @@ import { useState } from "react";
 import HungarianCard from "./HungarianCard";
 import "./GameTable.css";
 import { GameDialogs } from "./GameDialogs/GameDialogs";
+import ChatPanel from "../chat/ChatPanel";
+import type { ChatMessage } from "../chat/chat.types";
 
 export type BelotSuit = "hearts" | "diamonds" | "clubs" | "spades";
 export type BelotRank = "7" | "8" | "9" | "10" | "J" | "Q" | "K" | "A";
@@ -32,14 +34,7 @@ type GameTableProps = {
   currentPlayerId: string | null;
   viewerId: string;
   currentUserId?: number;
-  messages?: Array<{
-    id: number;
-    roomCode: string;
-    userId: number | null;
-    username: string;
-    message: string;
-    createdAt: string | Date;
-  }>;
+  messages?: ChatMessage[];
   chatInput?: string;
   onChatInputChange?: (value: string) => void;
   onSendChat?: () => void;
@@ -48,6 +43,11 @@ type GameTableProps = {
   team2Score: number;
   team1MatchScore?: number;
   team2MatchScore?: number;
+  roundHistory?: {
+    roundNumber: number;
+    team1: number;
+    team2: number;
+  }[];
   roundNumber?: number;
   matchWinnerTeam?: 1 | 2 | null;
   team1DeclarationPoints?: number;
@@ -66,7 +66,14 @@ type GameTableProps = {
   canStartNextDeal?: boolean;
   nextDealLoading?: boolean;
   canPlay?: boolean;
-  phase: "dealing" | "trump_call" | "dealing_remaining" | "declarations" | "playing" | "round_finished" | "finished";
+  phase:
+    | "dealing"
+    | "trump_call"
+    | "dealing_remaining"
+    | "declarations"
+    | "playing"
+    | "round_finished"
+    | "finished";
   canChooseTrump?: boolean;
   canPassTrump?: boolean;
   canDeclare?: boolean;
@@ -83,19 +90,41 @@ type GameTableProps = {
   onSubmitDeclarations?: (cards: BelotCard[]) => void;
   onStartNextDeal?: () => void;
   team1Bela?: number;
-team2Bela?: number;
+  team2Bela?: number;
 };
 
-const SUITS: Record<BelotSuit, { symbol: string; name: string; red: boolean; icon: string }> = {
-  hearts: { symbol: "♥", name: "Herc", red: true, icon: "/cards/icons/heart-icon.png" },
-  diamonds: { symbol: "♦", name: "Karo", red: true, icon: "/cards/icons/bell-icon.png" },
-  clubs: { symbol: "♣", name: "Tref", red: false, icon: "/cards/icons/acorn-icon.png" },
-  spades: { symbol: "♠", name: "Pik", red: false, icon: "/cards/icons/leaf-icon.png" },
+const SUITS: Record<
+  BelotSuit,
+  { symbol: string; name: string; red: boolean; icon: string }
+> = {
+  hearts: {
+    symbol: "♥",
+    name: "Herc",
+    red: true,
+    icon: "/cards/icons/heart-icon.png",
+  },
+  diamonds: {
+    symbol: "♦",
+    name: "Karo",
+    red: true,
+    icon: "/cards/icons/bell-icon.png",
+  },
+  clubs: {
+    symbol: "♣",
+    name: "Tref",
+    red: false,
+    icon: "/cards/icons/acorn-icon.png",
+  },
+  spades: {
+    symbol: "♠",
+    name: "Pik",
+    red: false,
+    icon: "/cards/icons/leaf-icon.png",
+  },
 };
 
 const SUIT_ORDER: BelotSuit[] = ["hearts", "diamonds", "clubs", "spades"];
 const RANK_ORDER: BelotRank[] = ["7", "8", "9", "10", "J", "Q", "K", "A"];
-
 
 function PlayingCard({
   card,
@@ -122,7 +151,6 @@ function PlayingCard({
   );
 }
 
-
 export default function GameTable({
   players,
   hand,
@@ -139,6 +167,7 @@ export default function GameTable({
   team2Score,
   team1MatchScore = team1Score,
   team2MatchScore = team2Score,
+  roundHistory = [],
   roundNumber = 1,
   matchWinnerTeam = null,
   team1DeclarationPoints = 0,
@@ -158,7 +187,7 @@ export default function GameTable({
   belaDecisionOpen = false,
   pendingBelaCard = null,
   team1Bela = 0,
-team2Bela = 0,
+  team2Bela = 0,
   onConfirmBela,
   onPlayCard,
   onChooseTrump,
@@ -166,7 +195,7 @@ team2Bela = 0,
   onSubmitDeclarations,
   onStartNextDeal,
 }: GameTableProps) {
-  
+  const [showRoundHistory, setShowRoundHistory] = useState(false);
   const [declarationSelection, setDeclarationSelection] = useState<{
     turnKey: string;
     cards: BelotCard[];
@@ -177,26 +206,26 @@ team2Bela = 0,
       ? declarationSelection.cards
       : [];
 
-      const declarationTurnPlayerName =
-  players.find(
-    (player) => player.seat + 1 === declarationTurnPlayerNumber
-  )?.username ?? `igrač ${declarationTurnPlayerNumber ?? ""}`;
+  const declarationTurnPlayerName =
+    players.find((player) => player.seat + 1 === declarationTurnPlayerNumber)
+      ?.username ?? `igrač ${declarationTurnPlayerNumber ?? ""}`;
 
   function toggleDeclarationCard(card: BelotCard) {
     setDeclarationSelection((selection) => {
-      const currentCards = selection.turnKey === declarationTurnKey
-        ? selection.cards
-        : [];
+      const currentCards =
+        selection.turnKey === declarationTurnKey ? selection.cards : [];
       const isSelected = currentCards.some(
-        (selected) => selected.suit === card.suit && selected.rank === card.rank,
+        (selected) =>
+          selected.suit === card.suit && selected.rank === card.rank,
       );
 
       return {
         turnKey: declarationTurnKey,
         cards: isSelected
           ? currentCards.filter(
-            (selected) => selected.suit !== card.suit || selected.rank !== card.rank,
-          )
+              (selected) =>
+                selected.suit !== card.suit || selected.rank !== card.rank,
+            )
           : [...currentCards, card],
       };
     });
@@ -215,13 +244,19 @@ team2Bela = 0,
   const playerByNumber = (playerNumber: number) =>
     players.find((player) => player.seat + 1 === playerNumber);
   const sortedHand = [...hand].sort((first, second) => {
-    const suitDifference = SUIT_ORDER.indexOf(first.suit) - SUIT_ORDER.indexOf(second.suit);
-    return suitDifference || RANK_ORDER.indexOf(first.rank) - RANK_ORDER.indexOf(second.rank);
+    const suitDifference =
+      SUIT_ORDER.indexOf(first.suit) - SUIT_ORDER.indexOf(second.suit);
+    return (
+      suitDifference ||
+      RANK_ORDER.indexOf(first.rank) - RANK_ORDER.indexOf(second.rank)
+    );
   });
 
+  // Prikaz dvije skrivene karte dok adut još nije odabran.
+  const showHiddenCards = trump === null && hand.length === 6;
+
   const canPassTrump =
-  canChooseTrump &&
-  !playerByNumber(trumpTurnPlayerNumber ?? 0)?.isDealer;
+    canChooseTrump && !playerByNumber(trumpTurnPlayerNumber ?? 0)?.isDealer;
 
   return (
     <main className="belot-game">
@@ -242,72 +277,60 @@ team2Bela = 0,
                 <strong>{finalScore?.team1 ?? team1Score}</strong>
                 <strong>{finalScore?.team2 ?? team2Score}</strong>
               </div>
-          <div className="result-row">
-  <span>Zvanja</span>
-  <strong>{team1DeclarationPoints + team1Bela}</strong>
-  <strong>{team2DeclarationPoints + team2Bela}</strong>
-</div>
+              <div className="result-row">
+                <span>Zvanja</span>
+                <strong>{team1DeclarationPoints + team1Bela}</strong>
+                <strong>{team2DeclarationPoints + team2Bela}</strong>
+              </div>
               <div className="result-row total-row">
-                <span>MEČ</span>
+                <span>Ukupno</span>
                 <strong>{team1MatchScore}</strong>
                 <strong>{team2MatchScore}</strong>
               </div>
-            </div>
 
-          </div>
-
-          <section className="game-chat-panel">
-            <div className="game-chat-header">
-              <h4>CHAT SOBE</h4>
-            </div>
-
-            <div className="game-chat-messages">
-              {messages.length === 0 ? (
-                <p className="game-chat-empty">Još nema poruka u ovoj partiji.</p>
-              ) : (
-                messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={
-                      message.userId === currentUserId
-                        ? "game-chat-message self"
-                        : "game-chat-message"
-                    }
-                  >
-                    <strong>{message.username}</strong>
-                    <span>{message.message}</span>
-                  </div>
-                ))
-              )}
-            </div>
-
-            <div className="game-chat-input-row">
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(event) => onChatInputChange?.(event.target.value)}
-                placeholder="Napiši poruku..."
-                maxLength={300}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    onSendChat?.();
-                  }
-                }}
-              />
               <button
                 type="button"
-                className="primary-button"
-                onClick={onSendChat}
-                aria-label="Pošalji poruku"
-                title="Pošalji poruku"
+                className="round-history-toggle"
+                onClick={() => setShowRoundHistory((previous) => !previous)}
               >
-                ↑
+                <span>Pregled cijele partije</span>
+                <span>{showRoundHistory ? "▲" : "▼"}</span>
               </button>
-            </div>
-          </section>
-        </aside>
 
+              {showRoundHistory && (
+                <div className="round-history">
+                  <div className="round-history-header">
+                    <span>Runda</span>
+                    <span>MI</span>
+                    <span>VI</span>
+                  </div>
+
+                  {roundHistory.map((round) => (
+                    <div className="round-history-row" key={round.roundNumber}>
+                      <span>{round.roundNumber}.</span>
+                      <strong>{round.team1}</strong>
+                      <strong>{round.team2}</strong>
+                    </div>
+                  ))}
+
+                  {roundHistory.length === 0 && (
+                    <div className="round-history-empty">
+                      Još nema završenih rundi.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <ChatPanel
+            messages={messages}
+            currentUserId={currentUserId}
+            input={chatInput}
+            onInputChange={onChatInputChange}
+            onSend={onSendChat}
+          />
+        </aside>
         <section className="belot-main-panel">
           <header className="belot-header">
             <div>
@@ -325,18 +348,6 @@ team2Bela = 0,
               )}
               <div className="belot-subtitle">Klasična kartaška igra</div>
             </div>
-
-            <div className="belot-score">
-              <div>
-                <span>Naša ekipa</span>
-                <strong>{team1MatchScore}</strong>
-              </div>
-              <div className="score-divider" />
-              <div>
-                <span>Protivnici</span>
-                <strong>{team2MatchScore}</strong>
-              </div>
-            </div>
           </header>
 
           <section className="belot-table">
@@ -350,23 +361,24 @@ team2Bela = 0,
               return (
                 <div
                   key={player.id}
-                  className={`table-player player-${position} ${isCurrent ? "active-player" : ""
-                    }`}
+                  className={`table-player player-${position} ${
+                    isCurrent ? "active-player" : ""
+                  }`}
                 >
                   <div className="player-avatar">
                     {player.username.slice(0, 1).toUpperCase()}
                   </div>
-<div className="player-info">
-  <strong>
-    {player.username}
-    {player.isDealer && (
-      <span className="dealer-badge"> D </span>
-    )}
-  </strong>
-  <span>
-    {isMe ? "Ti" : isCurrent ? "Na potezu" : "Igrač"}
-  </span>
-</div>
+                  <div className="player-info">
+                    <strong>
+                      {player.username}
+                      {player.isDealer && (
+                        <span className="dealer-badge"> D </span>
+                      )}
+                    </strong>
+                    <span>
+                      {isMe ? "Ti" : isCurrent ? "Na potezu" : "Igrač"}
+                    </span>
+                  </div>
                   {isCurrent && <span className="turn-indicator">●</span>}
                 </div>
               );
@@ -379,15 +391,15 @@ team2Bela = 0,
                   ? positions[(player.seat - viewerSeat + 4) % 4]
                   : positions[index];
 
-
-
                 return (
                   <div
                     className={`played-card played-card-${playerPosition}`}
                     key={`${played.playerNumber}-${index}`}
                   >
                     <PlayingCard card={played.card} small />
-                    <span>{player?.username ?? `Igrač ${played.playerNumber}`}</span>
+                    <span>
+                      {player?.username ?? `Igrač ${played.playerNumber}`}
+                    </span>
                   </div>
                 );
               })}
@@ -397,34 +409,34 @@ team2Bela = 0,
               )}
             </div>
 
-
-<GameDialogs
-  phase={phase}
-  canChooseTrump={canChooseTrump}
-  canPassTrump={canPassTrump}
-  trumpTurnPlayerNumber={trumpTurnPlayerNumber}
-  suitOrder={SUIT_ORDER}
-  suits={SUITS}
-  onChooseTrump={onChooseTrump}
-  onPassTrump={onPassTrump}
-  completedDeclarationPlayers={completedDeclarationPlayers.length}
-  canDeclare={canDeclare}
-  declarationTurnPlayerName={declarationTurnPlayerName}
-  selectedDeclarationCards={selectedDeclarationCards}
-  activeDeclarations={activeDeclarations}
-  onSubmitDeclarations={onSubmitDeclarations}
-  getPlayerName={(playerNumber) =>
-    playerByNumber(playerNumber)?.username ?? `Igrač ${playerNumber}`
-  }
-  renderCard={(card) => (
-    <PlayingCard
-      key={`${card.suit}-${card.rank}`}
-      card={card}
-      small
-      disabled
-    />
-  )}
-/>
+            <GameDialogs
+              phase={phase}
+              canChooseTrump={canChooseTrump}
+              canPassTrump={canPassTrump}
+              trumpTurnPlayerNumber={trumpTurnPlayerNumber}
+              suitOrder={SUIT_ORDER}
+              suits={SUITS}
+              onChooseTrump={onChooseTrump}
+              onPassTrump={onPassTrump}
+              completedDeclarationPlayers={completedDeclarationPlayers.length}
+              canDeclare={canDeclare}
+              declarationTurnPlayerName={declarationTurnPlayerName}
+              selectedDeclarationCards={selectedDeclarationCards}
+              activeDeclarations={activeDeclarations}
+              onSubmitDeclarations={onSubmitDeclarations}
+              getPlayerName={(playerNumber) =>
+                playerByNumber(playerNumber)?.username ??
+                `Igrač ${playerNumber}`
+              }
+              renderCard={(card) => (
+                <PlayingCard
+                  key={`${card.suit}-${card.rank}`}
+                  card={card}
+                  small
+                  disabled
+                />
+              )}
+            />
           </section>
         </section>
       </div>
@@ -466,8 +478,10 @@ team2Bela = 0,
               key={`${card.suit}-${card.rank}-${index}`}
               card={card}
               selected={
-                canDeclare && selectedDeclarationCards.some(
-                  (selected) => selected.suit === card.suit && selected.rank === card.rank,
+                canDeclare &&
+                selectedDeclarationCards.some(
+                  (selected) =>
+                    selected.suit === card.suit && selected.rank === card.rank,
                 )
               }
               disabled={!canPlay && !canDeclare}
@@ -480,6 +494,16 @@ team2Bela = 0,
               }}
             />
           ))}
+
+          {showHiddenCards &&
+            Array.from({ length: 2 }).map((_, index) => (
+              <div
+                key={`hidden-card-${index}`}
+                className="hand-hungarian-card hidden-hand-card"
+              >
+                <img src="/cards/back/back.png" alt="Skrivena karta" />
+              </div>
+            ))}
         </div>
       </footer>
 
@@ -488,7 +512,8 @@ team2Bela = 0,
           <div className="bela-confirmation-card">
             <div className="bela-confirmation-title">BELA</div>
             <p>
-              Odigrali ste {SUITS[pendingBelaCard.suit].name} {pendingBelaCard.rank}. Želite li zvati belu?
+              Odigrali ste {SUITS[pendingBelaCard.suit].name}{" "}
+              {pendingBelaCard.rank}. Želite li zvati belu?
             </p>
             <div className="bela-confirmation-actions">
               <button

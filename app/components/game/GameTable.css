@@ -1,0 +1,106 @@
+/* Skrivena karta ima iste dimenzije kao prava karta u ruci */
+.hand-hungarian-card.hidden-hand-card {
+  width: 96px;
+  height: 154px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hidden-hand-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  border-radius: 8px;
+}
+
+/* Mobitel */
+@media (max-width: 700px) {
+  .hand-hungarian-card.hidden-hand-card {
+    width: clamp(48px, 13vw, 62px);
+    height: clamp(76px, 20vw, 98px);
+  }
+}
+
+.round-history-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 8px;
+  margin-top: 5px;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: #d8c99e;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.round-history-toggle:hover {
+  color: #ffffff;
+}
+
+.round-history {
+  padding: 5px 8px 10px;
+  animation: roundHistoryOpen 0.2s ease;
+}
+
+.round-history-header,
+.round-history-row,
+.round-history-total {
+  display: grid;
+  grid-template-columns: 1fr 45px 45px;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  font-size: 12px;
+  text-align: right;
+}
+
+.round-history-header {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.round-history-header span:first-child,
+.round-history-row span,
+.round-history-total strong:first-child {
+  text-align: left;
+}
+
+.round-history-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  color: #eee9d9;
+}
+
+.round-history-total {
+  margin-top: 5px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e6d29b;
+}
+
+.round-history-empty {
+  padding: 12px 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  text-align: center;
+}
+
+@keyframes roundHistoryOpen {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

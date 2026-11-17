@@ -26,7 +26,7 @@
   background: rgba(217, 216, 210, 0.82);
   border: 1px solid rgba(12, 24, 20, 0.2);
   border-radius: 10px;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
   padding: 14px 10px 12px;
   color: #1f2f29;
 }
@@ -45,7 +45,7 @@
   flex-direction: column;
   gap: 8px;
   margin-bottom: 10px;
-  background: rgba(255,255,255,0.18);
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 8px;
   padding: 8px 8px 6px;
 }
@@ -114,7 +114,7 @@
   justify-content: space-between;
   gap: 20px;
   background: rgba(17, 45, 34, 0.9);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 18px 18px 16px;
 }
@@ -136,7 +136,7 @@
   align-items: center;
   gap: 24px;
   background: rgba(19, 42, 33, 0.8);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
   padding: 12px 22px;
   color: #f3e9c7;
@@ -174,7 +174,9 @@
   border-radius: 48%;
   background: radial-gradient(ellipse, #2c855b 0%, #1e6a48 52%, #113e2c 100%);
   border: 12px solid #5b3a29;
-  box-shadow: inset 0 0 0 5px rgba(186, 138, 80, 0.9), 0 18px 44px rgba(0,0,0,0.2);
+  box-shadow:
+    inset 0 0 0 5px rgba(186, 138, 80, 0.9),
+    0 18px 44px rgba(0, 0, 0, 0.2);
   overflow: visible;
 }
 
@@ -194,9 +196,9 @@
   padding: 9px 13px;
   border-radius: 12px;
   background: rgba(9, 28, 21, 0.92);
-  border: 1px solid rgba(255,255,255,0.22);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   z-index: 2;
-  box-shadow: 0 0 0 1px rgba(223,201,140,0.18);
+  box-shadow: 0 0 0 1px rgba(223, 201, 140, 0.18);
 }
 
 .player-bottom {
@@ -326,7 +328,9 @@
   background: linear-gradient(145deg, #fff 0%, #f4f0e7 100%);
   box-shadow: 0 5px 12px #0005;
   cursor: pointer;
-  transition: transform 150ms ease, box-shadow 150ms ease;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
   padding: 5px;
 }
 
@@ -513,7 +517,6 @@
   }
 }
 
-
 .trump-controls {
   width: 100%;
   max-width: 1000px;
@@ -544,12 +547,14 @@
   padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 8px;
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.12s ease, opacity 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    opacity 0.12s ease;
 }
 
 .suit-button:hover:not(:disabled) {
@@ -565,7 +570,7 @@
   width: 22px;
   height: 22px;
   object-fit: contain;
-  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
 }
 
 .trump-buttons .pass-trump-button {
@@ -638,9 +643,13 @@
   width: min(360px, 100%);
   padding: 24px 20px 18px;
   border-radius: 16px;
-  background: linear-gradient(180deg, rgba(20, 42, 33, 0.98), rgba(12, 28, 23, 0.98));
+  background: linear-gradient(
+    180deg,
+    rgba(20, 42, 33, 0.98),
+    rgba(12, 28, 23, 0.98)
+  );
   border: 1px solid rgba(243, 216, 153, 0.4);
-  box-shadow: 0 18px 36px rgba(0,0,0,0.35);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.35);
   text-align: center;
 }
 
@@ -668,90 +677,6 @@
   min-width: 90px;
 }
 
-.game-chat-panel {
-  width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 14px;
-  background: rgba(16, 36, 29, 0.9);
-  padding: 12px;
-}
-
-.game-chat-header h4 {
-  margin: 0;
-  color: #f3d899;
-  font-size: 0.82rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.game-chat-messages {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 180px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-.game-chat-message {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-.game-chat-message.self {
-  background: rgba(148, 116, 27, 0.12);
-  border-color: rgba(243, 216, 153, 0.2);
-}
-
-.game-chat-message strong {
-  font-size: 0.72rem;
-  color: #f3d899;
-}
-
-.game-chat-message span {
-  font-size: 0.8rem;
-  line-height: 1.4;
-  word-break: break-word;
-}
-
-.game-chat-empty {
-  margin: 0;
-  opacity: 0.7;
-  font-size: 0.75rem;
-}
-
-.game-chat-input-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
-}
-
-.game-chat-input-row input {
-  width: 100%;
-  min-width: 0;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(9, 18, 17, 0.82);
-  color: #fff;
-  font: inherit;
-}
-
-.game-chat-input-row button {
-  width: auto;
-  padding-inline: 14px;
-}
-
 .belot-card {
   position: relative;
   display: flex;
@@ -766,7 +691,9 @@
   background: #fffdf7;
   box-shadow: 0 3px 7px rgba(0, 0, 0, 0.25);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .belot-card:not(:disabled):hover {
@@ -866,7 +793,6 @@
   }
 }
 
-
 /* Igralište preko cijelog ekrana */
 .page-shell:has(.belot-game) {
   width: 100%;
@@ -913,8 +839,12 @@
   gap: 8px;
   overflow: hidden;
   padding: 10px;
-  background:
-    radial-gradient(ellipse at center, #079b69 0%, #007c50 65%, #075b3d 100%);
+  background: radial-gradient(
+    ellipse at center,
+    #079b69 0%,
+    #007c50 65%,
+    #075b3d 100%
+  );
 }
 
 /* Zaglavlje igre */
@@ -934,8 +864,12 @@
   margin: 0 auto;
   border: 9px solid #e8e5d8;
   border-radius: 48%;
-  background:
-    radial-gradient(ellipse at center, #08a875 0%, #009666 55%, #00764c 100%);
+  background: radial-gradient(
+    ellipse at center,
+    #08a875 0%,
+    #009666 55%,
+    #00764c 100%
+  );
   box-shadow:
     inset 0 0 35px #003e2c88,
     0 4px 16px #0005;
@@ -1016,7 +950,6 @@
   }
 }
 
-
 /* Mađarske karte */
 
 .hungarian-card {
@@ -1035,7 +968,9 @@
   color: #222;
   box-shadow: 0 5px 12px #0005;
   cursor: pointer;
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .hungarian-card:hover:not(:disabled) {
@@ -1046,7 +981,9 @@
 .hungarian-card.selected {
   transform: translateY(-20px);
   border-color: #f2c14e;
-  box-shadow: 0 0 0 2px #f2c14e, 0 10px 18px #0007;
+  box-shadow:
+    0 0 0 2px #f2c14e,
+    0 10px 18px #0007;
 }
 
 .hungarian-card:disabled {
@@ -1117,7 +1054,6 @@
   }
 }
 
-
 /* Prikaz originalnih mađarskih karata */
 
 .hungarian-card {
@@ -1159,8 +1095,6 @@
     height: 94px;
   }
 }
-
-
 
 /* Originalne mađarice na stolu */
 
@@ -1215,8 +1149,12 @@
   overflow: hidden;
   padding: 10px 12px;
   gap: 10px;
-  background:
-    radial-gradient(ellipse at 50% 40%, #08704f 0%, #0c3025 65%, #091d16 100%);
+  background: radial-gradient(
+    ellipse at 50% 40%,
+    #08704f 0%,
+    #0c3025 65%,
+    #091d16 100%
+  );
 }
 
 .belot-layout {
@@ -1292,8 +1230,12 @@
   overflow: hidden;
   border: 9px solid #e8e5d8;
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 44%, #078d63 0%, #087351 58%, #075539 100%);
+  background: radial-gradient(
+    circle at 50% 44%,
+    #078d63 0%,
+    #087351 58%,
+    #075539 100%
+  );
   box-shadow:
     inset 0 0 0 3px rgba(223, 201, 140, 0.58),
     inset 0 0 42px rgba(0, 41, 28, 0.5),
@@ -1430,35 +1372,6 @@
   white-space: nowrap;
 }
 
-.belot-sidebar .game-chat-panel {
-  min-height: 0;
-  max-width: none;
-  flex: 1 1 auto;
-  margin: 0;
-  padding: 11px;
-  border-radius: 9px;
-}
-
-.belot-sidebar .game-chat-messages {
-  min-height: 0;
-  max-height: none;
-  flex: 1 1 auto;
-}
-
-.belot-sidebar .game-chat-input-row input {
-  padding: 8px;
-  font-size: 11px;
-}
-
-.belot-sidebar .game-chat-input-row button {
-  display: grid;
-  width: 36px;
-  min-height: 37px;
-  place-items: center;
-  margin: 0;
-  padding: 0;
-}
-
 .belot-hand-area {
   max-width: none;
   padding: 6px 12px;
@@ -1531,10 +1444,6 @@
     max-width: min(72vh, 680px);
     max-height: none;
     flex: 0 0 auto;
-  }
-
-  .belot-sidebar .game-chat-panel {
-    min-height: 280px;
   }
 }
 
@@ -1645,7 +1554,6 @@
   }
 }
 
-
 /* Sužena i centrirana zona karata */
 .belot-hand-area {
   width: min(100%, 850px);
@@ -1719,7 +1627,6 @@
   }
 }
 
-
 /* Malo veće odigrane karte na stolu */
 .played-hungarian-card .hungarian-card {
   width: 76px;
@@ -1733,7 +1640,6 @@
     height: 78px;
   }
 }
-
 
 .trump-indicator-header {
   display: flex;
@@ -1934,7 +1840,6 @@
   background: rgba(45, 68, 52, 1);
 }
 
-
 /* SIDEBAR - KARTICA REZULTATA */
 .belot-sidebar-card {
   width: 100%;
@@ -2032,6 +1937,3 @@
 .belot-sidebar-card .total-row strong {
   font-size: 19px;
 }
-
-
-

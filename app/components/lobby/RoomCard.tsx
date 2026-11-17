@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { Room } from "../../types/belot";
@@ -17,6 +16,8 @@ export default function RoomCard({
   onJoin,
 }: RoomCardProps) {
   const host = room.players.find((player) => player.isHost);
+  const playerCount = room.players.length;
+  const isFull = playerCount >= room.maxPlayers;
 
   return (
     <div className="public-room-row" role="row">
@@ -37,7 +38,11 @@ export default function RoomCard({
         ))}
       </div>
 
-      <div className="room-list-seats" role="cell" aria-label={`${room.players.length} od ${room.maxPlayers} mjesta zauzeto`}>
+      <div
+        className="room-list-seats"
+        role="cell"
+        aria-label={`${playerCount} od ${room.maxPlayers} mjesta zauzeto`}
+      >
         {Array.from({ length: room.maxPlayers }, (_, index) => (
           <span
             className={`room-seat-dot ${index < room.players.length ? "occupied" : ""}`}
@@ -45,10 +50,14 @@ export default function RoomCard({
             aria-hidden="true"
           />
         ))}
-        <span className="room-seat-count">{room.players.length}/{room.maxPlayers}</span>
+        <span className="room-seat-count">
+          {playerCount}/{room.maxPlayers}
+        </span>
       </div>
 
-      <div className="room-list-rating" role="cell">{room.minRating}</div>
+      <div className="room-list-rating" role="cell">
+        {room.minRating}
+      </div>
 
       <div className="room-list-action" role="cell">
         <button

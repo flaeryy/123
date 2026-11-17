@@ -1,8 +1,8 @@
-
 "use client";
 
 import type { Room } from "../../types/belot";
 import RoomCard from "./RoomCard";
+import "./Lobby.css";
 
 type LobbyProps = {
   publicRooms: Room[];
@@ -123,14 +123,23 @@ export default function Lobby({
 
         {publicRooms.length === 0 ? (
           <div className="empty-room-list">
-            <span className="empty-room-mark" aria-hidden="true">♧</span>
+            <span className="empty-room-mark" aria-hidden="true">
+              ♧
+            </span>
             <strong>Nema otvorenih soba</strong>
             <p>Stvori novu sobu ili se pridruži kodom pozivnice.</p>
           </div>
         ) : (
           <div className="public-room-table-scroll">
-            <div className="public-room-list" role="table" aria-label="Javne sobe">
-              <div className="public-room-row public-room-table-head" role="row">
+            <div
+              className="public-room-list"
+              role="table"
+              aria-label="Javne sobe"
+            >
+              <div
+                className="public-room-row public-room-table-head"
+                role="row"
+              >
                 <span role="columnheader">SOBA</span>
                 <span role="columnheader">IGRAČI</span>
                 <span role="columnheader">MJESTA</span>

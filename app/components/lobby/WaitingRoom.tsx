@@ -1,7 +1,8 @@
-
 "use client";
 
 import type { Room } from "../../types/belot";
+import ChatPanel from "../chat/ChatPanel";
+import "./WaitingRoom.css";
 
 type WaitingRoomProps = {
   room: Room;
@@ -69,8 +70,16 @@ export default function WaitingRoom({
 
       <div className="waiting-room-layout">
         <section className="waiting-room-main">
-          {error && <div className="message error" role="alert">{error}</div>}
-          {notice && <div className="message success" role="status">{notice}</div>}
+          {error && (
+            <div className="message error" role="alert">
+              {error}
+            </div>
+          )}
+          {notice && (
+            <div className="message success" role="status">
+              {notice}
+            </div>
+          )}
 
           <div className="waiting-room-title-row">
             <div>
@@ -78,7 +87,9 @@ export default function WaitingRoom({
                 {room.isPublic ? "JAVNA SOBA" : "PRIVATNA SOBA"}
               </span>
               <h1>Čekaonica</h1>
-              <p>Kod za poziv: <strong>{room.code}</strong></p>
+              <p>
+                Kod za poziv: <strong>{room.code}</strong>
+              </p>
             </div>
             <div className="waiting-room-player-count">
               <strong>{room.players.length}</strong>
@@ -169,60 +180,18 @@ export default function WaitingRoom({
           </section>
         </section>
 
-        <aside className="room-chat-panel waiting-room-chat">
-          <div className="room-chat-header">
-            <div>
-              <span className="waiting-room-eyebrow">DOGOVORITE SE</span>
-              <h2>Chat sobe</h2>
-            </div>
-            <span className="room-chat-live-dot" title="Chat uživo" />
-          </div>
-
-          <div className="room-chat-messages">
-            {messages.length === 0 ? (
-              <p className="room-chat-empty">Još nema poruka. Pozdravi ekipu.</p>
-            ) : (
-              messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={
-                    message.userId === userId
-                      ? "room-chat-message self"
-                      : "room-chat-message"
-                  }
-                >
-                  <strong>{message.username}</strong>
-                  <span>{message.message}</span>
-                </div>
-              ))
-            )}
-          </div>
-
-          <div className="room-chat-input-row">
-            <input
-              type="text"
-              value={chatInput}
-              onChange={(event) => onChatInputChange(event.target.value)}
-              placeholder="Napiši poruku..."
-              maxLength={300}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  onSendChat();
-                }
-              }}
-            />
-            <button
-              className="primary-button"
-              onClick={onSendChat}
-              type="button"
-              aria-label="Pošalji poruku"
-              title="Pošalji poruku"
-            >
-              ↑
-            </button>
-          </div>
-        </aside>
+        <ChatPanel
+          variant="room"
+          title="Chat sobe"
+          eyebrow="DOGOVORITE SE"
+          showLiveDot
+          emptyMessage="Još nema poruka. Pozdravi ekipu."
+          messages={messages}
+          currentUserId={userId}
+          input={chatInput}
+          onInputChange={onChatInputChange}
+          onSend={onSendChat}
+        />
       </div>
     </main>
   );

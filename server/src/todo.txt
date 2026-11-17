@@ -2,3 +2,13 @@ pametno igraj nije proslo > mora biti izmedu 3 - 30 znakova a pametno proslo.
 adut herc i postoji dama al kralj u drugoj boji , dodje da oce li najavi belu ako stisne da, onda kaze da nemoze najavit belu i mora odustati.
 kada je bela kralj stisnem ok i onda za damu opet moram najavit a ne treba i zvanje 20 ne stavi
 zvanje 20 problem na drugim rundama , pamti zvanja u ostalim rundama
+
+
+
+Kasnije možemo u isti hook ili zaseban useAuth modul izdvojiti:
+- registraciju
+- prijavu e-mailom i lozinkom
+- Google prijavu
+- potvrdu e-maila
+
+zvuk isklju mute ako korisnik zeli..
