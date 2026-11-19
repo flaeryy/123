@@ -366,7 +366,11 @@ export default function GameTable({
                   }`}
                 >
                   <div className="player-avatar">
-                    {player.username.slice(0, 1).toUpperCase()}
+                    <img
+                      src="/avatar/man.png"
+                      alt={player.username}
+                      className="man"
+                    />
                   </div>
                   <div className="player-info">
                     <strong>
