@@ -16,6 +16,7 @@ import WaitingRoom from "./components/lobby/WaitingRoom";
 import { useRoomChat } from "./hooks/useRoomChat";
 import { useSocket } from "./hooks/useSocket";
 import { useAuth } from "./hooks/useAuth";
+import RoomCard from "./components/lobby/RoomCard";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -152,6 +153,7 @@ function HomeContent() {
   const pathname = usePathname();
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("login");
+  const [authReady, setAuthReady] = useState(false);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -187,6 +189,37 @@ function HomeContent() {
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
   const googleInitializedRef = useRef(false);
   const [gameState, setGameState] = useState<ClientGameState | null>(null);
+
+  // Dohvat javnih soba za prijavljene i neprijavljene korisnike.
+  useEffect(() => {
+    if (pathname !== "/") return;
+
+    const fetchPublicRooms = async () => {
+      try {
+        const response = await fetch(`${API_URL}/rooms/public`);
+
+        if (!response.ok) {
+          throw new Error("Dohvat soba nije uspio.");
+        }
+
+        const data: RoomResponse = await response.json();
+
+        if (data.success && data.rooms) {
+          setPublicRooms(data.rooms);
+        }
+      } catch (error) {
+        console.error("Greška pri dohvatu javnih soba:", error);
+      }
+    };
+
+    void fetchPublicRooms();
+
+    const interval = window.setInterval(() => {
+      void fetchPublicRooms();
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, [pathname]);
 
   async function loginWithGoogle(credential: string) {
     setLoading(true);
@@ -257,6 +290,8 @@ function HomeContent() {
       setUser(restoredUser);
     }
 
+    setAuthReady(true); // NOVO
+
     const params = new URLSearchParams(window.location.search);
     const verificationToken = params.get("token");
 
@@ -275,12 +310,10 @@ function HomeContent() {
     }
 
     if (pathname === "/") {
-      router.replace(user ? "/lobby" : "/login");
       return;
     }
-
     if (!user) {
-      if (pathname !== "/login") {
+      if (pathname !== "/login" && pathname !== "/") {
         router.replace("/login");
       }
       return;
@@ -911,6 +944,110 @@ function HomeContent() {
     });
   }
 
+  if (!authReady) {
+    return null;
+  }
+  if (pathname === "/") {
+    return (
+      <main className="belot-home">
+        <header className="belot-home-header">
+          <Link href="/" className="belot-home-logo">
+            <span className="belot-home-logo-icon">♣</span>
+            <strong>BELOT</strong>
+          </Link>
+
+          <div className="belot-home-header-actions">
+            {user ? (
+              <Link href="/lobby" className="belot-home-profile-link">
+                <span className="belot-home-small-avatar">
+                  {user.username.charAt(0).toUpperCase()}
+                </span>
+                <span>{user.username}</span>
+              </Link>
+            ) : (
+              <Link href="/login" className="belot-home-login">
+                Prijavi se
+              </Link>
+            )}
+          </div>
+        </header>
+
+        <div className="belot-home-content">
+          {user ? (
+            <section className="belot-home-user-card">
+              <div className="belot-home-avatar">
+                {user.username.charAt(0).toUpperCase()}
+              </div>
+
+              <div className="belot-home-user-info">
+                <strong>{user.username}</strong>
+                <span>Belot igrač</span>
+              </div>
+
+              <div className="belot-home-online">
+                <span className="belot-home-online-dot" />
+                {socketConnected ? "Online" : "Povezivanje..."}
+              </div>
+            </section>
+          ) : (
+            <section className="belot-home-guest-card">
+              <div className="belot-home-avatar">♣</div>
+
+              <div className="belot-home-user-info">
+                <strong>Dobro došao u Belot!</strong>
+                <span>Prijavi se za pristup sobama i igri.</span>
+              </div>
+
+              <Link href="/login" className="belot-home-login">
+                Prijavi se
+              </Link>
+            </section>
+          )}
+
+          <section className="belot-home-rooms">
+            <div className="belot-home-rooms-header">
+              <h2>Lista slobodnih igara</h2>
+              {user && <span>{publicRooms.length}</span>}
+            </div>
+
+            <div className="belot-home-rooms-content">
+              {publicRooms.length === 0 ? (
+                <div className="belot-home-rooms-notice">
+                  <p>Trenutno nema slobodnih javnih soba.</p>
+                </div>
+              ) : (
+                <div className="belot-home-room-list">
+                  {publicRooms.map((room) => (
+                    <RoomCard
+                      key={room.code}
+                      room={room}
+                      loading={loading}
+                      disabled={!!currentRoom}
+                      onJoin={(code) => {
+                        if (!user) {
+                          router.push("/login");
+                          return;
+                        }
+
+                        joinRoom(code);
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+
+          {user && (
+            <Link href="/lobby" className="belot-home-enter">
+              Uđi u lobby
+            </Link>
+          )}
+        </div>
+      </main>
+    );
+  }
+
   if (user && currentRoom && !gameStarted) {
     return (
       <WaitingRoom
@@ -935,42 +1072,72 @@ function HomeContent() {
     return (
       <main className="lobby-dashboard">
         <header className="lobby-dashboard-topbar">
-          <Link className="brand" href="/lobby">
-            <span className="brand-mark">♠</span>
+          <Link className="brand lobby-brand" href="/lobby">
+            <span className="lobby-brand-icon" aria-hidden="true">
+              ♣
+            </span>
             <span>BELOT</span>
           </Link>
 
-          <div className="lobby-account">
-            <div className="lobby-account-avatar">
-              {user.username.slice(0, 1).toUpperCase()}
+          <div className="lobby-header-actions">
+            <div className="lobby-header-user">
+              <div className="lobby-header-avatar">
+                {user.username.charAt(0).toUpperCase()}
+              </div>
+
+              <span className="lobby-header-username">{user.username}</span>
             </div>
-            <div className="lobby-account-details">
-              <strong>{user.username}</strong>
-              <span>{socketConnected ? "Povezan" : "Povezivanje..."}</span>
-            </div>
-            <span className={socketConnected ? "online-dot" : "offline-dot"} />
+
             <button
-              className="lobby-logout-button"
               type="button"
+              className="lobby-header-logout"
               onClick={handleLogout}
               disabled={loading}
               title="Odjavi se"
               aria-label="Odjavi se"
             >
-              ↗
+              <svg
+                width="19"
+                height="19"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M10 17l5-5-5-5" />
+                <path d="M15 12H3" />
+                <path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6" />
+              </svg>
             </button>
           </div>
         </header>
 
         <div className="lobby-dashboard-content">
           <div className="lobby-dashboard-heading">
-            <div>
-              <span className="lobby-dashboard-eyebrow">IGRAĆI LOBBY</span>
-              <h1>Sobe</h1>
-            </div>
-            <p>Dobro došao, {user.username}</p>
-          </div>
+            <div className="lobby-profile-card">
+              <div className="lobby-profile-avatar">
+                {user.username.charAt(0).toUpperCase()}
+              </div>
 
+              <div className="lobby-profile-info">
+                <strong>{user.username}</strong>
+                <span>Belot igrač</span>
+              </div>
+
+              <div className="lobby-profile-status">
+                <span
+                  className={`lobby-status-indicator ${
+                    socketConnected ? "connected" : "disconnected"
+                  }`}
+                />
+
+                {socketConnected ? "Online" : "Povezivanje..."}
+              </div>
+            </div>
+          </div>
           {error && (
             <div className="message error" role="alert">
               {error}

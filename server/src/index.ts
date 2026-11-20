@@ -1,4 +1,3 @@
-
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { Server, type Socket } from "socket.io";
@@ -113,20 +112,18 @@ async function fetchRoomChatHistory(
 // Karte ostalih igrača, početne ruke za deklaracije
 // i preostale karte ostaju skrivene.
 function getPlayerGameView(state: GameState, socketId: string) {
-  const player = state.players.find(
-    (item) => item.socketId === socketId
-  );
+  const player = state.players.find((item) => item.socketId === socketId);
 
   if (!player) {
     throw new Error("Igrač nije dio ove partije.");
   }
 
- const {
+  const {
     declarationHands,
     remainingCards,
     pendingDeclarations,
     ...publicState
-} = state;
+  } = state;
 
   if (state.phase === "finished") {
     console.log("PROVJERA ZAVRŠNOG STANJA:");
@@ -191,10 +188,10 @@ function seedBelaTestHand(
       continue;
     }
 
- const targetCardIndex = target.hand.findIndex(
-  (card) =>
-    !(card.suit === "hearts" && (card.rank === "K" || card.rank === "Q")),
-);
+    const targetCardIndex = target.hand.findIndex(
+      (card) =>
+        !(card.suit === "hearts" && (card.rank === "K" || card.rank === "Q")),
+    );
     const holderCardIndex = holder.hand.findIndex(
       (card) => card.suit === belaCard.suit && card.rank === belaCard.rank,
     );
@@ -220,6 +217,13 @@ app.get("/", async () => {
   };
 });
 
+// Javni dohvat slobodnih soba - prijava nije potrebna.
+app.get("/rooms/public", async () => {
+  return {
+    success: true,
+    rooms: roomManager.listPublicRooms(),
+  };
+});
 app.get("/health", async () => {
   await db.execute(sql`SELECT 1`);
 
@@ -233,8 +237,7 @@ app.get("/health", async () => {
 io.on("connection", (socket) => {
   console.log("Igrač spojen:", socket.id);
 
-
-    // Ponovna provjera sesije prije obrade svakog događaja
+  // Ponovna provjera sesije prije obrade svakog događaja
   const sessionToken = socket.handshake.auth?.token;
 
   socket.use((packet, next) => {
@@ -274,7 +277,7 @@ io.on("connection", (socket) => {
   const userId = authenticatedUser.userId;
   const username = authenticatedUser.username;
 
-    // Ponovna provjera sesije prije obrade svakog događaja
+  // Ponovna provjera sesije prije obrade svakog događaja
   socket.use((packet, next) => {
     const token = socket.handshake.auth?.token;
 
@@ -302,8 +305,6 @@ io.on("connection", (socket) => {
       });
   });
 
-
-  
   // KREIRANJE SOBE
   socket.on(
     "create_room",
@@ -322,10 +323,7 @@ io.on("connection", (socket) => {
           throw new Error("Neispravni podaci za stvaranje sobe.");
         }
 
-        if (
-          data.isPublic !== undefined &&
-          typeof data.isPublic !== "boolean"
-        ) {
+        if (data.isPublic !== undefined && typeof data.isPublic !== "boolean") {
           throw new Error("Neispravna postavka privatnosti sobe.");
         }
 
@@ -421,7 +419,6 @@ io.on("connection", (socket) => {
     },
   );
 
-
   // PRIDRUŽIVANJE SOBI
   socket.on(
     "join_room",
@@ -445,7 +442,6 @@ io.on("connection", (socket) => {
         ) {
           throw new Error("Kod sobe nije ispravan.");
         }
-
 
         const userId = authenticatedUser.userId;
         const cleanRoomCode = data.roomCode.trim().toUpperCase();
@@ -473,9 +469,7 @@ io.on("connection", (socket) => {
 
         room = joinedRoom;
 
-        const player = joinedRoom.players.find(
-          (item) => item.id === socket.id,
-        );
+        const player = joinedRoom.players.find((item) => item.id === socket.id);
 
         if (!player) {
           throw new Error("Igrač nije pronađen u sobi.");
@@ -531,10 +525,7 @@ io.on("connection", (socket) => {
 
   socket.on(
     "kick_player",
-    async (
-      data: { playerSocketId?: unknown },
-      callback,
-    ) => {
+    async (data: { playerSocketId?: unknown }, callback) => {
       try {
         const room = roomManager.getPlayerRoom(socket.id);
 
@@ -627,7 +618,6 @@ io.on("connection", (socket) => {
     },
   );
 
-
   // POMOĆNA FUNKCIJA: slanje privatnog prikaza partije svakom igraču.
   function broadcastGameState(state: GameState) {
     for (const player of state.players) {
@@ -638,128 +628,117 @@ io.on("connection", (socket) => {
     }
   }
 
-  socket.on(
-    "room_chat_send",
-    async (
-      data: { message?: unknown },
-      callback,
-    ) => {
-      try {
-        const room = roomManager.getPlayerRoom(socket.id);
+  socket.on("room_chat_send", async (data: { message?: unknown }, callback) => {
+    try {
+      const room = roomManager.getPlayerRoom(socket.id);
 
-        if (!room) {
-          throw new Error("Nisi u sobi.");
-        }
-
-        if (!data || typeof data !== "object" || typeof data.message !== "string") {
-          throw new Error("Poruka nije ispravnog formata.");
-        }
-
-        const message = data.message.trim();
-
-        if (!message) {
-          throw new Error("Poruka ne smije biti prazna.");
-        }
-
-        if (message.length > 300) {
-          throw new Error("Poruka je predugačka.");
-        }
-
-        const [savedMessage] = await db
-          .insert(roomMessages)
-          .values({
-            roomCode: room.code,
-            userId: authenticatedUser.userId,
-            username: authenticatedUser.username,
-            message,
-          })
-          .returning({
-            id: roomMessages.id,
-            roomCode: roomMessages.roomCode,
-            userId: roomMessages.userId,
-            username: roomMessages.username,
-            message: roomMessages.message,
-            createdAt: roomMessages.createdAt,
-          });
-
-        if (!savedMessage) {
-          throw new Error("Poruka nije spremljena.");
-        }
-
-        io.to(room.code).emit("room_chat_message", {
-          ...savedMessage,
-          createdAt: savedMessage.createdAt ?? new Date(),
-        });
-
-        callback?.({
-          success: true,
-          message: savedMessage,
-        });
-      } catch (error) {
-        callback?.({
-          success: false,
-          message: error instanceof Error ? error.message : "Greška.",
-        });
+      if (!room) {
+        throw new Error("Nisi u sobi.");
       }
-    },
-  );
+
+      if (
+        !data ||
+        typeof data !== "object" ||
+        typeof data.message !== "string"
+      ) {
+        throw new Error("Poruka nije ispravnog formata.");
+      }
+
+      const message = data.message.trim();
+
+      if (!message) {
+        throw new Error("Poruka ne smije biti prazna.");
+      }
+
+      if (message.length > 300) {
+        throw new Error("Poruka je predugačka.");
+      }
+
+      const [savedMessage] = await db
+        .insert(roomMessages)
+        .values({
+          roomCode: room.code,
+          userId: authenticatedUser.userId,
+          username: authenticatedUser.username,
+          message,
+        })
+        .returning({
+          id: roomMessages.id,
+          roomCode: roomMessages.roomCode,
+          userId: roomMessages.userId,
+          username: roomMessages.username,
+          message: roomMessages.message,
+          createdAt: roomMessages.createdAt,
+        });
+
+      if (!savedMessage) {
+        throw new Error("Poruka nije spremljena.");
+      }
+
+      io.to(room.code).emit("room_chat_message", {
+        ...savedMessage,
+        createdAt: savedMessage.createdAt ?? new Date(),
+      });
+
+      callback?.({
+        success: true,
+        message: savedMessage,
+      });
+    } catch (error) {
+      callback?.({
+        success: false,
+        message: error instanceof Error ? error.message : "Greška.",
+      });
+    }
+  });
 
   // BIRANJE ADUTA
-  socket.on(
-    "choose_trump",
-    (
-      data: { trumpSuit: Suit },
-      callback,
-    ) => {
-      try {
-        const room = roomManager.getPlayerRoom(socket.id);
+  socket.on("choose_trump", (data: { trumpSuit: Suit }, callback) => {
+    try {
+      const room = roomManager.getPlayerRoom(socket.id);
 
-        if (!room) {
-          throw new Error("Nisi u sobi.");
-        }
-
-        const gameState = activeGames.get(room.code);
-
-        if (!gameState) {
-          throw new Error("Partija nije pronađena.");
-        }
-
-        const player = gameState.players.find(
-          (item) => item.socketId === socket.id,
-        );
-
-        if (!player) {
-          throw new Error("Nisi dio ove partije.");
-        }
-
-        const updatedState = chooseTrump(
-          gameState,
-          player.playerNumber,
-          data.trumpSuit,
-        );
-
-        activeGames.set(room.code, updatedState);
-
-        broadcastGameState(updatedState);
-
-        callback?.({
-          success: true,
-        });
-      } catch (error) {
-        callback?.({
-          success: false,
-          message: error instanceof Error ? error.message : "Greška.",
-        });
+      if (!room) {
+        throw new Error("Nisi u sobi.");
       }
-    },
-  );
+
+      const gameState = activeGames.get(room.code);
+
+      if (!gameState) {
+        throw new Error("Partija nije pronađena.");
+      }
+
+      const player = gameState.players.find(
+        (item) => item.socketId === socket.id,
+      );
+
+      if (!player) {
+        throw new Error("Nisi dio ove partije.");
+      }
+
+      const updatedState = chooseTrump(
+        gameState,
+        player.playerNumber,
+        data.trumpSuit,
+      );
+
+      activeGames.set(room.code, updatedState);
+
+      broadcastGameState(updatedState);
+
+      callback?.({
+        success: true,
+      });
+    } catch (error) {
+      callback?.({
+        success: false,
+        message: error instanceof Error ? error.message : "Greška.",
+      });
+    }
+  });
 
   socket.on(
     "submit_declarations",
-    async (
-      data: { cards?: unknown },
-      callback,
-    ) => {
+    async (data: { cards?: unknown }, callback) => {
       let revealRoomCode: string | null = null;
 
       try {
@@ -779,7 +758,9 @@ io.on("connection", (socket) => {
           throw new Error("Pričekaj da se zvanje prikaže svim igračima.");
         }
 
-        const player = gameState.players.find((item) => item.socketId === socket.id);
+        const player = gameState.players.find(
+          (item) => item.socketId === socket.id,
+        );
 
         if (!player) {
           throw new Error("Nisi dio ove partije.");
@@ -792,13 +773,13 @@ io.on("connection", (socket) => {
         const selectedCards = (data.cards ?? []) as Card[];
 
         console.log("ZAPRIMLJENO ZVANJE:", {
-  phase: gameState.phase,
-  roundNumber: gameState.roundNumber,
-  playerNumber: player.playerNumber,
-  declarationTurnPlayerNumber: gameState.declarationTurnPlayerNumber,
-  completedDeclarationPlayers: gameState.completedDeclarationPlayers,
-  selectedCards,
-});
+          phase: gameState.phase,
+          roundNumber: gameState.roundNumber,
+          playerNumber: player.playerNumber,
+          declarationTurnPlayerNumber: gameState.declarationTurnPlayerNumber,
+          completedDeclarationPlayers: gameState.completedDeclarationPlayers,
+          selectedCards,
+        });
 
         const updatedState = submitDeclarations(
           gameState,
@@ -809,26 +790,24 @@ io.on("connection", (socket) => {
         activeGames.set(room.code, updatedState);
         broadcastGameState(updatedState);
 
-       
-if (updatedState.activeDeclarations.length > 0) {
-  revealRoomCode = room.code;
-  pendingDeclarationReveals.add(room.code);
+        if (updatedState.activeDeclarations.length > 0) {
+          revealRoomCode = room.code;
+          pendingDeclarationReveals.add(room.code);
 
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+          await new Promise((resolve) => setTimeout(resolve, 2000));
 
-  if (activeGames.get(room.code) !== updatedState) {
-    throw new Error("Partija je prekinuta tijekom prikaza zvanja.");
-  }
+          if (activeGames.get(room.code) !== updatedState) {
+            throw new Error("Partija je prekinuta tijekom prikaza zvanja.");
+          }
 
-  const clearedRevealState: GameState = {
-    ...updatedState,
-    activeDeclarations: [],
-  };
+          const clearedRevealState: GameState = {
+            ...updatedState,
+            activeDeclarations: [],
+          };
 
-  activeGames.set(room.code, clearedRevealState);
-  broadcastGameState(clearedRevealState);
-}
-
+          activeGames.set(room.code, clearedRevealState);
+          broadcastGameState(clearedRevealState);
+        }
 
         callback?.({
           success: true,
@@ -892,33 +871,32 @@ if (updatedState.activeDeclarations.length > 0) {
     }
   });
 
-// TODO OBRISATI
+  // TODO OBRISATI
   socket.on("test_next_deal", () => {
-  try {
-    const room = roomManager.getPlayerRoom(socket.id);
+    try {
+      const room = roomManager.getPlayerRoom(socket.id);
 
-    if (!room) {
-      throw new Error("Nisi u sobi.");
+      if (!room) {
+        throw new Error("Nisi u sobi.");
+      }
+
+      const gameState = activeGames.get(room.code);
+
+      if (!gameState) {
+        throw new Error("Partija nije pronađena.");
+      }
+
+      const nextState = createNextDeal({
+        ...gameState,
+        phase: "round_finished",
+      });
+
+      activeGames.set(room.code, nextState);
+      broadcastGameState(nextState);
+    } catch (error) {
+      console.error("Greška testnog dijeljenja:", error);
     }
-
-    const gameState = activeGames.get(room.code);
-
-    if (!gameState) {
-      throw new Error("Partija nije pronađena.");
-    }
-
-    const nextState = createNextDeal({
-      ...gameState,
-      phase: "round_finished",
-    });
-
-    activeGames.set(room.code, nextState);
-    broadcastGameState(nextState);
-  } catch (error) {
-    console.error("Greška testnog dijeljenja:", error);
-  }
-});
-
+  });
 
   // IGRANJE KARTE
   socket.on(
@@ -972,7 +950,10 @@ if (updatedState.activeDeclarations.length > 0) {
           data.announceBela ?? false,
         );
 
-        if (gameState.currentTrick.length === 3 && updatedState.currentTrick.length === 0) {
+        if (
+          gameState.currentTrick.length === 3 &&
+          updatedState.currentTrick.length === 0
+        ) {
           pendingTrickResolutions.add(room.code);
           lockedRoomCode = room.code;
 
@@ -1010,7 +991,10 @@ if (updatedState.activeDeclarations.length > 0) {
         }
 
         // Spremamo kumulativni rezultat nakon svakog završenog dijeljenja.
-        if (updatedState.phase === "round_finished" || updatedState.phase === "finished") {
+        if (
+          updatedState.phase === "round_finished" ||
+          updatedState.phase === "finished"
+        ) {
           if (!updatedState.finalScore || updatedState.callingTeam === null) {
             throw new Error("Konačni rezultat nije ispravno izračunat.");
           }
@@ -1018,7 +1002,8 @@ if (updatedState.activeDeclarations.length > 0) {
           const [savedGame] = await db
             .update(games)
             .set({
-              status: updatedState.phase === "finished" ? "finished" : "playing",
+              status:
+                updatedState.phase === "finished" ? "finished" : "playing",
               finishedAt: updatedState.phase === "finished" ? new Date() : null,
               team1Score: updatedState.team1MatchScore,
               team2Score: updatedState.team2MatchScore,
@@ -1029,15 +1014,14 @@ if (updatedState.activeDeclarations.length > 0) {
               team2Bela: updatedState.finalScore.team2Bela,
             })
             .where(
-              and(
-                eq(games.roomCode, room.code),
-                eq(games.status, "playing"),
-              ),
+              and(eq(games.roomCode, room.code), eq(games.status, "playing")),
             )
             .returning({ id: games.id });
 
           if (!savedGame) {
-            throw new Error("Rezultat nije spremljen. Partija nije pronađena ili je već završena.");
+            throw new Error(
+              "Rezultat nije spremljen. Partija nije pronađena ili je već završena.",
+            );
           }
 
           console.log("Konačni rezultat spremljen u bazu:", {
@@ -1055,18 +1039,17 @@ if (updatedState.activeDeclarations.length > 0) {
         // Svaki igrač dobiva vlastiti prikaz partije.
         broadcastGameState(updatedState);
 
-
         if (updatedState.phase === "round_finished") {
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+          await new Promise((resolve) => setTimeout(resolve, 3000));
 
-  // Provjera da se stanje u međuvremenu nije promijenilo.
-  if (activeGames.get(room.code) === updatedState) {
-    const nextState = createNextDeal(updatedState);
+          // Provjera da se stanje u međuvremenu nije promijenilo.
+          if (activeGames.get(room.code) === updatedState) {
+            const nextState = createNextDeal(updatedState);
 
-    activeGames.set(room.code, nextState);
-    broadcastGameState(nextState);
-  }
-}
+            activeGames.set(room.code, nextState);
+            broadcastGameState(nextState);
+          }
+        }
 
         callback?.({
           success: true,
@@ -1094,7 +1077,7 @@ if (updatedState.activeDeclarations.length > 0) {
     },
   );
 
- /* socket.on("start_next_deal", (callback) => {
+  /* socket.on("start_next_deal", (callback) => {
     try {
       const room = roomManager.getPlayerRoom(socket.id);
 
@@ -1127,7 +1110,6 @@ if (updatedState.activeDeclarations.length > 0) {
     }
   }); */
 
-
   // NAPUŠTANJE SOBE
   socket.on("leave_room", async (callback) => {
     const success = await removePlayerFromRoom(socket);
@@ -1156,8 +1138,6 @@ if (updatedState.activeDeclarations.length > 0) {
   // POKRETANJE PARTIJE
   socket.on("start_game", async (callback) => {
     try {
-
-
       const existingRoom = roomManager.getPlayerRoom(socket.id);
 
       if (!existingRoom) {
@@ -1235,15 +1215,15 @@ if (updatedState.activeDeclarations.length > 0) {
       });
     }
   });
-
-
 });
 
 async function removePlayerFromRoom(socket: Socket): Promise<boolean> {
   return removeRoomMember(socket.id, socket);
 }
 
-async function cleanupDisconnectedRoomMembership(userId: number): Promise<void> {
+async function cleanupDisconnectedRoomMembership(
+  userId: number,
+): Promise<void> {
   const room = roomManager.getUserRoom(userId);
   const player = room?.players.find((item) => item.userId === userId);
 
@@ -1268,7 +1248,8 @@ async function removeRoomMember(
   const userId = socketUsers.get(socketId);
   const departingPlayer = room.players.find((player) => player.id === socketId);
   const gameState = activeGames.get(roomCode);
-  const gameWasInProgress = gameState !== undefined && gameState.phase !== "finished";
+  const gameWasInProgress =
+    gameState !== undefined && gameState.phase !== "finished";
 
   let updatedRoom = roomManager.leaveRoom(socketId);
 
@@ -1317,9 +1298,7 @@ async function removeRoomMember(
 
       // Ako je soba prazna, brišemo nedovršenu partiju.
       if (!updatedRoom) {
-        await tx
-          .delete(games)
-          .where(eq(games.id, game.id));
+        await tx.delete(games).where(eq(games.id, game.id));
 
         return;
       }
@@ -1349,9 +1328,7 @@ async function removeRoomMember(
         .set({ isHost: false })
         .where(eq(gamePlayers.gameId, game.id));
 
-      const newHost = updatedRoom.players.find(
-        (player) => player.isHost,
-      );
+      const newHost = updatedRoom.players.find((player) => player.isHost);
 
       if (newHost) {
         await tx

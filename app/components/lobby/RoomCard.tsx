@@ -20,54 +20,58 @@ export default function RoomCard({
   const isFull = playerCount >= room.maxPlayers;
 
   return (
-    <div className="public-room-row" role="row">
-      <div className="room-list-code" role="cell">
-        <span className="room-list-status" aria-hidden="true" />
-        <div>
-          <strong>{room.code}</strong>
-          <span>{host?.username ?? "Domaćin"}</span>
+    <button
+      type="button"
+      className="belot-room-card"
+      onClick={() => onJoin(room.code)}
+      disabled={loading || disabled || isFull}
+      aria-label={`Uđi u sobu ${host?.username ?? room.code}, ${playerCount} od ${room.maxPlayers} igrača`}
+    >
+      <div className="belot-room-info">
+        <div className="belot-room-title">
+          <span className="belot-room-symbol">♣</span>
+
+          <strong className="belot-room-name">
+            {host?.username ?? "Domaćin"}
+          </strong>
         </div>
-      </div>
 
-      <div className="room-list-players" role="cell">
-        {room.players.map((player) => (
-          <span className="room-player-name" key={player.id}>
-            {player.username}
-            {player.isHost && <span className="room-host-mark">DOMAĆIN</span>}
-          </span>
-        ))}
-      </div>
-
-      <div
-        className="room-list-seats"
-        role="cell"
-        aria-label={`${playerCount} od ${room.maxPlayers} mjesta zauzeto`}
-      >
-        {Array.from({ length: room.maxPlayers }, (_, index) => (
-          <span
-            className={`room-seat-dot ${index < room.players.length ? "occupied" : ""}`}
-            key={index}
-            aria-hidden="true"
-          />
-        ))}
-        <span className="room-seat-count">
-          {playerCount}/{room.maxPlayers}
+        <span className="belot-room-description">
+          Javna soba · Min. rejting {room.minRating}
         </span>
       </div>
 
-      <div className="room-list-rating" role="cell">
-        {room.minRating}
-      </div>
+      <div className="belot-room-right">
+        <div className="belot-room-seats">
+          {Array.from({ length: room.maxPlayers }, (_, index) => (
+            <span
+              key={index}
+              className={`belot-room-seat ${
+                index < playerCount ? "occupied" : "empty"
+              }`}
+              aria-hidden="true"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="19"
+                height="19"
+                fill="currentColor"
+              >
+                <circle cx="12" cy="7" r="4" />
+                <path d="M4 21v-2c0-4 3.5-7 8-7s8 3 8 7v2H4z" />
+              </svg>
+            </span>
+          ))}
+        </div>
 
-      <div className="room-list-action" role="cell">
-        <button
-          className="primary-button"
-          onClick={() => onJoin(room.code)}
-          disabled={loading || disabled}
-        >
-          Uđi
-        </button>
+        <span className="belot-room-player-count">
+          {playerCount}/{room.maxPlayers}
+        </span>
+
+        <span className="belot-room-enter" aria-hidden="true">
+          ›
+        </span>
       </div>
-    </div>
+    </button>
   );
 }

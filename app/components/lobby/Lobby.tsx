@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Room } from "../../types/belot";
 import RoomCard from "./RoomCard";
 import "./Lobby.css";
@@ -33,20 +34,46 @@ export default function Lobby({
   onCreateRoom,
   onJoinRoom,
 }: LobbyProps) {
+  // Koji je prozor za postavke trenutno otvoren.
+  const [activePanel, setActivePanel] = useState<"create" | "join" | null>(
+    null,
+  );
   return (
-    <div className="lobby-workspace">
-      <div className="lobby-control-column">
-        <section className="lobby-section lobby-panel create-room-panel">
-          <div className="lobby-panel-heading">
-            <span className="lobby-panel-index">01</span>
-            <div>
-              <span className="lobby-panel-kicker">NOVA IGRA</span>
-              <h2>Stvori sobu</h2>
-            </div>
-          </div>
+    <div className="lobby-workspace lobby-new-layout">
+      {/* GLAVNI GUMBI */}
+      <div className="lobby-main-actions">
+        <button
+          type="button"
+          className="lobby-create-button"
+          onClick={() =>
+            setActivePanel((previous) =>
+              previous === "create" ? null : "create",
+            )
+          }
+        >
+          <span aria-hidden="true">＋</span>
+          Kreiraj sobu
+        </button>
+
+        <button
+          type="button"
+          className="lobby-code-button"
+          onClick={() =>
+            setActivePanel((previous) => (previous === "join" ? null : "join"))
+          }
+        >
+          <span aria-hidden="true">⌕</span>
+          Unesi kod
+        </button>
+      </div>
+
+      {/* POSTAVKE KREIRANJA SOBE */}
+      {activePanel === "create" && (
+        <section className="lobby-action-panel">
+          <h3>Kreiraj novu sobu</h3>
 
           <label>
-            VRSTA SOBE
+            Vrsta sobe
             <select
               value={isPublic ? "public" : "private"}
               onChange={(event) =>
@@ -59,13 +86,13 @@ export default function Lobby({
           </label>
 
           <label>
-            MINIMALNI REJTING
+            Minimalni rejting
             <select
               value={minRating}
               onChange={(event) => onMinRatingChange(event.target.value)}
             >
               {Array.from({ length: 11 }, (_, index) => (
-                <option value={index} key={index}>
+                <option key={index} value={index}>
                   {index}
                 </option>
               ))}
@@ -73,25 +100,23 @@ export default function Lobby({
           </label>
 
           <button
-            className="primary-button"
+            type="button"
+            className="lobby-create-button"
             onClick={onCreateRoom}
             disabled={loading || !socketConnected}
           >
-            {loading ? "Stvaram sobu..." : "Stvori sobu"}
+            {loading ? "Stvaram sobu..." : "Potvrdi kreiranje"}
           </button>
         </section>
+      )}
 
-        <section className="lobby-section lobby-panel join-code-panel">
-          <div className="lobby-panel-heading">
-            <span className="lobby-panel-index">02</span>
-            <div>
-              <span className="lobby-panel-kicker">POZIVNICA</span>
-              <h2>Uđi u sobu</h2>
-            </div>
-          </div>
+      {/* ULAZAK POMOĆU KODA */}
+      {activePanel === "join" && (
+        <section className="lobby-action-panel">
+          <h3>Ulazak u privatnu sobu</h3>
 
           <label>
-            KOD SOBE
+            Kod sobe
             <input
               value={roomCode}
               onChange={(event) =>
@@ -103,49 +128,31 @@ export default function Lobby({
           </label>
 
           <button
-            className="secondary-button"
+            type="button"
+            className="lobby-create-button"
             onClick={() => onJoinRoom()}
             disabled={loading || !socketConnected}
           >
-            Pridruži se kodom
+            Uđi u sobu
           </button>
         </section>
-      </div>
+      )}
 
-      <section className="lobby-section lobby-panel public-rooms-panel">
-        <div className="lobby-heading">
-          <div>
-            <span className="lobby-panel-kicker">OTVORENE ZA IGRAČE</span>
-            <h2>Javne sobe</h2>
-          </div>
-          <span className="public-room-count">{publicRooms.length}</span>
+      {/* SLOBODNE SOBE */}
+      <section className="lobby-available-section">
+        <div className="lobby-available-heading">
+          <h2>Lista slobodnih igara</h2>
+          <span>{publicRooms.length}</span>
         </div>
 
-        {publicRooms.length === 0 ? (
-          <div className="empty-room-list">
-            <span className="empty-room-mark" aria-hidden="true">
-              ♧
-            </span>
-            <strong>Nema otvorenih soba</strong>
-            <p>Stvori novu sobu ili se pridruži kodom pozivnice.</p>
-          </div>
-        ) : (
-          <div className="public-room-table-scroll">
-            <div
-              className="public-room-list"
-              role="table"
-              aria-label="Javne sobe"
-            >
-              <div
-                className="public-room-row public-room-table-head"
-                role="row"
-              >
-                <span role="columnheader">SOBA</span>
-                <span role="columnheader">IGRAČI</span>
-                <span role="columnheader">MJESTA</span>
-                <span role="columnheader">MIN. REJTING</span>
-                <span role="columnheader" aria-label="Akcija" />
-              </div>
+        <div className="lobby-available-content">
+          {publicRooms.length === 0 ? (
+            <div className="empty-room-list">
+              <strong>Nema slobodnih soba</strong>
+              <p>Kreiraj novu sobu i pozovi prijatelje.</p>
+            </div>
+          ) : (
+            <div className="public-room-list">
               {publicRooms.map((room) => (
                 <RoomCard
                   key={room.code}
@@ -156,8 +163,8 @@ export default function Lobby({
                 />
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </section>
     </div>
   );
