@@ -29,15 +29,18 @@ export default function RoomCard({
     >
       <div className="belot-room-info">
         <div className="belot-room-title">
-          <span className="belot-room-symbol">♣</span>
-
+          <span className="belot-room-symbol" aria-hidden="true">
+            ♣
+          </span>
           <strong className="belot-room-name">
             {host?.username ?? "Domaćin"}
           </strong>
         </div>
 
         <span className="belot-room-description">
-          Javna soba · Min. rejting {room.minRating}
+          {room.isPublic ? "Javna soba" : "🔒 Privatna soba"}
+          {" · "}
+          Min. rejting {room.minRating}
         </span>
       </div>
 
@@ -53,8 +56,8 @@ export default function RoomCard({
             >
               <svg
                 viewBox="0 0 24 24"
-                width="19"
-                height="19"
+                width="21"
+                height="21"
                 fill="currentColor"
               >
                 <circle cx="12" cy="7" r="4" />

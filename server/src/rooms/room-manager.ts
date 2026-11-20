@@ -176,9 +176,7 @@ class RoomManager {
       return null;
     }
 
-    room.players = room.players.filter(
-      (player) => player.id !== socketId,
-    );
+    room.players = room.players.filter((player) => player.id !== socketId);
 
     if (room.players.length === 0) {
       this.rooms.delete(roomCode);
@@ -224,6 +222,42 @@ class RoomManager {
     return this.rooms.get(roomCode);
   }
 
+  swapPlayers(
+    hostSocketId: string,
+    firstSeat: number,
+    secondSeat: number,
+  ): Room {
+    const room = this.getPlayerRoom(hostSocketId);
+
+    if (!room || room.status !== "waiting") {
+      throw new Error("Soba nije dostupna za promjenu mjesta.");
+    }
+
+    const host = room.players.find((player) => player.id === hostSocketId);
+
+    if (!host?.isHost) {
+      throw new Error("Samo domaćin može mijenjati mjesta.");
+    }
+
+    if (
+      !Number.isInteger(firstSeat) ||
+      !Number.isInteger(secondSeat) ||
+      firstSeat < 0 ||
+      secondSeat < 0 ||
+      firstSeat >= room.players.length ||
+      secondSeat >= room.players.length ||
+      firstSeat === secondSeat
+    ) {
+      throw new Error("Neispravna mjesta igrača.");
+    }
+
+    const firstPlayer = room.players[firstSeat];
+    room.players[firstSeat] = room.players[secondSeat];
+    room.players[secondSeat] = firstPlayer;
+
+    return room;
+  }
+
   // Pokretanje partije
   startGame(socketId: string): Room {
     const room = this.getPlayerRoom(socketId);
@@ -232,9 +266,7 @@ class RoomManager {
       throw new Error("Nisi u sobi.");
     }
 
-    const player = room.players.find(
-      (item) => item.id === socketId,
-    );
+    const player = room.players.find((item) => item.id === socketId);
 
     if (!player?.isHost) {
       throw new Error("Samo domaćin može pokrenuti partiju.");

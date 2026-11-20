@@ -1,8 +1,8 @@
 "use client";
 
 import type { Room } from "../../types/belot";
-import ChatPanel from "../chat/ChatPanel";
 import "./WaitingRoom.css";
+import { useState } from "react";
 
 type WaitingRoomProps = {
   room: Room;
@@ -25,6 +25,7 @@ type WaitingRoomProps = {
   onStart: () => void;
   onLeave: () => void;
   onKickPlayer: (playerSocketId: string) => void;
+  onSwapPlayers: (firstSeat: number, secondSeat: number) => void;
 };
 
 export default function WaitingRoom({
@@ -41,10 +42,30 @@ export default function WaitingRoom({
   onStart,
   onLeave,
   onKickPlayer,
+  onSwapPlayers,
 }: WaitingRoomProps) {
   const isHost = room.players.some(
     (player) => player.userId === userId && player.isHost,
   );
+
+  const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
+
+  function handleSeatClick(seat: number) {
+    if (!isHost || loading || !room.players[seat]) return;
+
+    if (selectedSeat === null) {
+      setSelectedSeat(seat);
+      return;
+    }
+
+    if (selectedSeat === seat) {
+      setSelectedSeat(null);
+      return;
+    }
+
+    onSwapPlayers(selectedSeat, seat);
+    setSelectedSeat(null);
+  }
 
   return (
     <main className="waiting-room-screen">
@@ -109,49 +130,81 @@ export default function WaitingRoom({
             </div>
 
             <div className="waiting-room-seats">
-              {Array.from({ length: room.maxPlayers }, (_, index) => {
-                const player = room.players[index];
+              <div className="waiting-room-teams">
+                {[
+                  { name: "MI", seats: [0, 2] },
+                  { name: "VI", seats: [1, 3] },
+                ].map((team) => (
+                  <div className="waiting-team" key={team.name}>
+                    <div className="waiting-team-heading">
+                      <span className="waiting-team-label">{team.name}</span>
+                      <span className="waiting-team-count">
+                        {team.seats.filter((seat) => room.players[seat]).length}
+                        /2 igrača
+                      </span>
+                    </div>
 
-                return (
-                  <div
-                    className={`waiting-player-card ${player ? "occupied" : "open"}`}
-                    key={player?.id ?? `open-${index}`}
-                  >
-                    <span className="waiting-player-seat">0{index + 1}</span>
-                    {player ? (
-                      <>
-                        <div className="waiting-player-avatar">
-                          {player.username.slice(0, 1).toUpperCase()}
-                        </div>
-                        <div className="waiting-player-info">
-                          <strong>{player.username}</strong>
-                          <span>
-                            {player.isHost ? "Domaćin" : "Igrač"}
-                            {" · "}Rejting {player.rating}
-                          </span>
-                        </div>
-                        {isHost && !player.isHost && (
-                          <button
-                            className="waiting-player-remove"
-                            type="button"
-                            onClick={() => onKickPlayer(player.id)}
-                            disabled={loading}
-                            title={`Ukloni igrača ${player.username}`}
-                            aria-label={`Ukloni igrača ${player.username}`}
+                    <div className="waiting-team-players">
+                      {team.seats.map((seat) => {
+                        const player = room.players[seat];
+
+                        return (
+                          <div
+                            key={seat}
+                            className={`waiting-player-card ${
+                              player ? "occupied" : "open"
+                            } ${selectedSeat === seat ? "selected" : ""} ${
+                              isHost && player ? "selectable" : ""
+                            }`}
+                            onClick={() => handleSeatClick(seat)}
                           >
-                            ×
-                          </button>
-                        )}
-                      </>
-                    ) : (
-                      <div className="waiting-player-info">
-                        <strong>Slobodno mjesto</strong>
-                        <span>Čeka se igrač</span>
-                      </div>
-                    )}
+                            <span className="waiting-player-seat">
+                              0{seat + 1}
+                            </span>
+
+                            {player ? (
+                              <>
+                                <div className="waiting-player-avatar">
+                                  {player.username.slice(0, 1).toUpperCase()}
+                                </div>
+
+                                <div className="waiting-player-info">
+                                  <strong>{player.username}</strong>
+                                  <span>
+                                    {player.isHost ? "Domaćin" : "Igrač"}
+                                    {" · "}Rejting {player.rating}
+                                  </span>
+                                </div>
+
+                                {isHost && !player.isHost && (
+                                  <button
+                                    className="waiting-player-remove"
+                                    type="button"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      onKickPlayer(player.id);
+                                    }}
+                                    disabled={loading}
+                                    title={`Ukloni igrača ${player.username}`}
+                                    aria-label={`Ukloni igrača ${player.username}`}
+                                  >
+                                    ×
+                                  </button>
+                                )}
+                              </>
+                            ) : (
+                              <div className="waiting-player-info">
+                                <strong>Slobodno mjesto</strong>
+                                <span>Čeka se igrač</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                );
-              })}
+                ))}
+              </div>
             </div>
 
             <div className="waiting-room-start-row">
@@ -179,19 +232,6 @@ export default function WaitingRoom({
             </div>
           </section>
         </section>
-
-        <ChatPanel
-          variant="room"
-          title="Chat sobe"
-          eyebrow="DOGOVORITE SE"
-          showLiveDot
-          emptyMessage="Još nema poruka. Pozdravi ekipu."
-          messages={messages}
-          currentUserId={userId}
-          input={chatInput}
-          onInputChange={onChatInputChange}
-          onSend={onSendChat}
-        />
       </div>
     </main>
   );

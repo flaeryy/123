@@ -70,6 +70,40 @@ io.use(async (socket, next) => {
 
 // Povezuje Socket.IO igrača s ID-em korisnika u bazi
 const socketUsers = new Map<string, number>();
+
+type OnlinePlayer = {
+  userId: number;
+  username: string;
+};
+
+function getAvailablePlayers(): OnlinePlayer[] {
+  const players = new Map<number, OnlinePlayer>();
+
+  for (const socket of io.sockets.sockets.values()) {
+    const user = socket.data.user as
+      | { userId: number; username: string }
+      | undefined;
+
+    if (!user) continue;
+
+    // Korisnik nije slobodan ako je u bilo kojoj sobi.
+    if (roomManager.getUserRoom(user.userId)) continue;
+
+    players.set(user.userId, {
+      userId: user.userId,
+      username: user.username,
+    });
+  }
+
+  return Array.from(players.values()).sort((a, b) =>
+    a.username.localeCompare(b.username, "hr"),
+  );
+}
+
+function broadcastAvailablePlayers() {
+  io.emit("available_players_updated", getAvailablePlayers());
+}
+
 // Aktivne partije u memoriji servera, povezane s kodom sobe.
 const activeGames = new Map<string, GameState>();
 const pendingTrickResolutions = new Set<string>();
@@ -237,6 +271,13 @@ app.get("/health", async () => {
 io.on("connection", (socket) => {
   console.log("Igrač spojen:", socket.id);
 
+  socket.on("get_available_players", (callback) => {
+    callback?.({
+      success: true,
+      players: getAvailablePlayers(),
+    });
+  });
+
   // Ponovna provjera sesije prije obrade svakog događaja
   const sessionToken = socket.handshake.auth?.token;
 
@@ -273,6 +314,8 @@ io.on("connection", (socket) => {
     socket.disconnect(true);
     return;
   }
+
+  broadcastAvailablePlayers();
 
   const userId = authenticatedUser.userId;
   const username = authenticatedUser.username;
@@ -416,6 +459,8 @@ io.on("connection", (socket) => {
           message: error instanceof Error ? error.message : "Greška.",
         });
       }
+
+      broadcastAvailablePlayers();
     },
   );
 
@@ -520,6 +565,94 @@ io.on("connection", (socket) => {
           message: error instanceof Error ? error.message : "Greška.",
         });
       }
+      broadcastAvailablePlayers();
+    },
+  );
+
+  socket.on(
+    "swap_players",
+    async (data: { firstSeat?: unknown; secondSeat?: unknown }, callback) => {
+      try {
+        if (
+          !data ||
+          !Number.isInteger(data.firstSeat) ||
+          !Number.isInteger(data.secondSeat)
+        ) {
+          throw new Error("Neispravna mjesta igrača.");
+        }
+
+        const firstSeat = data.firstSeat as number;
+        const secondSeat = data.secondSeat as number;
+
+        const room = roomManager.getPlayerRoom(socket.id);
+
+        if (!room || room.status !== "waiting") {
+          throw new Error("Soba nije dostupna.");
+        }
+
+        const updatedRoom = roomManager.swapPlayers(
+          socket.id,
+          firstSeat,
+          secondSeat,
+        );
+
+        try {
+          await db.transaction(async (tx) => {
+            const [game] = await tx
+              .select({ id: games.id })
+              .from(games)
+              .where(eq(games.roomCode, room.code))
+              .limit(1);
+
+            if (!game) {
+              throw new Error("Partija nije pronađena.");
+            }
+
+            // Privremene vrijednosti izbjegavaju konflikt
+            // ako baza ima UNIQUE(gameId, seat).
+            for (let i = 0; i < updatedRoom.players.length; i++) {
+              const player = updatedRoom.players[i];
+
+              await tx
+                .update(gamePlayers)
+                .set({ seat: i + 101 })
+                .where(
+                  and(
+                    eq(gamePlayers.gameId, game.id),
+                    eq(gamePlayers.userId, player.userId),
+                  ),
+                );
+            }
+
+            for (let i = 0; i < updatedRoom.players.length; i++) {
+              const player = updatedRoom.players[i];
+
+              await tx
+                .update(gamePlayers)
+                .set({ seat: i + 1 })
+                .where(
+                  and(
+                    eq(gamePlayers.gameId, game.id),
+                    eq(gamePlayers.userId, player.userId),
+                  ),
+                );
+            }
+          });
+        } catch (error) {
+          // Vrati redoslijed u memoriji ako spremanje nije uspjelo.
+          roomManager.swapPlayers(socket.id, firstSeat, secondSeat);
+          throw error;
+        }
+
+        io.to(room.code).emit("room_updated", updatedRoom);
+
+        callback?.({ success: true });
+      } catch (error) {
+        callback?.({
+          success: false,
+          message: error instanceof Error ? error.message : "Greška.",
+        });
+      }
     },
   );
 
@@ -607,6 +740,7 @@ io.on("connection", (socket) => {
 
         io.to(room.code).emit("room_updated", updatedRoom);
         io.emit("public_rooms_updated", roomManager.listPublicRooms());
+        broadcastAvailablePlayers();
 
         callback?.({ success: true });
       } catch (error) {
@@ -1118,13 +1252,14 @@ io.on("connection", (socket) => {
       success,
       message: success ? undefined : "Nisi u sobi.",
     });
+    broadcastAvailablePlayers();
   });
   // PREKID VEZE
   socket.on("disconnect", async () => {
     console.log("Igrač odspojen:", socket.id);
     await removePlayerFromRoom(socket);
+    broadcastAvailablePlayers();
   });
-
   // DOHVAT JAVNIH SOBA
   socket.on("get_public_rooms", (callback) => {
     const publicRooms = roomManager.listPublicRooms();

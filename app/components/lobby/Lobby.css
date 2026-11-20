@@ -1657,3 +1657,622 @@
 .belot-home-rooms-notice p {
   margin: 0;
 }
+
+/* NOVI BELOT ROOM CARD */
+
+.lobby-dashboard .belot-room-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  min-height: 90px;
+  padding: 16px 22px;
+  border: 1px solid #dce9df;
+  border-radius: 16px;
+  background: #e8f0e9;
+  color: #243e31;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.lobby-dashboard .belot-room-card:hover:not(:disabled) {
+  background: #d9f3e4;
+  border-color: #87c9a2;
+  transform: translateY(-2px);
+}
+
+.lobby-dashboard .belot-room-card:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.lobby-dashboard .belot-room-card:focus-visible {
+  outline: 3px solid #087e60;
+  outline-offset: 3px;
+}
+
+.belot-room-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.belot-room-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 46px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #c8ead5;
+  color: #087e60;
+  font-size: 26px;
+}
+
+.belot-room-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.lobby-dashboard .belot-room-name {
+  color: #243e31;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.lobby-dashboard .belot-room-description {
+  color: #718676;
+  font-size: 12px;
+}
+
+.belot-room-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.belot-room-seats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.belot-room-seat {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+}
+
+.belot-room-seat.occupied {
+  background: #c7e9d6;
+  color: #087e60;
+}
+
+.belot-room-seat.empty {
+  background: #dce5df;
+  color: #a0b1a5;
+}
+
+.belot-room-player-count {
+  color: #243e31;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.belot-room-rating {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 100px;
+  padding-left: 16px;
+  border-left: 1px solid #cdded1;
+}
+
+.belot-room-rating-star {
+  color: #c58c17;
+  font-size: 19px;
+}
+
+.belot-room-rating > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.belot-room-rating small {
+  color: #718676;
+  font-size: 11px;
+}
+
+.belot-room-rating strong {
+  color: #243e31;
+  font-size: 14px;
+}
+
+.lobby-dashboard .belot-room-enter {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #087e60;
+  color: white;
+  font-size: 25px;
+}
+
+/* MOBITEL */
+
+@media (max-width: 700px) {
+  .lobby-dashboard .belot-room-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 15px;
+  }
+
+  .belot-room-right {
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .belot-room-seat {
+    width: 28px;
+    height: 28px;
+  }
+
+  .belot-room-seat svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .belot-room-rating {
+    min-width: 0;
+    padding-left: 10px;
+  }
+}
+
+/* NOVI IZGLED SOBE */
+
+.belot-room-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 94px;
+  padding: 18px 22px;
+  gap: 18px;
+  border: 1px solid #dce9df;
+  border-radius: 14px;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.belot-room-card:hover:not(:disabled) {
+  background: #eef8f0;
+  border-color: #64b984;
+  transform: none;
+}
+
+.belot-room-info {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.belot-room-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.belot-room-symbol {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #e6f4e9;
+  color: #18824c;
+  font-size: 26px;
+}
+
+.belot-room-name {
+  color: #203b2b;
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.belot-room-description {
+  color: #728579;
+  font-size: 12px;
+}
+
+.belot-room-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.belot-room-seats {
+  display: flex;
+  gap: 6px;
+}
+
+.belot-room-seat {
+  display: grid;
+  place-items: center;
+  width: 39px;
+  height: 39px;
+  border-radius: 10px;
+}
+
+.belot-room-seat.occupied {
+  background: #188a55;
+  color: white;
+}
+
+.belot-room-seat.empty {
+  background: #e9efeb;
+  color: #a5b6aa;
+}
+
+.belot-room-player-count {
+  color: #294b37;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.belot-room-enter {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #e6f4e9;
+  color: #16814a;
+  font-size: 26px;
+}
+
+@media (max-width: 620px) {
+  .belot-room-card {
+    padding: 14px 12px;
+    gap: 10px;
+  }
+
+  .belot-room-symbol {
+    width: 34px;
+    height: 34px;
+    font-size: 21px;
+  }
+
+  .belot-room-name {
+    font-size: 14px;
+  }
+
+  .belot-room-right {
+    gap: 7px;
+  }
+
+  .belot-room-seats {
+    gap: 3px;
+  }
+
+  .belot-room-seat {
+    width: 25px;
+    height: 29px;
+  }
+
+  .belot-room-seat svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .belot-room-enter {
+    display: none;
+  }
+
+  .belot-room-player-count {
+    font-size: 12px;
+  }
+}
+
+/* ===================================
+   LOBBY MODAL
+=================================== */
+
+.lobby-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 35, 24, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.lobby-modal {
+  width: 100%;
+  max-width: 460px;
+  overflow: hidden;
+  border: 1px solid #dce9df;
+  border-radius: 18px;
+  background: #ffffff;
+  color: #203b2b;
+  box-shadow: 0 20px 65px rgba(0, 0, 0, 0.16);
+  animation: lobbyModalIn 0.2s ease;
+}
+
+@keyframes lobbyModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lobby-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 25px 28px 20px;
+  border-bottom: 1px solid #e9f0eb;
+}
+
+.lobby-modal-header h2 {
+  margin: 0;
+  color: #203b2b;
+  font-size: 22px;
+  font-weight: 750;
+}
+
+.lobby-modal-header p {
+  margin: 7px 0 0;
+  color: #7b8d80;
+  font-size: 13px;
+}
+
+.lobby-modal-close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: #f0f5f1;
+  color: #607568;
+  font-size: 25px;
+  cursor: pointer;
+}
+
+.lobby-modal-close:hover {
+  background: #e0eee4;
+}
+
+.lobby-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 23px;
+  padding: 26px 28px 28px;
+}
+
+.lobby-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.lobby-field label {
+  color: #294634;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.lobby-field select,
+.lobby-field input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #d7e5da;
+  border-radius: 10px;
+  background: #fafdfa;
+  color: #294634;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.lobby-field select:focus,
+.lobby-field input:focus {
+  border-color: #188a55;
+  box-shadow: 0 0 0 3px rgba(24, 138, 85, 0.1);
+}
+
+.lobby-field small {
+  color: #829487;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.lobby-code-input {
+  text-align: center;
+  letter-spacing: 5px;
+  font-size: 20px !important;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.lobby-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.lobby-modal-cancel,
+.lobby-modal-confirm {
+  min-height: 44px;
+  padding: 0 19px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.lobby-modal-cancel {
+  border: 1px solid #dce7df;
+  background: #ffffff;
+  color: #526a59;
+}
+
+.lobby-modal-cancel:hover {
+  background: #f1f6f2;
+}
+
+.lobby-modal-confirm {
+  border: 1px solid #188a55;
+  background: #188a55;
+  color: #ffffff;
+}
+
+.lobby-modal-confirm:hover:not(:disabled) {
+  background: #126d42;
+}
+
+.lobby-modal-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .lobby-modal-header {
+    padding: 20px;
+  }
+
+  .lobby-modal-body {
+    padding: 22px 20px;
+  }
+
+  .lobby-modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .lobby-modal-footer button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lobby-modal {
+    animation: none;
+  }
+}
+
+/* GLAVNI SADRŽAJ LOBBYJA */
+
+.lobby-dashboard .lobby-dashboard-content {
+  width: min(1200px, calc(100% - 40px));
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 34px 0 60px;
+}
+
+.lobby-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.lobby-welcome h1 {
+  margin: 0;
+  color: #203b2b;
+  font-size: clamp(24px, 3vw, 31px);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.lobby-welcome p {
+  margin: 9px 0 0;
+  color: #728579;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.lobby-connection {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+  padding: 10px 15px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.lobby-connection.is-online {
+  background: #e3f5e9;
+  color: #16834b;
+}
+
+.lobby-connection.is-offline {
+  background: #fff4df;
+  color: #a87924;
+}
+
+.lobby-connection-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+@media (max-width: 620px) {
+  .lobby-dashboard .lobby-dashboard-content {
+    width: calc(100% - 28px);
+    padding: 24px 0 40px;
+  }
+
+  .lobby-welcome {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .lobby-welcome h1 {
+    font-size: 24px;
+  }
+
+  .lobby-welcome p {
+    font-size: 13px;
+  }
+}

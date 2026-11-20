@@ -17,6 +17,7 @@ import { useRoomChat } from "./hooks/useRoomChat";
 import { useSocket } from "./hooks/useSocket";
 import { useAuth } from "./hooks/useAuth";
 import RoomCard from "./components/lobby/RoomCard";
+import LobbyHeader from "./components/lobby/LobbyHeader";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -917,6 +918,44 @@ function HomeContent() {
         },
       );
   }
+
+  function swapRoomPlayers(firstSeat: number, secondSeat: number) {
+    const socket = socketRef.current;
+
+    if (!socket?.connected || !currentRoom) {
+      setError("Nisi povezan sa sobom.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    socket
+      .timeout(5000)
+      .emit(
+        "swap_players",
+        { firstSeat, secondSeat },
+        (
+          timeoutError: Error | null,
+          response?: { success: boolean; message?: string },
+        ) => {
+          setLoading(false);
+
+          if (timeoutError) {
+            setError("Poslužitelj ne odgovara.");
+            return;
+          }
+
+          if (!response?.success) {
+            setError(response?.message ?? "Promjena mjesta nije uspjela.");
+            return;
+          }
+
+          setMessage("Mjesta igrača uspješno su zamijenjena.");
+        },
+      );
+  }
+
   function startGame() {
     const socket = socketRef.current;
 
@@ -1064,6 +1103,7 @@ function HomeContent() {
         onStart={startGame}
         onLeave={leaveRoom}
         onKickPlayer={kickRoomPlayer}
+        onSwapPlayers={swapRoomPlayers}
       />
     );
   }
@@ -1071,107 +1111,58 @@ function HomeContent() {
   if (user && !currentRoom && !gameStarted) {
     return (
       <main className="lobby-dashboard">
-        <header className="lobby-dashboard-topbar">
-          <Link className="brand lobby-brand" href="/lobby">
-            <span className="lobby-brand-icon" aria-hidden="true">
-              ♣
-            </span>
-            <span>BELOT</span>
-          </Link>
-
-          <div className="lobby-header-actions">
-            <div className="lobby-header-user">
-              <div className="lobby-header-avatar">
-                {user.username.charAt(0).toUpperCase()}
-              </div>
-
-              <span className="lobby-header-username">{user.username}</span>
-            </div>
-
-            <button
-              type="button"
-              className="lobby-header-logout"
-              onClick={handleLogout}
-              disabled={loading}
-              title="Odjavi se"
-              aria-label="Odjavi se"
-            >
-              <svg
-                width="19"
-                height="19"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M10 17l5-5-5-5" />
-                <path d="M15 12H3" />
-                <path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6" />
-              </svg>
-            </button>
-          </div>
-        </header>
+        <LobbyHeader
+          username={user.username}
+          socketConnected={socketConnected}
+          loading={loading}
+          onLogout={handleLogout}
+        />
 
         <div className="lobby-dashboard-content">
-          <div className="lobby-dashboard-heading">
-            <div className="lobby-profile-card">
-              <div className="lobby-profile-avatar">
-                {user.username.charAt(0).toUpperCase()}
-              </div>
+          <div className="lobby-welcome">
+            <div>
+              <h1>Pronađi svoju partiju</h1>
+              <p>
+                Pridruži se slobodnoj sobi ili kreiraj novu i zaigraj belot.
+              </p>
+            </div>
 
-              <div className="lobby-profile-info">
-                <strong>{user.username}</strong>
-                <span>Belot igrač</span>
-              </div>
-
-              <div className="lobby-profile-status">
-                <span
-                  className={`lobby-status-indicator ${
-                    socketConnected ? "connected" : "disconnected"
-                  }`}
-                />
-
-                {socketConnected ? "Online" : "Povezivanje..."}
-              </div>
+            <div
+              className={`lobby-connection ${
+                socketConnected ? "is-online" : "is-offline"
+              }`}
+            >
+              <span className="lobby-connection-dot" />
+              {socketConnected ? "Spojen na server" : "Povezivanje..."}
             </div>
           </div>
+
           {error && (
             <div className="message error" role="alert">
               {error}
             </div>
           )}
+
           {message && (
             <div className="message success" role="status">
               {message}
             </div>
           )}
 
-          {pathname.startsWith("/room/") ? (
-            <section className="lobby-panel lobby-route-loading">
-              <span className="lobby-panel-kicker">POZIVNICA</span>
-              <h2>
-                {loading ? "Soba se učitava..." : "Povezivanje sa sobom..."}
-              </h2>
-            </section>
-          ) : (
-            <Lobby
-              publicRooms={publicRooms}
-              loading={loading}
-              socketConnected={socketConnected}
-              currentRoomExists={!!currentRoom}
-              isPublic={isPublic}
-              minRating={minRating}
-              roomCode={roomCode}
-              onPublicChange={setIsPublic}
-              onMinRatingChange={setMinRating}
-              onRoomCodeChange={setRoomCode}
-              onCreateRoom={createRoom}
-              onJoinRoom={joinRoom}
-            />
-          )}
+          <Lobby
+            publicRooms={publicRooms}
+            loading={loading}
+            socketConnected={socketConnected}
+            currentRoomExists={!!currentRoom}
+            isPublic={isPublic}
+            minRating={minRating}
+            roomCode={roomCode}
+            onPublicChange={setIsPublic}
+            onMinRatingChange={setMinRating}
+            onRoomCodeChange={setRoomCode}
+            onCreateRoom={createRoom}
+            onJoinRoom={joinRoom}
+          />
         </div>
       </main>
     );
@@ -1381,6 +1372,7 @@ function HomeContent() {
                   onStart={startGame}
                   onLeave={leaveRoom}
                   onKickPlayer={kickRoomPlayer}
+                  onSwapPlayers={swapRoomPlayers}
                 />
               ) : pathname.startsWith("/room/") ? (
                 <div className="lobby-section">

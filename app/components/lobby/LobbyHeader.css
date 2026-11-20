@@ -1,0 +1,209 @@
+.belot-lobby-header {
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 1px solid #e0ebe3;
+  box-shadow: 0 2px 12px rgba(20, 80, 45, 0.04);
+}
+
+.belot-lobby-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 82px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 12px 32px;
+  gap: 20px;
+}
+
+.belot-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-decoration: none;
+}
+
+.belot-header-logo {
+  position: relative;
+  width: 62px;
+  height: 52px;
+}
+
+.belot-logo-card {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 48px;
+  border: 2px solid #e2e9e3;
+  border-radius: 6px;
+  background: #ffffff;
+  font-size: 27px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.belot-logo-card.card-back {
+  left: 4px;
+  top: 2px;
+  color: #d34d4d;
+  transform: rotate(-17deg);
+}
+
+.belot-logo-card.card-front {
+  left: 23px;
+  top: 2px;
+  color: #16824a;
+  transform: rotate(12deg);
+}
+
+.belot-header-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.belot-header-brand-text strong {
+  color: #187b47;
+  font-size: 25px;
+  font-weight: 850;
+  letter-spacing: 1.5px;
+}
+
+.belot-header-brand-text small {
+  color: #84988a;
+  font-size: 11px;
+}
+
+.belot-header-right,
+.belot-header-user {
+  display: flex;
+  align-items: center;
+}
+
+.belot-header-right {
+  gap: 20px;
+}
+
+.belot-header-user {
+  gap: 11px;
+}
+
+.belot-header-avatar {
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 50%;
+  background: #e1f2e7;
+  color: #167d48;
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.belot-header-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.belot-header-user-info strong {
+  color: #253d2e;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.belot-header-user-info span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #809386;
+  font-size: 11px;
+}
+
+.belot-header-status {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.belot-header-status.online {
+  background: #24b66d;
+}
+
+.belot-header-status.offline {
+  background: #e3a43c;
+}
+
+.belot-header-divider {
+  width: 1px;
+  height: 32px;
+  background: #e3ebe5;
+}
+
+.belot-header-logout {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #e2ebe5;
+  border-radius: 10px;
+  background: #f6faf7;
+  color: #627b69;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.belot-header-logout:hover:not(:disabled) {
+  background: #e7f4eb;
+  color: #147b46;
+  border-color: #bdddc8;
+}
+
+.belot-header-logout:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 620px) {
+  .belot-lobby-header-inner {
+    min-height: 72px;
+    padding: 10px 15px;
+  }
+
+  .belot-header-brand {
+    gap: 10px;
+  }
+
+  .belot-header-brand-text strong {
+    font-size: 21px;
+  }
+
+  .belot-header-brand-text small {
+    display: none;
+  }
+
+  .belot-header-logo {
+    transform: scale(0.8);
+    transform-origin: left center;
+    width: 50px;
+  }
+
+  .belot-header-user-info {
+    display: none;
+  }
+
+  .belot-header-right {
+    gap: 10px;
+  }
+
+  .belot-header-divider {
+    display: none;
+  }
+
+  .belot-header-avatar {
+    width: 37px;
+    height: 37px;
+  }
+}
