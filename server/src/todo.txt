@@ -12,3 +12,5 @@ Kasnije možemo u isti hook ili zaseban useAuth modul izdvojiti:
 - potvrdu e-maila
 
 zvuk isklju mute ako korisnik zeli..
+
+kreirati +10 korisnika i sve testirat,jesu sobe zauzete,rating moze li se ucit itd...

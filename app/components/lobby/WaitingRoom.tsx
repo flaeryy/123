@@ -51,7 +51,11 @@ export default function WaitingRoom({
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
 
   function handleSeatClick(seat: number) {
-    if (!isHost || loading || !room.players[seat]) return;
+    if (!isHost || loading) return;
+
+    const player = room.players.find((player) => player.seat === seat + 1);
+
+    if (!player) return;
 
     if (selectedSeat === null) {
       setSelectedSeat(seat);
@@ -63,10 +67,18 @@ export default function WaitingRoom({
       return;
     }
 
+    const firstPlayer = room.players.find(
+      (player) => player.seat === selectedSeat + 1,
+    );
+
+    if (!firstPlayer) {
+      setSelectedSeat(null);
+      return;
+    }
+
     onSwapPlayers(selectedSeat, seat);
     setSelectedSeat(null);
   }
-
   return (
     <main className="waiting-room-screen">
       <header className="waiting-room-topbar">
@@ -128,83 +140,88 @@ export default function WaitingRoom({
                 Minimalni rejting {room.minRating}
               </span>
             </div>
-
-            <div className="waiting-room-seats">
-              <div className="waiting-room-teams">
-                {[
-                  { name: "MI", seats: [0, 2] },
-                  { name: "VI", seats: [1, 3] },
-                ].map((team) => (
-                  <div className="waiting-team" key={team.name}>
-                    <div className="waiting-team-heading">
-                      <span className="waiting-team-label">{team.name}</span>
-                      <span className="waiting-team-count">
-                        {team.seats.filter((seat) => room.players[seat]).length}
-                        /2 igrača
-                      </span>
-                    </div>
-
-                    <div className="waiting-team-players">
-                      {team.seats.map((seat) => {
-                        const player = room.players[seat];
-
-                        return (
-                          <div
-                            key={seat}
-                            className={`waiting-player-card ${
-                              player ? "occupied" : "open"
-                            } ${selectedSeat === seat ? "selected" : ""} ${
-                              isHost && player ? "selectable" : ""
-                            }`}
-                            onClick={() => handleSeatClick(seat)}
-                          >
-                            <span className="waiting-player-seat">
-                              0{seat + 1}
-                            </span>
-
-                            {player ? (
-                              <>
-                                <div className="waiting-player-avatar">
-                                  {player.username.slice(0, 1).toUpperCase()}
-                                </div>
-
-                                <div className="waiting-player-info">
-                                  <strong>{player.username}</strong>
-                                  <span>
-                                    {player.isHost ? "Domaćin" : "Igrač"}
-                                    {" · "}Rejting {player.rating}
-                                  </span>
-                                </div>
-
-                                {isHost && !player.isHost && (
-                                  <button
-                                    className="waiting-player-remove"
-                                    type="button"
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      onKickPlayer(player.id);
-                                    }}
-                                    disabled={loading}
-                                    title={`Ukloni igrača ${player.username}`}
-                                    aria-label={`Ukloni igrača ${player.username}`}
-                                  >
-                                    ×
-                                  </button>
-                                )}
-                              </>
-                            ) : (
-                              <div className="waiting-player-info">
-                                <strong>Slobodno mjesto</strong>
-                                <span>Čeka se igrač</span>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+            <div className="waiting-room-teams">
+              {[
+                { name: "MI", seats: [0, 2] },
+                { name: "VI", seats: [1, 3] },
+              ].map((team) => (
+                <div className="waiting-team" key={team.name}>
+                  <div className="waiting-team-heading">
+                    <span className="waiting-team-label">{team.name}</span>
+                    <span className="waiting-team-count">
+                      {
+                        team.seats.filter((seat) =>
+                          room.players.some(
+                            (player) => player.seat === seat + 1,
+                          ),
+                        ).length
+                      }
+                      /2 igrača
+                    </span>
                   </div>
-                ))}
-              </div>
+
+                  <div className="waiting-team-players">
+                    {team.seats.map((seat) => {
+                      const player = room.players.find(
+                        (player) => player.seat === seat + 1,
+                      );
+
+                      return (
+                        <div
+                          key={seat}
+                          className={`waiting-player-card ${
+                            player ? "occupied" : "open"
+                          } ${selectedSeat === seat ? "selected" : ""} ${
+                            isHost && player ? "selectable" : ""
+                          }`}
+                          onClick={() => handleSeatClick(seat)}
+                        >
+                          <span className="waiting-player-seat">
+                            0{seat + 1}
+                          </span>
+
+                          {player ? (
+                            <>
+                              <div className="waiting-player-avatar">
+                                {player.username.slice(0, 1).toUpperCase()}
+                              </div>
+
+                              <div className="waiting-player-info">
+                                <strong>{player.username}</strong>
+                                <span>
+                                  {player.isHost ? "Domaćin" : "Igrač"}
+                                  {" · "}Rejting {player.rating}
+                                </span>
+                              </div>
+
+                              {isHost && !player.isHost && (
+                                <button
+                                  className="waiting-player-remove"
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    onKickPlayer(player.id);
+                                  }}
+                                  disabled={loading}
+                                  title={`Ukloni igrača ${player.username}`}
+                                  aria-label={`Ukloni igrača ${player.username}`}
+                                >
+                                  ×
+                                </button>
+                              )}
+                            </>
+                          ) : (
+                            <div className="waiting-player-info">
+                              <strong>Slobodno mjesto</strong>
+                              <span>Čeka se igrač</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
 
             <div className="waiting-room-start-row">

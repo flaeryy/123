@@ -6,6 +6,7 @@ export type Player = {
   username: string;
   isHost: boolean;
   rating: number;
+  seat: 1 | 2 | 3 | 4;
 };
 
 export type Room = {
@@ -86,6 +87,7 @@ class RoomManager {
           username: cleanUsername,
           isHost: true,
           rating,
+          seat: 1,
         },
       ],
       maxPlayers: 4,
@@ -146,12 +148,23 @@ class RoomManager {
       throw new Error("Tvoj rejting je prenizak za ulazak u ovu sobu.");
     }
 
+    const occupiedSeats = new Set(room.players.map((player) => player.seat));
+
+    const freeSeat = ([1, 2, 3, 4] as const).find(
+      (seat) => !occupiedSeats.has(seat),
+    );
+
+    if (!freeSeat) {
+      throw new Error("Nema slobodnih mjesta.");
+    }
+
     const player: Player = {
       id: socketId,
       userId,
       username: cleanUsername,
       isHost: false,
       rating,
+      seat: freeSeat,
     };
 
     room.players.push(player);
@@ -224,8 +237,8 @@ class RoomManager {
 
   swapPlayers(
     hostSocketId: string,
-    firstSeat: number,
-    secondSeat: number,
+    firstIndex: number,
+    secondIndex: number,
   ): Room {
     const room = this.getPlayerRoom(hostSocketId);
 
@@ -239,21 +252,38 @@ class RoomManager {
       throw new Error("Samo domaćin može mijenjati mjesta.");
     }
 
+    // Zadržavamo indekse 0–3 zbog postojećeg socket događaja.
+    const firstSeat = firstIndex + 1;
+    const secondSeat = secondIndex + 1;
+
     if (
-      !Number.isInteger(firstSeat) ||
-      !Number.isInteger(secondSeat) ||
-      firstSeat < 0 ||
-      secondSeat < 0 ||
-      firstSeat >= room.players.length ||
-      secondSeat >= room.players.length ||
+      !Number.isInteger(firstIndex) ||
+      !Number.isInteger(secondIndex) ||
+      firstSeat < 1 ||
+      firstSeat > 4 ||
+      secondSeat < 1 ||
+      secondSeat > 4 ||
       firstSeat === secondSeat
     ) {
       throw new Error("Neispravna mjesta igrača.");
     }
 
-    const firstPlayer = room.players[firstSeat];
-    room.players[firstSeat] = room.players[secondSeat];
-    room.players[secondSeat] = firstPlayer;
+    const firstPlayer = room.players.find(
+      (player) => player.seat === firstSeat,
+    );
+
+    const secondPlayer = room.players.find(
+      (player) => player.seat === secondSeat,
+    );
+
+    if (!firstPlayer || !secondPlayer) {
+      throw new Error("Oba mjesta moraju biti zauzeta.");
+    }
+
+    firstPlayer.seat = secondSeat as 1 | 2 | 3 | 4;
+    secondPlayer.seat = firstSeat as 1 | 2 | 3 | 4;
+
+    room.players.sort((a, b) => a.seat - b.seat);
 
     return room;
   }
@@ -280,6 +310,7 @@ class RoomManager {
       throw new Error("Za pokretanje partije potrebna su četiri igrača.");
     }
 
+    room.players.sort((a, b) => a.seat - b.seat);
     room.status = "playing";
 
     return room;

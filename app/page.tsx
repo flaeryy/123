@@ -131,6 +131,7 @@ type Player = {
   username: string;
   isHost: boolean;
   rating: number;
+  seat: 1 | 2 | 3 | 4;
 };
 
 type Room = {

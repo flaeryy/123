@@ -16,7 +16,14 @@ export type ClientGamePlayer = {
 export type ClientGameState = {
   roomCode: string;
   players: ClientGamePlayer[];
-  phase: "dealing" | "trump_call" | "dealing_remaining" | "declarations" | "playing" | "round_finished" | "finished";
+  phase:
+    | "dealing"
+    | "trump_call"
+    | "dealing_remaining"
+    | "declarations"
+    | "playing"
+    | "round_finished"
+    | "finished";
   trumpSuit: BelotSuit | null;
   trumpTurnPlayerNumber: 1 | 2 | 3 | 4;
   declarationTurnPlayerNumber: 1 | 2 | 3 | 4 | null;
@@ -67,6 +74,7 @@ export type Player = {
   username: string;
   isHost: boolean;
   rating: number;
+  seat: 1 | 2 | 3 | 4;
 };
 
 export type Room = {

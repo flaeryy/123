@@ -108,6 +108,7 @@ function broadcastAvailablePlayers() {
 const activeGames = new Map<string, GameState>();
 const pendingTrickResolutions = new Set<string>();
 const pendingDeclarationReveals = new Set<string>();
+const pendingRoomOperations = new Set<string>();
 
 type RoomChatMessage = {
   id: number;
@@ -537,7 +538,7 @@ io.on("connection", (socket) => {
           await tx.insert(gamePlayers).values({
             gameId: game.id,
             userId,
-            seat: joinedRoom.players.length,
+            seat: player.seat,
             isHost: false,
           });
         });
@@ -589,64 +590,73 @@ io.on("connection", (socket) => {
         if (!room || room.status !== "waiting") {
           throw new Error("Soba nije dostupna.");
         }
-
-        const updatedRoom = roomManager.swapPlayers(
-          socket.id,
-          firstSeat,
-          secondSeat,
-        );
-
-        try {
-          await db.transaction(async (tx) => {
-            const [game] = await tx
-              .select({ id: games.id })
-              .from(games)
-              .where(eq(games.roomCode, room.code))
-              .limit(1);
-
-            if (!game) {
-              throw new Error("Partija nije pronađena.");
-            }
-
-            // Privremene vrijednosti izbjegavaju konflikt
-            // ako baza ima UNIQUE(gameId, seat).
-            for (let i = 0; i < updatedRoom.players.length; i++) {
-              const player = updatedRoom.players[i];
-
-              await tx
-                .update(gamePlayers)
-                .set({ seat: i + 101 })
-                .where(
-                  and(
-                    eq(gamePlayers.gameId, game.id),
-                    eq(gamePlayers.userId, player.userId),
-                  ),
-                );
-            }
-
-            for (let i = 0; i < updatedRoom.players.length; i++) {
-              const player = updatedRoom.players[i];
-
-              await tx
-                .update(gamePlayers)
-                .set({ seat: i + 1 })
-                .where(
-                  and(
-                    eq(gamePlayers.gameId, game.id),
-                    eq(gamePlayers.userId, player.userId),
-                  ),
-                );
-            }
-          });
-        } catch (error) {
-          // Vrati redoslijed u memoriji ako spremanje nije uspjelo.
-          roomManager.swapPlayers(socket.id, firstSeat, secondSeat);
-          throw error;
+        if (pendingRoomOperations.has(room.code)) {
+          throw new Error("Promjena u sobi već je u tijeku.");
         }
 
-        io.to(room.code).emit("room_updated", updatedRoom);
+        pendingRoomOperations.add(room.code);
 
-        callback?.({ success: true });
+        try {
+          const updatedRoom = roomManager.swapPlayers(
+            socket.id,
+            firstSeat,
+            secondSeat,
+          );
+
+          try {
+            await db.transaction(async (tx) => {
+              const [game] = await tx
+                .select({ id: games.id })
+                .from(games)
+                .where(eq(games.roomCode, room.code))
+                .limit(1);
+
+              if (!game) {
+                throw new Error("Partija nije pronađena.");
+              }
+
+              // Privremene vrijednosti izbjegavaju konflikt
+              // ako baza ima UNIQUE(gameId, seat).
+              for (let i = 0; i < updatedRoom.players.length; i++) {
+                const player = updatedRoom.players[i];
+
+                await tx
+                  .update(gamePlayers)
+                  .set({ seat: i + 101 })
+                  .where(
+                    and(
+                      eq(gamePlayers.gameId, game.id),
+                      eq(gamePlayers.userId, player.userId),
+                    ),
+                  );
+              }
+
+              for (let i = 0; i < updatedRoom.players.length; i++) {
+                const player = updatedRoom.players[i];
+
+                await tx
+                  .update(gamePlayers)
+                  .set({ seat: player.seat })
+                  .where(
+                    and(
+                      eq(gamePlayers.gameId, game.id),
+                      eq(gamePlayers.userId, player.userId),
+                    ),
+                  );
+              }
+            });
+          } catch (error) {
+            // Vrati redoslijed u memoriji ako spremanje nije uspjelo.
+            roomManager.swapPlayers(socket.id, firstSeat, secondSeat);
+            throw error;
+          }
+
+          io.to(room.code).emit("room_updated", updatedRoom);
+
+          callback?.({ success: true });
+        } finally {
+          pendingRoomOperations.delete(room.code);
+        }
       } catch (error) {
         callback?.({
           success: false,
@@ -711,18 +721,6 @@ io.on("connection", (socket) => {
                 eq(gamePlayers.userId, target.userId),
               ),
             );
-
-          for (const [index, player] of remainingPlayers.entries()) {
-            await tx
-              .update(gamePlayers)
-              .set({ seat: index + 1 })
-              .where(
-                and(
-                  eq(gamePlayers.gameId, game.id),
-                  eq(gamePlayers.userId, player.userId),
-                ),
-              );
-          }
         });
 
         const updatedRoom = roomManager.leaveRoom(target.id);
@@ -1283,6 +1281,9 @@ io.on("connection", (socket) => {
         throw new Error("Partija je već pokrenuta.");
       }
 
+      if (pendingRoomOperations.has(existingRoom.code)) {
+        throw new Error("Pričekaj završetak promjene mjesta igrača.");
+      }
       // Provjera domaćina i četiri igrača.
       const room = roomManager.startGame(socket.id);
 
