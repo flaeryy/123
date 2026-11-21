@@ -505,6 +505,22 @@ io.on("connection", (socket) => {
           throw new Error("Korisnik nije pronađen u bazi.");
         }
 
+        if (typeof data?.roomCode !== "string") {
+          throw new Error("Neispravan kod sobe.");
+        }
+
+        const targetRoom = roomManager.getRoom(data.roomCode);
+
+        if (!targetRoom) {
+          throw new Error("Soba nije pronađena.");
+        }
+
+        if (pendingRoomOperations.has(targetRoom.code)) {
+          throw new Error(
+            "Promjena igrača u sobi je u tijeku. Pokušaj ponovno.",
+          );
+        }
+
         const joinedRoom = roomManager.joinRoom(
           socket.id,
           userId,
@@ -675,6 +691,12 @@ io.on("connection", (socket) => {
         if (!room || room.status !== "waiting") {
           throw new Error("Igrača možeš ukloniti samo iz čekaonice.");
         }
+
+        if (pendingRoomOperations.has(room.code)) {
+          throw new Error("Promjena igrača u sobi već je u tijeku.");
+        }
+
+        pendingRoomOperations.add(room.code);
 
         const host = room.players.find((player) => player.id === socket.id);
 
