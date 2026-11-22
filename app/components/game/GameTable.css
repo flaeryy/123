@@ -849,3 +849,17 @@
     margin: 12px auto 0;
   }
 }
+
+/* Centriranje ruke prema sredisnjoj osi stola, ne cijelog prozora. */
+@media (min-width: 901px) {
+  .belot-game > .belot-hand-area {
+    position: relative;
+    left: 124.5px; /* (sidebar 235px + razmak 14px) / 2 */
+  }
+}
+
+@media (max-width: 900px) {
+  .belot-game > .belot-hand-area {
+    left: 0;
+  }
+}
