@@ -408,7 +408,6 @@ export default function GameTable({
             {sortedPlayers.map((player, index) => {
               const position = positions[index];
               const isCurrent = player.id === currentPlayerId;
-              const isMe = player.id === viewerId;
 
               return (
                 <div
@@ -436,9 +435,6 @@ export default function GameTable({
                       {player.username}
 
                     </strong>
-                    <span>
-                      {isMe ? "Ti" : isCurrent ? "Na potezu" : "Igrač"}
-                    </span>
                   </div>
                   {isCurrent && <span className="turn-indicator">●</span>}
                 </div>
