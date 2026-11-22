@@ -18,6 +18,7 @@ type LobbyProps = {
   onRoomCodeChange: (value: string) => void;
   onCreateRoom: (settings: { turnDuration: 15 | 30 | 45; gameType: "prolaz" | "dosta"; targetScore: 501 | 701 | 1001 }) => void;
   onJoinRoom: (code?: string) => void;
+  onOpenProfile?: (userId: number) => void;
 };
 
 type ActivePanel = "create" | "join" | null;
@@ -35,6 +36,7 @@ export default function Lobby({
   onRoomCodeChange,
   onCreateRoom,
   onJoinRoom,
+  onOpenProfile,
 }: LobbyProps) {
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
   // Samo frontend: opcije jos nisu dio create_room zahtjeva ni servera.
@@ -314,14 +316,18 @@ export default function Lobby({
           ) : (
             <div className="public-room-list">
               {publicRooms.map((room) => (
+                <div key={`${room.code}-${room.players[0]?.id ?? ""}`} className="lobby-room-with-profile">
                 <RoomCard
-                  key={`${room.code}-${room.players[0]?.id ?? ""}`}
                   room={room}
                   loading={loading}
                   disabled={currentRoomExists}
                   onJoin={onJoinRoom}
                   onPrivateJoin={() => setActivePanel("join")}
                 />
+                {room.players.find((player) => player.isHost) && (
+                  <button type="button" className="lobby-host-profile-button" onClick={() => onOpenProfile?.(room.players.find((player) => player.isHost)!.userId)}>Profil domaćina</button>
+                )}
+                </div>
               ))}
             </div>
           )}
