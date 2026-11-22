@@ -447,6 +447,29 @@ export default function GameTable({
             })}
 
             </div>
+            {belaDecisionOpen && pendingBelaCard && (
+                    <div className="bela-confirmation-overlay">
+                      <div className="bela-confirmation-card">
+                        <p>Želite li zvati belu?</p>
+                        <div className="bela-confirmation-actions">
+                          <button
+                            type="button"
+                            className="primary-button"
+                            onClick={() => onConfirmBela?.(true)}
+                          >
+                            Bela
+                          </button>
+                          <button
+                            type="button"
+                            className="secondary-button"
+                            onClick={() => onConfirmBela?.(false)}
+                          >
+                            Ne
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
           </div>
         </section>
       </div>
@@ -503,29 +526,7 @@ export default function GameTable({
         </div>
       </footer>
 
-      {belaDecisionOpen && pendingBelaCard && (
-        <div className="bela-confirmation-overlay">
-          <div className="bela-confirmation-card">
-            <p>Želite li zvati belu?</p>
-            <div className="bela-confirmation-actions">
-              <button
-                type="button"
-                className="primary-button"
-                onClick={() => onConfirmBela?.(true)}
-              >
-                Bela
-              </button>
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => onConfirmBela?.(false)}
-              >
-                Ne
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </main>
   );
 }
