@@ -581,7 +581,7 @@ function HomeContent() {
     if (lastShuffleRoundRef.current === gameState.roundNumber) return;
     lastShuffleRoundRef.current = gameState.roundNumber;
 
-    const audio = new Audio("/sound/mjesanje_sounda.mp3");
+    const audio = new Audio("/sound/mjesanje_sound.mp3");
     audio.volume = 0.65;
     shuffleAudioRef.current?.pause();
     shuffleAudioRef.current = audio;
