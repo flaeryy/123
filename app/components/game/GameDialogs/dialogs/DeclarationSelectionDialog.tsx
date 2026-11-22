@@ -21,39 +21,37 @@ export function DeclarationSelectionDialog({
 }: DeclarationSelectionDialogProps) {
   return (
     <section className="trump-controls in-table-trump-controls declaration-controls">
-      <span className="declaration-progress">
-        ZVANJA · {completedPlayers}/{totalPlayers}
-      </span>
+      <div className="declaration-prompt">
+        <span className="declaration-progress">
+          ZVANJA · {completedPlayers}/{totalPlayers}
+        </span>
 
-      <strong>
-        {canDeclare
-          ? "Odaberi karte i pozovi zvanje"
-          : `Čeka se ${declarationTurnPlayerName}`}
-      </strong>
+        <strong>
+          {canDeclare
+            ? "Odaberi karte i pozovi zvanje"
+            : `Čeka se ${declarationTurnPlayerName}`}
+        </strong>
 
-      {canDeclare && (
-        <div className="declaration-actions">
-          <button
-            type="button"
-            className="primary-button"
-            disabled={selectedCards.length === 0}
-           onClick={() => {
-  console.log("KLIK NA POZOVI", selectedCards);
-  onSubmitDeclarations?.(selectedCards);
-}}
-          >
-            Pozovi
-          </button>
-
-          <button
-            type="button"
-            className="pass-trump-button"
-            onClick={() => onSubmitDeclarations?.([])}
-          >
-            Nemam zvanja
-          </button>
-        </div>
-      )}
+        {canDeclare && (
+          <div className="declaration-actions">
+            <button
+              type="button"
+              className="primary-button"
+              disabled={selectedCards.length === 0}
+              onClick={() => onSubmitDeclarations?.(selectedCards)}
+            >
+              Pozovi
+            </button>
+            <button
+              type="button"
+              className="pass-trump-button"
+              onClick={() => onSubmitDeclarations?.([])}
+            >
+              Nemam zvanja
+            </button>
+          </div>
+        )}
+      </div>
     </section>
   );
 }
