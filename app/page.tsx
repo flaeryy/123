@@ -1094,6 +1094,9 @@ function HomeContent() {
 
                         joinRoom(code);
                       }}
+                      onPrivateJoin={() => {
+                        router.push(user ? "/lobby" : "/login");
+                      }}
                     />
                   ))}
                 </div>
