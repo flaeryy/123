@@ -2,11 +2,15 @@
 
 import type { Room } from "../../types/belot";
 import "./WaitingRoom.css";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+export type AvailablePlayer = { userId: number; username: string; rating?: number };
 
 type WaitingRoomProps = {
   room: Room;
   userId: number;
+  availablePlayers: AvailablePlayer[];
+  onInvitePlayer: (userId: number) => void;
   loading: boolean;
   socketConnected: boolean;
   error?: string;
@@ -31,6 +35,8 @@ type WaitingRoomProps = {
 export default function WaitingRoom({
   room,
   userId,
+  availablePlayers,
+  onInvitePlayer,
   loading,
   socketConnected,
   error,
@@ -49,6 +55,12 @@ export default function WaitingRoom({
   );
 
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
+  const [playerSearch, setPlayerSearch] = useState("");
+  const visiblePlayers = useMemo(() => availablePlayers.filter((player) =>
+    player.userId !== userId &&
+    !room.players.some((member) => member.userId === player.userId) &&
+    player.username.toLocaleLowerCase("hr").includes(playerSearch.toLocaleLowerCase("hr"))
+  ), [availablePlayers, playerSearch, room.players, userId]);
 
   function handleSeatClick(seat: number) {
     if (!isHost || loading) return;
@@ -254,6 +266,41 @@ export default function WaitingRoom({
             </div>
           </section>
         </section>
+        <aside className="waiting-invite-panel" aria-label="Aktivni igrači">
+          <div className="waiting-invite-heading">
+            <span className="waiting-room-eyebrow">ONLINE</span>
+            <h2>Aktivni igrači <span>({visiblePlayers.length})</span></h2>
+            <p>{isHost ? "Pozovi slobodne igrače u svoju sobu." : "Slobodni igrači koji su trenutno online."}</p>
+          </div>
+          <input
+            className="waiting-invite-search"
+            type="search"
+            placeholder="Pretraži igrače..."
+            aria-label="Pretraži aktivne igrače"
+            value={playerSearch}
+            onChange={(event) => setPlayerSearch(event.target.value)}
+          />
+          <div className="waiting-invite-list">
+            {visiblePlayers.length === 0 ? (
+              <p className="waiting-invite-empty">Nema slobodnih igrača za prikaz.</p>
+            ) : visiblePlayers.map((player) => (
+              <div className="waiting-invite-player" key={player.userId}>
+                <span className="waiting-invite-avatar">{player.username.slice(0, 1).toUpperCase()}</span>
+                <div className="waiting-invite-player-info">
+                  <strong>{player.username}</strong>
+                  <span>Rejting: {player.rating ?? "—"}</span>
+                </div>
+                {isHost && (
+                  <button type="button" className="waiting-invite-button"
+                    disabled={loading || !socketConnected || room.players.length >= room.maxPlayers}
+                    onClick={() => onInvitePlayer(player.userId)}>
+                    Pozovi
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </aside>
       </div>
     </main>
   );
