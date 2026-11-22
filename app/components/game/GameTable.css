@@ -235,19 +235,7 @@
 
 /* DJELITELJ */
 
-.belot-table-wrapper .table-player .dealer-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  margin-left: 6px;
-  border-radius: 6px;
-  background: #e7c66b;
-  color: #25412d;
-  font-size: 11px;
-  font-weight: 800;
-}
+
 
 /* ==========================================
    KARTE - ZAJEDNICKA SREDINA STOLA
@@ -754,5 +742,61 @@
   .belot-table .played-cards.trick-collecting .played-card {
     animation: none;
     opacity: 0;
+  }
+}
+
+/* Bunt karata na stolu ispred djelitelja. */
+.belot-table-wrapper .dealer-deck {
+  position: absolute;
+  z-index: 2;
+  width: 39px;
+  height: 29px;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.35));
+}
+
+.belot-table-wrapper .dealer-deck-card {
+  position: absolute;
+  display: block;
+  width: 34px;
+  height: 23px;
+  border: 1px solid #e7e2d6;
+  border-radius: 3px;
+  background: #f3eee5 url("/cards/back/back.png") center / 100% 100% no-repeat;
+  box-shadow: 0 1px 0 #d1c9b9;
+}
+
+.belot-table-wrapper .dealer-deck-card-back { left: 0; top: 4px; }
+.belot-table-wrapper .dealer-deck-card-middle { left: 2px; top: 2px; }
+.belot-table-wrapper .dealer-deck-card-front { left: 4px; top: 0; }
+
+.belot-table-wrapper .player-top .dealer-deck {
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.belot-table-wrapper .player-bottom .dealer-deck {
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.belot-table-wrapper .player-left .dealer-deck {
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.belot-table-wrapper .player-right .dealer-deck {
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+@media (max-width: 700px) {
+  .belot-table-wrapper .dealer-deck {
+    transform-origin: center;
+    scale: 0.8;
   }
 }
