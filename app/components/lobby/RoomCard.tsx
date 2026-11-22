@@ -22,18 +22,24 @@ export default function RoomCard({
   return (
     <button
       type="button"
-      className="belot-room-card"
-      onClick={() => onJoin(room.code)}
-      disabled={loading || disabled || isFull}
-      aria-label={`Uđi u sobu ${host?.username ?? room.code}, ${playerCount} od ${room.maxPlayers} igrača`}
+      className={`belot-room-card ${room.isPublic ? "" : "belot-room-card-private"}`}
+      onClick={() => {
+        if (room.isPublic) onJoin(room.code);
+      }}
+      disabled={loading || disabled || isFull || !room.isPublic}
+      aria-label={room.isPublic
+        ? `Uđi u sobu ${host?.username ?? room.code}, ${playerCount} od ${room.maxPlayers} igrača`
+        : `Privatna soba korisnika ${host?.username ?? "Domaćin"}; za ulazak je potreban kod sobe`}
     >
       <div className="belot-room-info">
         <div className="belot-room-heading">
-          <span className="belot-room-symbol" aria-hidden="true">♣</span>
+          <span className="belot-room-symbol" aria-hidden="true">
+            {room.isPublic ? "♣" : <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>}
+          </span>
           <div className="belot-room-heading-text">
             <strong className="belot-room-name">{host?.username ?? "Domaćin"}</strong>
             <span className="belot-room-description">
-              {room.isPublic ? "Javna soba" : "🔒 Privatna soba"}
+              {room.isPublic ? "Javna soba" : "Privatna soba · potreban kod"}
               {" · "}
               Min. rejting {room.minRating}
             </span>
@@ -74,7 +80,7 @@ export default function RoomCard({
         </span>
 
         <span className="belot-room-enter" aria-hidden="true">
-          ›
+          {room.isPublic ? "›" : <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>}
         </span>
       </div>
     </button>
