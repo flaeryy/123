@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useContext, type FormEvent } from "react";
+import { useEffect, useRef, useState, useContext, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Script from "next/script";
@@ -20,6 +20,7 @@ import { useSocket } from "./hooks/useSocket";
 import { useAuth } from "./hooks/useAuth";
 import RoomCard from "./components/lobby/RoomCard";
 import LobbyHeader from "./components/lobby/LobbyHeader";
+import PlayerProfileModal from "./components/profile/PlayerProfileModal";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -185,6 +186,7 @@ function HomeContent() {
   const [minRating, setMinRating] = useState("0");
   const [gameStarted, setGameStarted] = useState(false);
   // Upravljanje Socket.IO vezom izdvojeno je u zaseban hook.
+  const [profileTarget, setProfileTarget] = useState<{ userId?: number; username?: string } | null>(null);
   const { socketRef, socketConnected } = useSocket(user, API_URL);
   const { logout, restoreSession } = useAuth(API_URL);
 
@@ -1118,11 +1120,29 @@ function HomeContent() {
     });
   }
 
+  // Jedan popup profila koristimo u lobbyju, cekaonici i tijekom igre.
+  function withProfile(content: ReactNode) {
+    return (
+      <>
+        {content}
+        {profileTarget && user && (
+          <PlayerProfileModal
+            userId={profileTarget.userId}
+            username={profileTarget.username}
+            myUserId={user.id}
+            apiUrl={API_URL}
+            onClose={() => setProfileTarget(null)}
+          />
+        )}
+      </>
+    );
+  }
+
   if (!authReady) {
     return null;
   }
   if (pathname === "/") {
-    return (
+    return withProfile(
       <main className="belot-home">
         <header className="belot-home-header">
           <Link href="/" className="belot-home-logo">
@@ -1226,9 +1246,10 @@ function HomeContent() {
   }
 
   if (user && currentRoom && !gameStarted) {
-    return (
+    return withProfile(
       <WaitingRoom
         room={currentRoom}
+        onOpenProfile={(userId) => setProfileTarget({ userId })}
         userId={user.id}
         availablePlayers={availablePlayers}
         pendingInviteIds={pendingInviteIds}
@@ -1250,7 +1271,7 @@ function HomeContent() {
   }
 
   if (user && !currentRoom && !gameStarted) {
-    return (
+    return withProfile(
       <main className="lobby-dashboard">
         {roomInvite && (
           <div
@@ -1321,6 +1342,7 @@ function HomeContent() {
           socketConnected={socketConnected}
           loading={loading}
           onLogout={handleLogout}
+          onOpenProfile={() => setProfileTarget({ userId: user.id })}
         />
 
         <div className="lobby-dashboard-content">
@@ -1381,9 +1403,10 @@ function HomeContent() {
         </main>
       );
     }
-    return (
+    return withProfile(
       <main className="game-only-page">
         <GameTable
+          onOpenProfile={(username) => setProfileTarget({ username })}
           players={gameState.players.map((player) => ({
             id: player.socketId,
             username: player.username,
@@ -1468,7 +1491,7 @@ function HomeContent() {
     );
   }
 
-  return (
+  return withProfile(
     <main className="page-shell">
       {roomInvite && (
         <div
@@ -1613,6 +1636,7 @@ function HomeContent() {
               {currentRoom ? (
                 <WaitingRoom
                   room={currentRoom}
+        onOpenProfile={(userId) => setProfileTarget({ userId })}
                   userId={user.id}
                   availablePlayers={availablePlayers}
                   pendingInviteIds={pendingInviteIds}
