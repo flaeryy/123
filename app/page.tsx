@@ -457,6 +457,18 @@ function HomeContent() {
       router.replace("/lobby");
     }
 
+    // Zavrsen mec: rezultat se prikazuje prije povratka u lobby.
+    function handleMatchFinished(data: { winnerTeam: 1 | 2; team1Score: number; team2Score: number }) {
+      setGameStarted(false);
+      setGameState(null);
+      setCurrentRoom(null);
+      setTrickCollectWinner(null);
+      clearChat();
+      setError("");
+      setMessage(`Pobjednik je ekipa ${data.winnerTeam === 1 ? "1 (igraci 1 i 3)" : "2 (igraci 2 i 4)"}! Rezultat: ${data.team1Score} : ${data.team2Score}.`);
+      router.replace("/lobby");
+    }
+
     // Partija je prekinuta.
     function handleGameAborted(data: { room: Room; message: string }) {
       setCurrentRoom(data.room);
@@ -504,6 +516,7 @@ function HomeContent() {
     socket.on("game_aborted", handleGameAborted);
     socket.on("game_started", handleGameStarted);
     socket.on("game_state", handleGameState);
+    socket.on("match_finished", handleMatchFinished);
     socket.on("trick_collect", handleTrickCollect);
 
     // Vezu pokrećemo tek nakon registracije svih listenera.
@@ -525,6 +538,7 @@ function HomeContent() {
       socket.off("game_aborted", handleGameAborted);
       socket.off("game_started", handleGameStarted);
       socket.off("game_state", handleGameState);
+      socket.off("match_finished", handleMatchFinished);
       socket.off("trick_collect", handleTrickCollect);
     };
   }, [user, router, registerChatListeners, clearChat]);
