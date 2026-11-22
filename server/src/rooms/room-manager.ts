@@ -17,6 +17,9 @@ export type Room = {
   createdAt: Date;
   isPublic: boolean;
   minRating: number;
+  turnDuration: 15 | 30 | 45;
+  gameType: "prolaz" | "dosta";
+  targetScore: 501 | 701 | 1001;
 };
 
 const ROOM_CHARACTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -53,6 +56,9 @@ class RoomManager {
     isPublic = true,
     minRating = 0,
     rating = 0,
+    turnDuration: 15 | 30 | 45 = 30,
+    gameType: "prolaz" | "dosta" = "prolaz",
+    targetScore: 501 | 701 | 1001 = 1001,
   ): Room {
     if (this.playerRooms.has(socketId)) {
       throw new Error("Već si u sobi.");
@@ -95,6 +101,9 @@ class RoomManager {
       createdAt: new Date(),
       isPublic,
       minRating,
+      turnDuration,
+      gameType,
+      targetScore,
     };
 
     this.rooms.set(code, room);
