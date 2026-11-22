@@ -7,6 +7,7 @@ type RoomCardProps = {
   loading: boolean;
   disabled: boolean;
   onJoin: (code: string) => void;
+  onPrivateJoin: () => void;
 };
 
 export default function RoomCard({
@@ -14,6 +15,7 @@ export default function RoomCard({
   loading,
   disabled,
   onJoin,
+  onPrivateJoin,
 }: RoomCardProps) {
   const host = room.players.find((player) => player.isHost);
   const playerCount = room.players.length;
@@ -25,8 +27,9 @@ export default function RoomCard({
       className={`belot-room-card ${room.isPublic ? "" : "belot-room-card-private"}`}
       onClick={() => {
         if (room.isPublic) onJoin(room.code);
+        else onPrivateJoin();
       }}
-      disabled={loading || disabled || isFull || !room.isPublic}
+      disabled={loading || disabled || isFull}
       aria-label={room.isPublic
         ? `Uđi u sobu ${host?.username ?? room.code}, ${playerCount} od ${room.maxPlayers} igrača`
         : `Privatna soba korisnika ${host?.username ?? "Domaćin"}; za ulazak je potreban kod sobe`}
