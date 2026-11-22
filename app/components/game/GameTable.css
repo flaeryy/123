@@ -1,11 +1,346 @@
-/* Skrivena karta ima iste dimenzije kao prava karta u ruci */
-.hand-hungarian-card.hidden-hand-card {
-  width: 96px;
-  height: 154px;
+/* ========================================
+   BELOT - GAME TABLE
+   ======================================== */
+
+/* GLAVNI RASPORED */
+
+.belot-game {
+  width: 100%;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.belot-layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.belot-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.belot-main-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+/* STOL */
+
+.belot-table {
+  position: relative;
+  width: min(100%, 900px);
+  max-width: 900px;
+  max-height: none;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 1.55 / 1;
   flex: 0 0 auto;
+  align-self: center;
+  margin: 0 auto;
+  border: 9px solid #e8e5d8;
+  border-radius: 50%;
+  overflow: hidden;
+  background: radial-gradient(
+    ellipse at 50% 44%,
+    #078d63 0%,
+    #087351 58%,
+    #075539 100%
+  );
+  box-shadow:
+    inset 0 0 0 3px rgba(223, 201, 140, 0.58),
+    inset 0 0 42px rgba(0, 41, 28, 0.5),
+    0 8px 24px rgba(0, 0, 0, 0.34);
+}
+
+.table-decoration {
+  position: absolute;
+  inset: 14px;
+  border: 1px solid rgba(232, 229, 216, 0.27);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ADUT U GORNJEM DESNOM KUTU */
+
+.belot-trump-corner {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 14px;
+  border: 1px solid #d6bd78;
+  border-radius: 12px;
+  background: #103b2c;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.belot-trump-corner span {
+  color: #e7c66b;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.belot-trump-corner img {
+  width: 25px;
+  height: 25px;
+  object-fit: contain;
+}
+
+.belot-trump-corner strong {
+  font-size: 13px;
+}
+
+/* IGRAČI */
+
+.table-player {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 42%;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  background: rgba(10, 38, 27, 0.9);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.player-bottom {
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.player-top {
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.player-left {
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.player-right {
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.table-player .player-avatar {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  background: #e2f3e8;
+}
+
+.table-player .player-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.table-player .player-info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.table-player .player-info strong {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.table-player .player-info > span {
+  color: #b6d1bf;
+  font-size: 11px;
+}
+
+/* IGRAČ NA POTEZU */
+
+.table-player.active-player {
+  border: 2px solid #e7c66b;
+  background: #185b39;
+  box-shadow: 0 0 18px rgba(231, 198, 107, 0.2);
+}
+
+.table-player.active-player .player-avatar {
+  border-color: #e7c66b;
+}
+
+.table-player .turn-indicator {
+  color: #f0d477;
+  font-size: 15px;
+}
+
+/* DJELITELJ */
+
+.table-player .dealer-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-left: 6px;
+  border-radius: 6px;
+  background: #e7c66b;
+  color: #25412d;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* ODIGRANE KARTE - RAZMAKNUTE I KLIZANJE IZ SMJERA IGRACA */
+
+.belot-table .played-cards {
+  position: absolute;
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  z-index: 3;
+  display: block;
+  width: 300px;
+  height: 280px;
+  min-width: 0;
+  min-height: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.belot-table .played-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 76px;
+  gap: 0;
+  transform-origin: center center;
+  animation: belot-card-slide 430ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+/* Zavrsni polozaji ostavljaju vidljiv gornji dio svake karte. */
+.belot-table .played-card-bottom {
+  --offset-x: -12px;
+  --offset-y: 76px;
+  --slide-x: 0px;
+  --slide-y: 160px;
+  --rotation: -8deg;
+  z-index: 4;
+}
+
+.belot-table .played-card-left {
+  --offset-x: -104px;
+  --offset-y: -6px;
+  --slide-x: -190px;
+  --slide-y: 0px;
+  --rotation: -13deg;
+  z-index: 2;
+}
+
+.belot-table .played-card-top {
+  --offset-x: -28px;
+  --offset-y: -95px;
+  --slide-x: 0px;
+  --slide-y: -160px;
+  --rotation: 7deg;
+  z-index: 1;
+}
+
+.belot-table .played-card-right {
+  --offset-x: 78px;
+  --offset-y: -8px;
+  --slide-x: 190px;
+  --slide-y: 0px;
+  --rotation: 12deg;
+  z-index: 3;
+}
+
+.belot-table .played-card .hungarian-card {
+  width: 76px;
+  height: 122px;
+}
+
+.belot-table .played-card > span {
+  display: none;
+}
+
+@keyframes belot-card-slide {
+  from {
+    opacity: 0.9;
+    transform: translate(
+        calc(-50% + var(--offset-x) + var(--slide-x)),
+        calc(-50% + var(--offset-y) + var(--slide-y))
+      )
+      rotate(var(--rotation));
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(
+        calc(-50% + var(--offset-x)),
+        calc(-50% + var(--offset-y))
+      )
+      rotate(var(--rotation));
+  }
+}
+
+/* PORUKA KAD NEMA KARATA */
+
+.belot-table .empty-table-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(232, 238, 232, 0.7);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* KARTE U RUCI */
+
+.belot-hand-area {
+  width: 100%;
+  margin: 20px auto 0;
+  border-radius: 16px;
+}
+
+.hand-hungarian-card.hidden-hand-card {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 96px;
+  height: 154px;
+  flex: 0 0 auto;
 }
 
 .hidden-hand-card img {
@@ -17,13 +352,7 @@
   border-radius: 8px;
 }
 
-/* Mobitel */
-@media (max-width: 700px) {
-  .hand-hungarian-card.hidden-hand-card {
-    width: clamp(48px, 13vw, 62px);
-    height: clamp(76px, 20vw, 98px);
-  }
-}
+/* PREGLED CIJELE PARTIJE */
 
 .round-history-toggle {
   width: 100%;
@@ -103,4 +432,167 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* TABLET */
+
+@media (max-width: 900px) {
+  .belot-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .belot-sidebar {
+    order: 2;
+  }
+
+  .belot-main-panel {
+    order: 1;
+  }
+}
+
+/* MOBITEL */
+
+@media (max-width: 700px) {
+  .belot-game {
+    padding: 10px;
+  }
+
+  .belot-layout {
+    gap: 12px;
+  }
+
+  .belot-table {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-width: 6px;
+  }
+
+  .belot-table .played-cards {
+    width: 200px;
+    height: 190px;
+  }
+
+  .belot-table .played-card,
+  .belot-table .played-card .hungarian-card {
+    width: 48px;
+  }
+
+  .belot-table .played-card .hungarian-card {
+    height: 78px;
+  }
+
+  .belot-table .played-card-bottom {
+    --offset-x: -8px;
+    --offset-y: 48px;
+    --slide-y: 95px;
+  }
+
+  .belot-table .played-card-left {
+    --offset-x: -68px;
+    --offset-y: -4px;
+    --slide-x: -100px;
+  }
+
+  .belot-table .played-card-top {
+    --offset-x: -18px;
+    --offset-y: -60px;
+    --slide-y: -95px;
+  }
+
+  .belot-table .played-card-right {
+    --offset-x: 50px;
+    --offset-y: -5px;
+    --slide-x: 100px;
+  }
+
+  .belot-trump-corner {
+    top: 5px;
+    right: 5px;
+    gap: 5px;
+    padding: 5px 8px;
+  }
+
+  .belot-trump-corner img {
+    width: 19px;
+    height: 19px;
+  }
+
+  .belot-hand-area {
+    margin-top: 12px;
+    border-radius: 12px;
+  }
+
+  .hand-hungarian-card.hidden-hand-card {
+    width: clamp(48px, 13vw, 62px);
+    height: clamp(76px, 20vw, 98px);
+  }
+}
+
+@media (max-width: 600px) {
+  .table-player {
+    max-width: 38%;
+    gap: 6px;
+    padding: 6px 8px;
+    border-radius: 10px;
+  }
+
+  .table-player .player-avatar {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+  }
+
+  .table-player .player-info strong {
+    font-size: 11px;
+  }
+
+  .table-player .player-info > span {
+    font-size: 9px;
+  }
+
+  .table-player .dealer-badge {
+    width: 17px;
+    height: 17px;
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .belot-table .played-card,
+  .round-history {
+    animation: none;
+  }
+
+  .belot-table .played-card {
+    transform: translate(
+        calc(-50% + var(--offset-x)),
+        calc(-50% + var(--offset-y))
+      )
+      rotate(var(--rotation));
+  }
+}
+/* ISTI KONACNI RASPORED ZA SVE IGRACE */
+
+.belot-table .played-card-order-1 {
+  --offset-x: -75px;
+  --offset-y: -35px;
+  z-index: 1;
+}
+
+.belot-table .played-card-order-2 {
+  --offset-x: 25px;
+  --offset-y: -35px;
+  z-index: 2;
+}
+
+.belot-table .played-card-order-3 {
+  --offset-x: -75px;
+  --offset-y: 45px;
+  z-index: 3;
+}
+
+.belot-table .played-card-order-4 {
+  --offset-x: 25px;
+  --offset-y: 45px;
+  z-index: 4;
 }

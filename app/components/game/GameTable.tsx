@@ -332,23 +332,17 @@ export default function GameTable({
           />
         </aside>
         <section className="belot-main-panel">
-          <header className="belot-header">
-            <div>
-              <div className="belot-brand">BELOT</div>
-              {trump && (
-                <div className="trump-indicator-header">
-                  <span>ADUT</span>
-                  <img
-                    src={SUITS[trump].icon}
-                    alt={`Adut ${SUITS[trump].name}`}
-                    className="trump-icon"
-                  />
-                  <strong>{SUITS[trump].name}</strong>
-                </div>
-              )}
-              <div className="belot-subtitle">Klasična kartaška igra</div>
+          {trump && (
+            <div className="belot-trump-corner">
+              <span>ADUT</span>
+              <img
+                src={SUITS[trump].icon}
+                alt={SUITS[trump].name}
+                className="trump-icon"
+              />
+              <strong>{SUITS[trump].name}</strong>
             </div>
-          </header>
+          )}
 
           <section className="belot-table">
             <div className="table-decoration" />
@@ -397,7 +391,7 @@ export default function GameTable({
 
                 return (
                   <div
-                    className={`played-card played-card-${playerPosition}`}
+                    className={`played-card played-card-${playerPosition} played-card-order-${index + 1}`}
                     key={`${played.playerNumber}-${index}`}
                   >
                     <PlayingCard card={played.card} small />
