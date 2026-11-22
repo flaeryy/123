@@ -22,11 +22,7 @@ export function DeclarationSelectionDialog({
   return (
     <section className="trump-controls in-table-trump-controls declaration-controls">
       <div className="declaration-prompt">
-        <span className="declaration-progress">
-          ZVANJA · {completedPlayers}/{totalPlayers}
-        </span>
-
-        <strong>
+<strong>
           {canDeclare
             ? "Odaberi karte i pozovi zvanje"
             : `Čeka se ${declarationTurnPlayerName}`}
