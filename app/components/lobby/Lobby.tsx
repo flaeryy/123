@@ -37,6 +37,10 @@ export default function Lobby({
   onJoinRoom,
 }: LobbyProps) {
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
+  // Samo frontend: opcije jos nisu dio create_room zahtjeva ni servera.
+  const [turnDuration, setTurnDuration] = useState<15 | 30 | 45>(30);
+  const [gameType, setGameType] = useState<"prolaz" | "dosta">("prolaz");
+  const [targetScore, setTargetScore] = useState<501 | 701 | 1001>(1001);
 
   const closePanel = () => setActivePanel(null);
 
@@ -167,6 +171,49 @@ export default function Lobby({
                   </select>
 
                   <small>Igrači moraju imati barem odabrani rejting.</small>
+                </div>
+
+                <div className="lobby-game-settings" aria-label="Postavke igre">
+                  <h3>Postavke igre</h3>
+                  <div className="lobby-game-settings-grid">
+                    <div className="lobby-field">
+                      <label htmlFor="lobby-turn-duration">Trajanje poteza (sek)</label>
+                      <select
+                        id="lobby-turn-duration"
+                        value={turnDuration}
+                        onChange={(event) => setTurnDuration(Number(event.target.value) as 15 | 30 | 45)}
+                      >
+                        <option value={15}>15 sekundi</option>
+                        <option value={30}>30 sekundi</option>
+                        <option value={45}>45 sekundi</option>
+                      </select>
+                    </div>
+
+                    <div className="lobby-field">
+                      <label htmlFor="lobby-game-type">Tip igre</label>
+                      <select
+                        id="lobby-game-type"
+                        value={gameType}
+                        onChange={(event) => setGameType(event.target.value as "prolaz" | "dosta")}
+                      >
+                        <option value="prolaz">Prolaz</option>
+                        <option value="dosta">Dosta</option>
+                      </select>
+                    </div>
+
+                    <div className="lobby-field">
+                      <label htmlFor="lobby-target-score">Igra se do</label>
+                      <select
+                        id="lobby-target-score"
+                        value={targetScore}
+                        onChange={(event) => setTargetScore(Number(event.target.value) as 501 | 701 | 1001)}
+                      >
+                        <option value={1001}>1001 bod</option>
+                        <option value={701}>701 bod</option>
+                        <option value={501}>501 bod</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="lobby-modal-footer">
