@@ -1,4 +1,5 @@
 import type { Card, Rank, Suit } from "./cards.js";
+import { checkDostaWinner, checkProlazWinner, type MatchSettings } from "./matchRules.js";
 import {
   getLegalCards,
   getTrickWinner,
@@ -55,6 +56,7 @@ export type GamePlayer = {
 // Trenutačno stanje cijele partije.
 export type GameState = {
   roomCode: string;
+  matchSettings: MatchSettings;
   players: GamePlayer[];
   roundNumber: number;
   dealerPlayerNumber: 1 | 2 | 3 | 4;
@@ -114,6 +116,7 @@ export function createGameState(
     team1MatchScore?: number;
     team2MatchScore?: number;
     roundHistory?: RoundResult[];
+    matchSettings?: MatchSettings;
   } = {},
 ): GameState {
   if (players.length !== 4) {
@@ -138,6 +141,8 @@ export function createGameState(
 
   return {
     roomCode,
+    // Postavke su fiksne za cijeli mec i prenose se u svako novo dijeljenje.
+    matchSettings: matchProgress.matchSettings ?? { gameType: "prolaz", targetScore: 1001, turnDuration: 30 },
     players: gamePlayers,
     roundNumber: matchProgress.roundNumber ?? 1,
     dealerPlayerNumber,
@@ -264,6 +269,7 @@ export function createNextDeal(state: GameState): GameState {
       team1MatchScore: state.team1MatchScore,
       team2MatchScore: state.team2MatchScore,
       roundHistory: state.roundHistory,
+      matchSettings: state.matchSettings,
     },
   );
 }
@@ -582,8 +588,18 @@ export function playCard(
       declarations,
     );
   }
-  const team1MatchScore = state.team1MatchScore + (finalScore?.team1 ?? 0);
-  const team2MatchScore = state.team2MatchScore + (finalScore?.team2 ?? 0);
+  // Kod DOSTA rezultat se provjerava nakon svakog zavrsenog stiha.
+  // Zvanja i bela se pribrajaju jednom, kao dio trenutnog dijeljenja.
+  const dostaTeam1 = state.team1MatchScore + team1TrickPoints + state.team1DeclaredPoints + belaTeam1;
+  const dostaTeam2 = state.team2MatchScore + team2TrickPoints + state.team2DeclaredPoints + belaTeam2;
+  const dostaWinner = checkDostaWinner(state.matchSettings, dostaTeam1, dostaTeam2);
+
+  // Kod PROLAZ rezultat se upisuje tek nakon posljednjeg stiha.
+  // Kod DOSTA koji zavrsi ranije spremamo trenutne bodove bez dupliranja.
+  const team1MatchScore = dostaWinner !== null && !isLastTrick
+    ? dostaTeam1 : state.team1MatchScore + (finalScore?.team1 ?? 0);
+  const team2MatchScore = dostaWinner !== null && !isLastTrick
+    ? dostaTeam2 : state.team2MatchScore + (finalScore?.team2 ?? 0);
 
   // Dodajemo rezultat u povijest samo kada je runda završena.
   const roundHistory = finalScore
@@ -597,12 +613,10 @@ export function playCard(
       ]
     : state.roundHistory;
 
-  const matchWinnerTeam =
-    team1MatchScore >= 1001 && team1MatchScore > team2MatchScore
-      ? 1
-      : team2MatchScore >= 1001 && team2MatchScore > team1MatchScore
-        ? 2
-        : null;
+  // DOSTA moze zavrsiti prije osmog stiha, PROLAZ iskljucivo na kraju.
+  const matchWinnerTeam = dostaWinner ?? (isLastTrick
+    ? checkProlazWinner(state.matchSettings, team1MatchScore, team2MatchScore)
+    : null);
 
   // Vraćamo ažurirano stanje nakon završenog štiha.
   return {
@@ -622,11 +636,7 @@ export function playCard(
     roundHistory,
     matchWinnerTeam,
     currentPlayerNumber: winningPlayedCard.playerNumber,
-    phase: isLastTrick
-      ? matchWinnerTeam === null
-        ? "round_finished"
-        : "finished"
-      : "playing",
+    phase: matchWinnerTeam !== null ? "finished" : isLastTrick ? "round_finished" : "playing",
     finalScore,
   };
 }
