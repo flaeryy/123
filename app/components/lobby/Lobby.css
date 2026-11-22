@@ -2276,3 +2276,216 @@
     font-size: 13px;
   }
 }
+
+/* DORADA GLAVNOG LOBBYJA */
+
+.lobby-dashboard .lobby-main-actions {
+  gap: 16px;
+}
+
+.lobby-dashboard .lobby-create-button,
+.lobby-dashboard .lobby-code-button {
+  min-height: 68px;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 700;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.lobby-dashboard .lobby-create-button {
+  background: #08783b;
+  border: 1px solid #08783b;
+  color: #fff;
+  box-shadow: 0 5px 14px rgba(8, 120, 59, 0.12);
+}
+
+.lobby-dashboard .lobby-create-button:hover:not(:disabled) {
+  background: #096633;
+  transform: translateY(-2px);
+}
+
+.lobby-dashboard .lobby-code-button {
+  background: #fff;
+  border: 1px solid #c9e1d0;
+  color: #08783b;
+}
+
+.lobby-dashboard .lobby-code-button:hover:not(:disabled) {
+  background: #edf8f0;
+  transform: translateY(-2px);
+}
+
+.lobby-dashboard .lobby-available-section {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 5px 20px rgba(20, 80, 45, 0.05);
+}
+
+.lobby-dashboard .lobby-available-heading {
+  padding: 19px 24px;
+  background: #08783b;
+}
+
+.lobby-dashboard .lobby-available-heading h2 {
+  font-size: 20px;
+}
+
+.lobby-dashboard .lobby-available-content {
+  padding: 20px;
+}
+
+.lobby-dashboard .belot-room-card {
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+@media (max-width: 620px) {
+  .lobby-dashboard .lobby-main-actions {
+    gap: 10px;
+  }
+
+  .lobby-dashboard .lobby-create-button,
+  .lobby-dashboard .lobby-code-button {
+    min-height: 58px;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .lobby-dashboard .lobby-available-content {
+    padding: 12px;
+  }
+}
+
+/* MODERNE KARTICE SOBA */
+
+.lobby-dashboard .belot-room-card {
+  min-height: 92px;
+  padding: 18px 22px;
+  border: 1px solid #e0ebe3;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(20, 80, 45, 0.03);
+}
+
+.lobby-dashboard .belot-room-card:hover:not(:disabled) {
+  background: #f0faf3;
+  border-color: #8bcda4;
+  box-shadow: 0 5px 16px rgba(20, 80, 45, 0.08);
+}
+
+.lobby-dashboard .belot-room-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lobby-dashboard .belot-room-symbol {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: #e6f5eb;
+  color: #08783b;
+  font-size: 25px;
+}
+
+.lobby-dashboard .belot-room-name {
+  color: #20372b;
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.lobby-dashboard .belot-room-description {
+  margin-left: 54px;
+  color: #7b9183;
+  font-size: 12px;
+}
+
+.lobby-dashboard .belot-room-right {
+  gap: 14px;
+}
+
+.lobby-dashboard .belot-room-seat {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+.lobby-dashboard .belot-room-seat.occupied {
+  background: #159b60;
+  color: #ffffff;
+}
+
+.lobby-dashboard .belot-room-seat.empty {
+  background: #edf2ef;
+  color: #b3c2b9;
+}
+
+.lobby-dashboard .belot-room-player-count {
+  min-width: 34px;
+  color: #60786a;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.lobby-dashboard .belot-room-enter {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #e4f5e9;
+  color: #08783b;
+  font-size: 26px;
+}
+
+@media (max-width: 620px) {
+  .lobby-dashboard .belot-room-card {
+    min-height: 80px;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .lobby-dashboard .belot-room-symbol {
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+  }
+
+  .lobby-dashboard .belot-room-title {
+    gap: 7px;
+  }
+
+  .lobby-dashboard .belot-room-name {
+    font-size: 14px;
+  }
+
+  .lobby-dashboard .belot-room-description {
+    margin-left: 39px;
+    font-size: 10px;
+  }
+
+  .lobby-dashboard .belot-room-right {
+    gap: 6px;
+  }
+
+  .lobby-dashboard .belot-room-seat {
+    width: 25px;
+    height: 27px;
+  }
+
+  .lobby-dashboard .belot-room-player-count {
+    min-width: 25px;
+    font-size: 11px;
+  }
+
+  .lobby-dashboard .belot-room-enter {
+    width: 28px;
+    height: 28px;
+    font-size: 21px;
+  }
+}

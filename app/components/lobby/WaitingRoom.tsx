@@ -135,6 +135,11 @@ export default function WaitingRoom({
               <div>
                 <span className="waiting-room-eyebrow">ZA STOLOM</span>
                 <h2>Igrači</h2>
+                {isHost && (
+                  <p className="waiting-room-host-hint">
+                    Klikni na dva igrača kako bi im zamijenio mjesta.
+                  </p>
+                )}
               </div>
               <span className="waiting-room-rating">
                 Minimalni rejting {room.minRating}

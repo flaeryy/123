@@ -475,6 +475,7 @@ io.on("connection", (socket) => {
       callback,
     ) => {
       let room: Room | undefined;
+      let lockedRoomCode: string | null = null;
 
       try {
         // Provjera primljenih podataka.
@@ -509,7 +510,7 @@ io.on("connection", (socket) => {
           throw new Error("Neispravan kod sobe.");
         }
 
-        const targetRoom = roomManager.getRoom(data.roomCode);
+        const targetRoom = roomManager.getRoom(cleanRoomCode);
 
         if (!targetRoom) {
           throw new Error("Soba nije pronađena.");
@@ -520,6 +521,8 @@ io.on("connection", (socket) => {
             "Promjena igrača u sobi je u tijeku. Pokušaj ponovno.",
           );
         }
+        pendingRoomOperations.add(targetRoom.code);
+        lockedRoomCode = targetRoom.code;
 
         const joinedRoom = roomManager.joinRoom(
           socket.id,
@@ -581,8 +584,13 @@ io.on("connection", (socket) => {
           success: false,
           message: error instanceof Error ? error.message : "Greška.",
         });
+      } finally {
+        if (lockedRoomCode !== null) {
+          pendingRoomOperations.delete(lockedRoomCode);
+        }
+
+        broadcastAvailablePlayers();
       }
-      broadcastAvailablePlayers();
     },
   );
 
@@ -698,71 +706,75 @@ io.on("connection", (socket) => {
 
         pendingRoomOperations.add(room.code);
 
-        const host = room.players.find((player) => player.id === socket.id);
+        try {
+          const host = room.players.find((player) => player.id === socket.id);
 
-        if (!host?.isHost) {
-          throw new Error("Samo domaćin može ukloniti igrača.");
+          if (!host?.isHost) {
+            throw new Error("Samo domaćin može ukloniti igrača.");
+          }
+
+          if (
+            !data ||
+            typeof data.playerSocketId !== "string" ||
+            data.playerSocketId === socket.id
+          ) {
+            throw new Error("Odabrani igrač nije valjan.");
+          }
+
+          const target = room.players.find(
+            (player) => player.id === data.playerSocketId,
+          );
+
+          if (!target || target.isHost) {
+            throw new Error("Igrača nije moguće ukloniti iz sobe.");
+          }
+
+          const [game] = await db
+            .select({ id: games.id, status: games.status })
+            .from(games)
+            .where(eq(games.roomCode, room.code))
+            .limit(1);
+
+          if (!game || game.status !== "waiting") {
+            throw new Error("Igrača možeš ukloniti samo iz čekaonice.");
+          }
+
+          const remainingPlayers = room.players.filter(
+            (player) => player.id !== target.id,
+          );
+
+          await db.transaction(async (tx) => {
+            await tx
+              .delete(gamePlayers)
+              .where(
+                and(
+                  eq(gamePlayers.gameId, game.id),
+                  eq(gamePlayers.userId, target.userId),
+                ),
+              );
+          });
+
+          const updatedRoom = roomManager.leaveRoom(target.id);
+
+          if (!updatedRoom) {
+            throw new Error("Soba više nije dostupna.");
+          }
+
+          socketUsers.delete(target.id);
+          const targetSocket = io.sockets.sockets.get(target.id);
+          targetSocket?.emit("player_kicked", {
+            message: `Domaćin te uklonio iz sobe ${room.code}.`,
+          });
+          targetSocket?.leave(room.code);
+
+          io.to(room.code).emit("room_updated", updatedRoom);
+          io.emit("public_rooms_updated", roomManager.listPublicRooms());
+          broadcastAvailablePlayers();
+
+          callback?.({ success: true });
+        } finally {
+          pendingRoomOperations.delete(room.code);
         }
-
-        if (
-          !data ||
-          typeof data.playerSocketId !== "string" ||
-          data.playerSocketId === socket.id
-        ) {
-          throw new Error("Odabrani igrač nije valjan.");
-        }
-
-        const target = room.players.find(
-          (player) => player.id === data.playerSocketId,
-        );
-
-        if (!target || target.isHost) {
-          throw new Error("Igrača nije moguće ukloniti iz sobe.");
-        }
-
-        const [game] = await db
-          .select({ id: games.id, status: games.status })
-          .from(games)
-          .where(eq(games.roomCode, room.code))
-          .limit(1);
-
-        if (!game || game.status !== "waiting") {
-          throw new Error("Igrača možeš ukloniti samo iz čekaonice.");
-        }
-
-        const remainingPlayers = room.players.filter(
-          (player) => player.id !== target.id,
-        );
-
-        await db.transaction(async (tx) => {
-          await tx
-            .delete(gamePlayers)
-            .where(
-              and(
-                eq(gamePlayers.gameId, game.id),
-                eq(gamePlayers.userId, target.userId),
-              ),
-            );
-        });
-
-        const updatedRoom = roomManager.leaveRoom(target.id);
-
-        if (!updatedRoom) {
-          throw new Error("Soba više nije dostupna.");
-        }
-
-        socketUsers.delete(target.id);
-        const targetSocket = io.sockets.sockets.get(target.id);
-        targetSocket?.emit("player_kicked", {
-          message: `Domaćin te uklonio iz sobe ${room.code}.`,
-        });
-        targetSocket?.leave(room.code);
-
-        io.to(room.code).emit("room_updated", updatedRoom);
-        io.emit("public_rooms_updated", roomManager.listPublicRooms());
-        broadcastAvailablePlayers();
-
-        callback?.({ success: true });
       } catch (error) {
         callback?.({
           success: false,
@@ -1292,6 +1304,7 @@ io.on("connection", (socket) => {
 
   // POKRETANJE PARTIJE
   socket.on("start_game", async (callback) => {
+    let lockedRoomCode: string | null = null;
     try {
       const existingRoom = roomManager.getPlayerRoom(socket.id);
 
@@ -1306,6 +1319,9 @@ io.on("connection", (socket) => {
       if (pendingRoomOperations.has(existingRoom.code)) {
         throw new Error("Pričekaj završetak promjene mjesta igrača.");
       }
+
+      pendingRoomOperations.add(existingRoom.code);
+      lockedRoomCode = existingRoom.code;
       // Provjera domaćina i četiri igrača.
       const room = roomManager.startGame(socket.id);
 
@@ -1371,6 +1387,10 @@ io.on("connection", (socket) => {
         success: false,
         message: error instanceof Error ? error.message : "Greška.",
       });
+    } finally {
+      if (lockedRoomCode !== null) {
+        pendingRoomOperations.delete(lockedRoomCode);
+      }
     }
   });
 });
@@ -1396,147 +1416,155 @@ async function removeRoomMember(
   socketId: string,
   socket?: Socket,
 ): Promise<boolean> {
-  const room = roomManager.getPlayerRoom(socketId);
+  const initialRoom = roomManager.getPlayerRoom(socketId);
 
-  if (!room) {
+  if (!initialRoom) {
     return false;
   }
 
-  const roomCode = room.code;
-  const userId = socketUsers.get(socketId);
-  const departingPlayer = room.players.find((player) => player.id === socketId);
-  const gameState = activeGames.get(roomCode);
-  const gameWasInProgress =
-    gameState !== undefined && gameState.phase !== "finished";
+  const roomCode = initialRoom.code;
 
-  let updatedRoom = roomManager.leaveRoom(socketId);
-
-  if (gameWasInProgress && updatedRoom) {
-    updatedRoom = roomManager.returnToLobby(roomCode) ?? updatedRoom;
+  // Pričekaj završetak druge operacije nad sobom.
+  while (pendingRoomOperations.has(roomCode)) {
+    await new Promise<void>((resolve) => setTimeout(resolve, 50));
   }
 
-  if (gameWasInProgress) {
-    activeGames.delete(roomCode);
+  // Ponovno provjeri je li igrač još uvijek u sobi.
+  const room = roomManager.getPlayerRoom(socketId);
+
+  if (!room || room.code !== roomCode) {
+    return false;
   }
 
-  socketUsers.delete(socketId);
-  socket?.leave(roomCode);
+  pendingRoomOperations.add(roomCode);
 
   try {
-    const [game] = await db
-      .select({
-        id: games.id,
-        status: games.status,
-      })
-      .from(games)
-      .where(eq(games.roomCode, roomCode))
-      .limit(1);
+    const userId = socketUsers.get(socketId);
+    const departingPlayer = room.players.find(
+      (player) => player.id === socketId,
+    );
+    const gameState = activeGames.get(roomCode);
+    const gameWasInProgress =
+      gameState !== undefined && gameState.phase !== "finished";
 
-    await db.transaction(async (tx) => {
-      if (!game) {
-        return;
-      }
+    let updatedRoom = roomManager.leaveRoom(socketId);
 
-      // Završene partije čuvamo u povijesti.
-      if (game.status === "finished") {
-        return;
-      }
-
-      // Brišemo igrača samo iz nedovršene partije.
-      if (userId !== undefined) {
-        await tx
-          .delete(gamePlayers)
-          .where(
-            and(
-              eq(gamePlayers.gameId, game.id),
-              eq(gamePlayers.userId, userId),
-            ),
-          );
-      }
-
-      // Ako je soba prazna, brišemo nedovršenu partiju.
-      if (!updatedRoom) {
-        await tx.delete(games).where(eq(games.id, game.id));
-
-        return;
-      }
-
-      if (gameWasInProgress) {
-        await tx
-          .update(games)
-          .set({ status: "waiting" })
-          .where(eq(games.id, game.id));
-      }
-
-      for (const [index, player] of updatedRoom.players.entries()) {
-        await tx
-          .update(gamePlayers)
-          .set({ seat: index + 1 })
-          .where(
-            and(
-              eq(gamePlayers.gameId, game.id),
-              eq(gamePlayers.userId, player.userId),
-            ),
-          );
-      }
-
-      // Ako je domaćin otišao, dodjeljujemo novog.
-      await tx
-        .update(gamePlayers)
-        .set({ isHost: false })
-        .where(eq(gamePlayers.gameId, game.id));
-
-      const newHost = updatedRoom.players.find((player) => player.isHost);
-
-      if (newHost) {
-        await tx
-          .update(gamePlayers)
-          .set({ isHost: true })
-          .where(
-            and(
-              eq(gamePlayers.gameId, game.id),
-              eq(gamePlayers.userId, newHost.userId),
-            ),
-          );
-      }
-    });
-
-    if (!updatedRoom) {
-      io.to(roomCode).emit("room_closed");
-      io.emit("public_rooms_updated", roomManager.listPublicRooms());
-      return true;
+    if (gameWasInProgress && updatedRoom) {
+      updatedRoom = roomManager.returnToLobby(roomCode) ?? updatedRoom;
     }
 
     if (gameWasInProgress) {
-      const message = `${departingPlayer?.username ?? "Igrač"} je napustio igru. Partija je prekinuta.`;
-      io.to(roomCode).emit("game_aborted", {
-        room: updatedRoom,
-        message,
-      });
+      activeGames.delete(roomCode);
     }
 
-    io.to(roomCode).emit("room_updated", updatedRoom);
-    io.emit("public_rooms_updated", roomManager.listPublicRooms());
+    socketUsers.delete(socketId);
+    socket?.leave(roomCode);
 
-    return true;
-  } catch (error) {
-    console.error("Greška pri ažuriranju sobe u bazi:", error);
+    try {
+      const [game] = await db
+        .select({
+          id: games.id,
+          status: games.status,
+        })
+        .from(games)
+        .where(eq(games.roomCode, roomCode))
+        .limit(1);
 
-    if (!updatedRoom) {
-      io.to(roomCode).emit("room_closed");
-    } else {
+      await db.transaction(async (tx) => {
+        if (!game) {
+          return;
+        }
+
+        // Završene partije čuvamo u povijesti.
+        if (game.status === "finished") {
+          return;
+        }
+
+        // Brišemo igrača samo iz nedovršene partije.
+        if (userId !== undefined) {
+          await tx
+            .delete(gamePlayers)
+            .where(
+              and(
+                eq(gamePlayers.gameId, game.id),
+                eq(gamePlayers.userId, userId),
+              ),
+            );
+        }
+
+        // Ako je soba prazna, brišemo nedovršenu partiju.
+        if (!updatedRoom) {
+          await tx.delete(games).where(eq(games.id, game.id));
+
+          return;
+        }
+
+        if (gameWasInProgress) {
+          await tx
+            .update(games)
+            .set({ status: "waiting" })
+            .where(eq(games.id, game.id));
+        }
+        // Ako je domaćin otišao, dodjeljujemo novog.
+        await tx
+          .update(gamePlayers)
+          .set({ isHost: false })
+          .where(eq(gamePlayers.gameId, game.id));
+
+        const newHost = updatedRoom.players.find((player) => player.isHost);
+
+        if (newHost) {
+          await tx
+            .update(gamePlayers)
+            .set({ isHost: true })
+            .where(
+              and(
+                eq(gamePlayers.gameId, game.id),
+                eq(gamePlayers.userId, newHost.userId),
+              ),
+            );
+        }
+      });
+
+      if (!updatedRoom) {
+        io.to(roomCode).emit("room_closed");
+        io.emit("public_rooms_updated", roomManager.listPublicRooms());
+        return true;
+      }
+
       if (gameWasInProgress) {
+        const message = `${departingPlayer?.username ?? "Igrač"} je napustio igru. Partija je prekinuta.`;
         io.to(roomCode).emit("game_aborted", {
           room: updatedRoom,
-          message: `${departingPlayer?.username ?? "Igrač"} je napustio igru. Partija je prekinuta.`,
+          message,
         });
       }
 
       io.to(roomCode).emit("room_updated", updatedRoom);
-    }
+      io.emit("public_rooms_updated", roomManager.listPublicRooms());
 
-    io.emit("public_rooms_updated", roomManager.listPublicRooms());
-    return true;
+      return true;
+    } catch (error) {
+      console.error("Greška pri ažuriranju sobe u bazi:", error);
+
+      if (!updatedRoom) {
+        io.to(roomCode).emit("room_closed");
+      } else {
+        if (gameWasInProgress) {
+          io.to(roomCode).emit("game_aborted", {
+            room: updatedRoom,
+            message: `${departingPlayer?.username ?? "Igrač"} je napustio igru. Partija je prekinuta.`,
+          });
+        }
+
+        io.to(roomCode).emit("room_updated", updatedRoom);
+      }
+
+      io.emit("public_rooms_updated", roomManager.listPublicRooms());
+      return true;
+    }
+  } finally {
+    pendingRoomOperations.delete(roomCode);
   }
 }
 
