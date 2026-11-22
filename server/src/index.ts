@@ -357,6 +357,9 @@ io.on("connection", (socket) => {
       data: {
         isPublic?: unknown;
         minRating?: unknown;
+        turnDuration?: unknown;
+        gameType?: unknown;
+        targetScore?: unknown;
       },
       callback,
     ) => {
@@ -381,6 +384,16 @@ io.on("connection", (socket) => {
           throw new Error(
             "Minimalni rejting mora biti cijeli broj od 0 do 10.",
           );
+        }
+
+        if (data.turnDuration !== undefined && ![15, 30, 45].includes(data.turnDuration as number)) {
+          throw new Error("Trajanje poteza mora biti 15, 30 ili 45 sekundi.");
+        }
+        if (data.gameType !== undefined && !["prolaz", "dosta"].includes(data.gameType as string)) {
+          throw new Error("Nepoznat tip igre.");
+        }
+        if (data.targetScore !== undefined && ![501, 701, 1001].includes(data.targetScore as number)) {
+          throw new Error("Igra se do 501, 701 ili 1001 bod.");
         }
 
         // Identitet i nadimak dolaze isključivo iz prijavljene sesije.
@@ -410,6 +423,9 @@ io.on("connection", (socket) => {
           isPublic,
           minRating,
           user.rating,
+          (data.turnDuration as 15 | 30 | 45 | undefined) ?? 30,
+          (data.gameType as "prolaz" | "dosta" | undefined) ?? "prolaz",
+          (data.targetScore as 501 | 701 | 1001 | undefined) ?? 1001,
         );
 
         room = createdRoom;
