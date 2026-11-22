@@ -28,24 +28,21 @@ export default function RoomCard({
       aria-label={`Uđi u sobu ${host?.username ?? room.code}, ${playerCount} od ${room.maxPlayers} igrača`}
     >
       <div className="belot-room-info">
-        <div className="belot-room-title">
-          <span className="belot-room-symbol" aria-hidden="true">
-            ♣
-          </span>
-          <strong className="belot-room-name">
-            {host?.username ?? "Domaćin"}
-          </strong>
+        <div className="belot-room-heading">
+          <span className="belot-room-symbol" aria-hidden="true">♣</span>
+          <div className="belot-room-heading-text">
+            <strong className="belot-room-name">{host?.username ?? "Domaćin"}</strong>
+            <span className="belot-room-description">
+              {room.isPublic ? "Javna soba" : "🔒 Privatna soba"}
+              {" · "}
+              Min. rejting {room.minRating}
+            </span>
+          </div>
         </div>
-
-        <span className="belot-room-description">
-          {room.isPublic ? "Javna soba" : "🔒 Privatna soba"}
-          {" · "}
-          Min. rejting {room.minRating}
-        </span>
         <div className="belot-room-settings" aria-label="Postavke partije">
-          <span>{room.turnDuration ?? 30} sek/potez</span>
-          <span>{room.gameType === "dosta" ? "Dosta" : "Prolaz"}</span>
-          <span>Do {room.targetScore ?? 1001} bodova</span>
+          <div className="belot-room-setting">⏱ {room.turnDuration ?? 30} sek/potez</div>
+          <div className="belot-room-setting">♣ {room.gameType === "dosta" ? "Dosta" : "Prolaz"}</div>
+          <div className="belot-room-setting">🏆 Do {room.targetScore ?? 1001}</div>
         </div>
       </div>
 
