@@ -420,12 +420,12 @@ function HomeContent() {
     }
 
     // Soba je zatvorena.
-    function handleRoomClosed() {
+    function handleRoomClosed(data?: { message?: string }) {
       setCurrentRoom(null);
       setGameState(null);
       setGameStarted(false);
       clearChat();
-      setMessage("Soba je zatvorena.");
+      setMessage(data?.message ?? "Soba je zatvorena.");
       router.replace("/lobby");
     }
 
