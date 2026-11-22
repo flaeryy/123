@@ -12,7 +12,7 @@ import GameTable, {
   type PlayedCard,
 } from "./components/game/GameTable";
 import Lobby from "./components/lobby/Lobby";
-import WaitingRoom from "./components/lobby/WaitingRoom";
+import WaitingRoom, { type AvailablePlayer } from "./components/lobby/WaitingRoom";
 import { useRoomChat } from "./hooks/useRoomChat";
 import { useSocket } from "./hooks/useSocket";
 import { useAuth } from "./hooks/useAuth";
@@ -169,6 +169,8 @@ function HomeContent() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [publicRooms, setPublicRooms] = useState<Room[]>([]);
+  const [availablePlayers, setAvailablePlayers] = useState<AvailablePlayer[]>([]);
+  const [roomInvite, setRoomInvite] = useState<{ roomCode: string; hostName: string } | null>(null);
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
   const [roomCode, setRoomCode] = useState("");
   const [isPublic, setIsPublic] = useState(true);
@@ -400,6 +402,9 @@ function HomeContent() {
     function handleConnect() {
       setError("");
 
+      socket!.emit("get_available_players", (response: { success: boolean; players?: AvailablePlayer[] }) => {
+        if (response.success) setAvailablePlayers(response.players ?? []);
+      });
       socket!.emit("get_public_rooms", (response: RoomResponse) => {
         if (response.success && response.rooms) {
           setPublicRooms(response.rooms);
@@ -477,10 +482,15 @@ function HomeContent() {
       setTrickCollectWinner(data.winnerPlayerNumber);
     }
 
+    function handleAvailablePlayers(players: AvailablePlayer[]) { setAvailablePlayers(players); }
+    function handleRoomInvite(invite: { roomCode: string; hostName: string }) { setRoomInvite(invite); }
+
     // Registracija svih Socket.IO događaja.
     socket.on("connect", handleConnect);
     socket.on("connect_error", handleConnectError);
     socket.on("public_rooms_updated", handlePublicRoomsUpdated);
+    socket.on("available_players_updated", handleAvailablePlayers);
+    socket.on("room_invite", handleRoomInvite);
     socket.on("room_updated", handleRoomUpdated);
     socket.on("room_closed", handleRoomClosed);
     socket.on("player_kicked", handlePlayerKicked);
@@ -499,6 +509,8 @@ function HomeContent() {
       socket.off("connect", handleConnect);
       socket.off("connect_error", handleConnectError);
       socket.off("public_rooms_updated", handlePublicRoomsUpdated);
+      socket.off("available_players_updated", handleAvailablePlayers);
+      socket.off("room_invite", handleRoomInvite);
       socket.off("room_updated", handleRoomUpdated);
       socket.off("room_closed", handleRoomClosed);
       socket.off("player_kicked", handlePlayerKicked);
@@ -827,6 +839,15 @@ function HomeContent() {
     );
   }
 
+  function invitePlayer(targetUserId: number) {
+    const socket = socketRef.current;
+    if (!socket?.connected) return;
+    socket.emit("invite_room_player", { targetUserId }, (response: { success: boolean; message?: string }) => {
+      if (response.success) setMessage("Pozivnica je poslana.");
+      else setError(response.message ?? "Slanje pozivnice nije uspjelo.");
+    });
+  }
+
   function joinRoom(code?: string) {
     const socket = socketRef.current;
     const cleanCode = (code ?? roomCode).trim().toUpperCase();
@@ -1119,6 +1140,8 @@ function HomeContent() {
       <WaitingRoom
         room={currentRoom}
         userId={user.id}
+        availablePlayers={availablePlayers}
+        onInvitePlayer={invitePlayer}
         loading={loading}
         socketConnected={socketConnected}
         error={error}
@@ -1138,6 +1161,16 @@ function HomeContent() {
   if (user && !currentRoom && !gameStarted) {
     return (
       <main className="lobby-dashboard">
+        {roomInvite && (
+          <div className="room-invite-notice" role="dialog" aria-label="Pozivnica u sobu" style={{ position: "fixed", right: 20, bottom: 20, zIndex: 9999, background: "#fff", color: "#203b2b", padding: 20, border: "1px solid #cfe4d6", borderRadius: 14, boxShadow: "0 8px 30px #0003" }}>
+            <strong>{roomInvite.hostName} te poziva u sobu</strong>
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button type="button" onClick={() => { const code = roomInvite.roomCode; setRoomInvite(null); joinRoom(code); }}>Prihvati</button>
+              <button type="button" onClick={() => setRoomInvite(null)}>Odbij</button>
+            </div>
+          </div>
+        )}
+
         <LobbyHeader
           username={user.username}
           socketConnected={socketConnected}
@@ -1292,6 +1325,16 @@ function HomeContent() {
 
   return (
     <main className="page-shell">
+        {roomInvite && (
+          <div className="room-invite-notice" role="dialog" aria-label="Pozivnica u sobu" style={{ position: "fixed", right: 20, bottom: 20, zIndex: 9999, background: "#fff", color: "#203b2b", padding: 20, border: "1px solid #cfe4d6", borderRadius: 14, boxShadow: "0 8px 30px #0003" }}>
+            <strong>{roomInvite.hostName} te poziva u sobu</strong>
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button type="button" onClick={() => { const code = roomInvite.roomCode; setRoomInvite(null); joinRoom(code); }}>Prihvati</button>
+              <button type="button" onClick={() => setRoomInvite(null)}>Odbij</button>
+            </div>
+          </div>
+        )}
+
       {GOOGLE_CLIENT_ID && !user && (
         <Script
           src="https://accounts.google.com/gsi/client"
@@ -1372,6 +1415,8 @@ function HomeContent() {
                 <WaitingRoom
                   room={currentRoom}
                   userId={user.id}
+                  availablePlayers={availablePlayers}
+                  onInvitePlayer={invitePlayer}
                   loading={loading}
                   socketConnected={socketConnected}
                   error={error}
