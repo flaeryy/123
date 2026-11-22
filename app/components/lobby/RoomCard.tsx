@@ -42,6 +42,11 @@ export default function RoomCard({
           {" · "}
           Min. rejting {room.minRating}
         </span>
+        <div className="belot-room-settings" aria-label="Postavke partije">
+          <span>{room.turnDuration ?? 30} sek/potez</span>
+          <span>{room.gameType === "dosta" ? "Dosta" : "Prolaz"}</span>
+          <span>Do {room.targetScore ?? 1001} bodova</span>
+        </div>
       </div>
 
       <div className="belot-room-right">
