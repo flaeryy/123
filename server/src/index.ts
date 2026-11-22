@@ -75,6 +75,7 @@ const socketUsers = new Map<string, number>();
 type OnlinePlayer = {
   userId: number;
   username: string;
+  rating?: number;
 };
 
 function getAvailablePlayers(): OnlinePlayer[] {
@@ -93,6 +94,7 @@ function getAvailablePlayers(): OnlinePlayer[] {
     players.set(user.userId, {
       userId: user.userId,
       username: user.username,
+      rating: typeof socket.data.rating === "number" ? socket.data.rating : undefined,
     });
   }
 
@@ -317,6 +319,15 @@ io.on("connection", (socket) => {
     return;
   }
 
+  // Rejting se dohvaca iz baze, ne od klijenta.
+  void db.select({ rating: users.rating }).from(users)
+    .where(eq(users.id, authenticatedUser.userId)).limit(1)
+    .then(([row]) => {
+      if (!socket.connected) return;
+      socket.data.rating = row?.rating ?? 0;
+      broadcastAvailablePlayers();
+    })
+    .catch((error) => console.error("Dohvat rejtinga aktivnog igraca nije uspio:", error));
   broadcastAvailablePlayers();
 
   const userId = authenticatedUser.userId;
