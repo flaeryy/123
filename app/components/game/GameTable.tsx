@@ -388,20 +388,7 @@ export default function GameTable({
               canDeclare={canDeclare}
               declarationTurnPlayerName={declarationTurnPlayerName}
               selectedDeclarationCards={selectedDeclarationCards}
-              activeDeclarations={activeDeclarations}
               onSubmitDeclarations={onSubmitDeclarations}
-              getPlayerName={(playerNumber) =>
-                playerByNumber(playerNumber)?.username ??
-                `Igrač ${playerNumber}`
-              }
-              renderCard={(card) => (
-                <PlayingCard
-                  key={`${card.suit}-${card.rank}`}
-                  card={card}
-                  small
-                  disabled
-                />
-              )}
             />
             </section>
             <div className="table-players">
@@ -430,6 +417,24 @@ export default function GameTable({
                       <span className="dealer-deck-card dealer-deck-card-front" />
                     </div>
                   )}
+                  {activeDeclarations
+                    .filter((declaration) => declaration.playerNumber === player.seat + 1)
+                    .map((declaration) => (
+                      <div
+                        className="player-declaration-cards"
+                        key={`declaration-${declaration.playerNumber}`}
+                        aria-label={`Zvanje: ${declaration.points} bodova`}
+                      >
+                        {declaration.cards.map((card, cardIndex) => (
+                          <PlayingCard
+                            key={`${card.suit}-${card.rank}-${cardIndex}`}
+                            card={card}
+                            small
+                            disabled
+                          />
+                        ))}
+                      </div>
+                    ))}
                   <div className="player-info">
                     <strong>
                       {player.username}
