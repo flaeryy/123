@@ -837,7 +837,7 @@ function HomeContent() {
     }
 
     if (!cleanCode) {
-      setError("Unesi kod sobe.");
+      setError("Unesi šifru sobe.");
       return;
     }
 
