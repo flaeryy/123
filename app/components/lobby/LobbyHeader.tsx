@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import "./LobbyHeader.css";
 
 type LobbyHeaderProps = {
@@ -18,6 +19,20 @@ export default function LobbyHeader({
   onLogout,
   onOpenProfile,
 }: LobbyHeaderProps) {
+  const [avatarId, setAvatarId] = useState(1);
+
+  useEffect(() => {
+    let active = true;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+    fetch(`${apiUrl}/profiles/by-name/${encodeURIComponent(username)}`)
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        if (active && Number.isInteger(data?.profile?.avatarId)) setAvatarId(data.profile.avatarId);
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [username]);
+
   return (
     <header className="belot-lobby-header">
       <div className="belot-lobby-header-inner">
@@ -36,7 +51,11 @@ export default function LobbyHeader({
         <div className="belot-header-right">
           <div className="belot-header-user">
             <div className="belot-header-avatar">
-              {username.charAt(0).toUpperCase()}
+              <img
+                src={`/avatars/avatar-${String(avatarId).padStart(2, "0")}.png`}
+                alt={`Avatar ${username}`}
+                style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+              />
             </div>
 
             <div className="belot-header-user-info">
