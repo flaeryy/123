@@ -8,6 +8,7 @@ type LobbyHeaderProps = {
   socketConnected: boolean;
   loading: boolean;
   onLogout: () => void;
+  onOpenProfile?: () => void;
 };
 
 export default function LobbyHeader({
@@ -15,6 +16,7 @@ export default function LobbyHeader({
   socketConnected,
   loading,
   onLogout,
+  onOpenProfile,
 }: LobbyHeaderProps) {
   return (
     <header className="belot-lobby-header">
@@ -38,7 +40,7 @@ export default function LobbyHeader({
             </div>
 
             <div className="belot-header-user-info">
-              <strong>{username}</strong>
+              <button type="button" className="profile-name-button" onClick={onOpenProfile}><strong>{username}</strong></button>
               <span>
                 <i
                   className={`belot-header-status ${
