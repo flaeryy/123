@@ -596,9 +596,9 @@ export function playCard(
 
   // Kod PROLAZ rezultat se upisuje tek nakon posljednjeg stiha.
   // Kod DOSTA koji zavrsi ranije spremamo trenutne bodove bez dupliranja.
-  const team1MatchScore = dostaWinner !== null && !isLastTrick
+  const team1MatchScore = dostaWinner !== null
     ? dostaTeam1 : state.team1MatchScore + (finalScore?.team1 ?? 0);
-  const team2MatchScore = dostaWinner !== null && !isLastTrick
+  const team2MatchScore = dostaWinner !== null
     ? dostaTeam2 : state.team2MatchScore + (finalScore?.team2 ?? 0);
 
   // Dodajemo rezultat u povijest samo kada je runda završena.
