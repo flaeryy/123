@@ -344,45 +344,11 @@ export default function GameTable({
             </div>
           )}
 
-          <section className="belot-table">
-            <div className="table-decoration" />
+          <div className="belot-table-wrapper">
+            <section className="belot-table">
+              <div className="table-decoration" />
 
-            {sortedPlayers.map((player, index) => {
-              const position = positions[index];
-              const isCurrent = player.id === currentPlayerId;
-              const isMe = player.id === viewerId;
-
-              return (
-                <div
-                  key={player.id}
-                  className={`table-player player-${position} ${
-                    isCurrent ? "active-player" : ""
-                  }`}
-                >
-                  <div className="player-avatar">
-                    <img
-                      src="/avatar/man.png"
-                      alt={player.username}
-                      className="man"
-                    />
-                  </div>
-                  <div className="player-info">
-                    <strong>
-                      {player.username}
-                      {player.isDealer && (
-                        <span className="dealer-badge"> D </span>
-                      )}
-                    </strong>
-                    <span>
-                      {isMe ? "Ti" : isCurrent ? "Na potezu" : "Igrač"}
-                    </span>
-                  </div>
-                  {isCurrent && <span className="turn-indicator">●</span>}
-                </div>
-              );
-            })}
-
-            <div className="played-cards">
+              <div className="played-cards">
               {playedCards.map((played, index) => {
                 const player = playerByNumber(played.playerNumber);
                 const playerPosition = player
@@ -435,7 +401,45 @@ export default function GameTable({
                 />
               )}
             />
-          </section>
+            </section>
+            <div className="table-players">
+            {sortedPlayers.map((player, index) => {
+              const position = positions[index];
+              const isCurrent = player.id === currentPlayerId;
+              const isMe = player.id === viewerId;
+
+              return (
+                <div
+                  key={player.id}
+                  className={`table-player player-${position} ${
+                    isCurrent ? "active-player" : ""
+                  }`}
+                >
+                  <div className="player-avatar">
+                    <img
+                      src="/avatar/man.png"
+                      alt={player.username}
+                      className="man"
+                    />
+                  </div>
+                  <div className="player-info">
+                    <strong>
+                      {player.username}
+                      {player.isDealer && (
+                        <span className="dealer-badge"> D </span>
+                      )}
+                    </strong>
+                    <span>
+                      {isMe ? "Ti" : isCurrent ? "Na potezu" : "Igrač"}
+                    </span>
+                  </div>
+                  {isCurrent && <span className="turn-indicator">●</span>}
+                </div>
+              );
+            })}
+
+            </div>
+          </div>
         </section>
       </div>
 
