@@ -233,7 +233,8 @@ export default function GameTable({
     });
   }
 
-  const positions = ["bottom", "left", "top", "right"] as const;
+  // Redoslijed poteza je suprotan smjeru kazaljke na satu: nakon mene igra desni igrac.
+  const positions = ["bottom", "right", "top", "left"] as const;
   const viewer = players.find((player) => player.id === viewerId);
   const viewerSeat = viewer?.seat ?? 0;
 
