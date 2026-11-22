@@ -863,3 +863,59 @@
     left: 0;
   }
 }
+
+/* Karte zvanja prikazane uz igraca, bez modalnog prozora. */
+.belot-table-wrapper .player-declaration-cards {
+  position: absolute;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: max-content;
+  max-width: min(280px, 55vw);
+  pointer-events: none;
+  animation: belot-declaration-show 160ms ease-out both;
+}
+
+.belot-table-wrapper .player-declaration-cards .played-hungarian-card .hungarian-card {
+  width: clamp(32px, 3.5vw, 45px);
+  height: auto;
+  aspect-ratio: 181 / 293;
+}
+
+.belot-table-wrapper .player-top .player-declaration-cards {
+  top: calc(100% + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.belot-table-wrapper .player-bottom .player-declaration-cards {
+  bottom: calc(100% + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.belot-table-wrapper .player-left .player-declaration-cards {
+  left: calc(100% + 18px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.belot-table-wrapper .player-right .player-declaration-cards {
+  right: calc(100% + 18px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+@keyframes belot-declaration-show {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 700px) {
+  .belot-table-wrapper .player-declaration-cards { gap: 1px; }
+  .belot-table-wrapper .player-declaration-cards .played-hungarian-card .hungarian-card {
+    width: clamp(23px, 6vw, 32px);
+  }
+}
