@@ -1495,6 +1495,40 @@ async function removeRoomMember(
     const gameWasInProgress =
       gameState !== undefined && gameState.phase !== "finished";
 
+    // Odlazak domaćina raspušta cijelu sobu, bez dodjele novog domaćina.
+    if (departingPlayer?.isHost) {
+      const closeMessage = "Admin sobe je napustio sobu.";
+      const members = [...room.players];
+      const closedRoom = roomManager.closeRoom(roomCode);
+      if (!closedRoom) return false;
+
+      activeGames.delete(roomCode);
+      socketUsers.delete(socketId);
+      for (const member of members) {
+        const memberSocket = io.sockets.sockets.get(member.id);
+        if (member.id !== socketId) {
+          memberSocket?.emit("room_closed", { message: closeMessage });
+        }
+        memberSocket?.leave(roomCode);
+      }
+
+      try {
+        const [game] = await db.select({ id: games.id, status: games.status })
+          .from(games).where(eq(games.roomCode, roomCode)).limit(1);
+        if (game && game.status !== "finished") {
+          await db.transaction(async (tx) => {
+            await tx.delete(gamePlayers).where(eq(gamePlayers.gameId, game.id));
+            await tx.delete(games).where(eq(games.id, game.id));
+          });
+        }
+      } catch (error) {
+        console.error("Greska pri brisanju raspustene sobe iz baze:", error);
+      }
+
+      io.emit("public_rooms_updated", roomManager.listPublicRooms());
+      return true;
+    }
+
     let updatedRoom = roomManager.leaveRoom(socketId);
 
     if (gameWasInProgress && updatedRoom) {
