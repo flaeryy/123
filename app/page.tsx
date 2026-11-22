@@ -171,6 +171,7 @@ function HomeContent() {
   const [publicRooms, setPublicRooms] = useState<Room[]>([]);
   const [availablePlayers, setAvailablePlayers] = useState<AvailablePlayer[]>([]);
   const [roomInvite, setRoomInvite] = useState<{ roomCode: string; hostName: string } | null>(null);
+  const [pendingInviteIds, setPendingInviteIds] = useState<number[]>([]);
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
   const [roomCode, setRoomCode] = useState("");
   const [isPublic, setIsPublic] = useState(true);
@@ -484,6 +485,11 @@ function HomeContent() {
 
     function handleAvailablePlayers(players: AvailablePlayer[]) { setAvailablePlayers(players); }
     function handleRoomInvite(invite: { roomCode: string; hostName: string }) { setRoomInvite(invite); }
+    function handleInviteStatus(data: { targetUserId: number; status: string }) {
+      setPendingInviteIds((ids) => ids.filter((id) => id !== data.targetUserId));
+      if (data.status === "declined") setMessage("Igrač je odbio pozivnicu.");
+      if (data.status === "expired") setMessage("Pozivnica je istekla.");
+    }
 
     // Registracija svih Socket.IO događaja.
     socket.on("connect", handleConnect);
@@ -491,6 +497,7 @@ function HomeContent() {
     socket.on("public_rooms_updated", handlePublicRoomsUpdated);
     socket.on("available_players_updated", handleAvailablePlayers);
     socket.on("room_invite", handleRoomInvite);
+    socket.on("room_invite_status", handleInviteStatus);
     socket.on("room_updated", handleRoomUpdated);
     socket.on("room_closed", handleRoomClosed);
     socket.on("player_kicked", handlePlayerKicked);
@@ -511,6 +518,7 @@ function HomeContent() {
       socket.off("public_rooms_updated", handlePublicRoomsUpdated);
       socket.off("available_players_updated", handleAvailablePlayers);
       socket.off("room_invite", handleRoomInvite);
+      socket.off("room_invite_status", handleInviteStatus);
       socket.off("room_updated", handleRoomUpdated);
       socket.off("room_closed", handleRoomClosed);
       socket.off("player_kicked", handlePlayerKicked);
@@ -842,9 +850,13 @@ function HomeContent() {
   function invitePlayer(targetUserId: number) {
     const socket = socketRef.current;
     if (!socket?.connected) return;
+    setPendingInviteIds((ids) => ids.includes(targetUserId) ? ids : [...ids, targetUserId]);
     socket.emit("invite_room_player", { targetUserId }, (response: { success: boolean; message?: string }) => {
       if (response.success) setMessage("Pozivnica je poslana.");
-      else setError(response.message ?? "Slanje pozivnice nije uspjelo.");
+      else {
+        setPendingInviteIds((ids) => ids.filter((id) => id !== targetUserId));
+        setError(response.message ?? "Slanje pozivnice nije uspjelo.");
+      }
     });
   }
 
@@ -1141,6 +1153,7 @@ function HomeContent() {
         room={currentRoom}
         userId={user.id}
         availablePlayers={availablePlayers}
+        pendingInviteIds={pendingInviteIds}
         onInvitePlayer={invitePlayer}
         loading={loading}
         socketConnected={socketConnected}
@@ -1166,14 +1179,14 @@ function HomeContent() {
             <div className="room-invite-banner">
               <span className="room-invite-cards" aria-hidden="true">♣</span>
               <span className="room-invite-label">POZIVNICA ZA PARTIJU</span>
-              <button className="room-invite-close" type="button" aria-label="Zatvori pozivnicu" onClick={() => setRoomInvite(null)}>×</button>
+              <button className="room-invite-close" type="button" aria-label="Zatvori pozivnicu" onClick={() => { socketRef.current?.emit("respond_room_invite", { roomCode: roomInvite.roomCode, accepted: false }); setRoomInvite(null); }}>×</button>
             </div>
             <div className="room-invite-body">
               <strong>{roomInvite.hostName} te poziva u sobu</strong>
               <p>Želiš li se pridružiti i zaigrati Belot?</p>
               <div className="room-invite-actions">
-                <button className="room-invite-decline" type="button" onClick={() => setRoomInvite(null)}>Odbij</button>
-                <button className="room-invite-accept" type="button" onClick={() => { const code = roomInvite.roomCode; setRoomInvite(null); joinRoom(code); }}>Prihvati <span aria-hidden="true">→</span></button>
+                <button className="room-invite-decline" type="button" onClick={() => { socketRef.current?.emit("respond_room_invite", { roomCode: roomInvite.roomCode, accepted: false }); setRoomInvite(null); }}>Odbij</button>
+                <button className="room-invite-accept" type="button" onClick={() => { const code = roomInvite.roomCode; socketRef.current?.emit("respond_room_invite", { roomCode: code, accepted: true }); setRoomInvite(null); joinRoom(code); }}>Prihvati <span aria-hidden="true">→</span></button>
               </div>
             </div>
           </div>
@@ -1338,14 +1351,14 @@ function HomeContent() {
             <div className="room-invite-banner">
               <span className="room-invite-cards" aria-hidden="true">♣</span>
               <span className="room-invite-label">POZIVNICA ZA PARTIJU</span>
-              <button className="room-invite-close" type="button" aria-label="Zatvori pozivnicu" onClick={() => setRoomInvite(null)}>×</button>
+              <button className="room-invite-close" type="button" aria-label="Zatvori pozivnicu" onClick={() => { socketRef.current?.emit("respond_room_invite", { roomCode: roomInvite.roomCode, accepted: false }); setRoomInvite(null); }}>×</button>
             </div>
             <div className="room-invite-body">
               <strong>{roomInvite.hostName} te poziva u sobu</strong>
               <p>Želiš li se pridružiti i zaigrati Belot?</p>
               <div className="room-invite-actions">
-                <button className="room-invite-decline" type="button" onClick={() => setRoomInvite(null)}>Odbij</button>
-                <button className="room-invite-accept" type="button" onClick={() => { const code = roomInvite.roomCode; setRoomInvite(null); joinRoom(code); }}>Prihvati <span aria-hidden="true">→</span></button>
+                <button className="room-invite-decline" type="button" onClick={() => { socketRef.current?.emit("respond_room_invite", { roomCode: roomInvite.roomCode, accepted: false }); setRoomInvite(null); }}>Odbij</button>
+                <button className="room-invite-accept" type="button" onClick={() => { const code = roomInvite.roomCode; socketRef.current?.emit("respond_room_invite", { roomCode: code, accepted: true }); setRoomInvite(null); joinRoom(code); }}>Prihvati <span aria-hidden="true">→</span></button>
               </div>
             </div>
           </div>
@@ -1432,6 +1445,8 @@ function HomeContent() {
                   room={currentRoom}
                   userId={user.id}
                   availablePlayers={availablePlayers}
+                  pendingInviteIds={pendingInviteIds}
+        pendingInviteIds={pendingInviteIds}
                   onInvitePlayer={invitePlayer}
                   loading={loading}
                   socketConnected={socketConnected}
