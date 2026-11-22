@@ -17,7 +17,7 @@ import {
 } from "./game/game-engine.js";
 
 import type { Card, Suit } from "./game/cards.js";
-import { getTrickWinner } from "./game/rules.js";
+import { getTrickWinner, getLegalCards } from "./game/rules.js";
 import { registerAuthRoutes } from "./auth/auth.routes.js";
 
 const app = Fastify({
@@ -1066,6 +1066,35 @@ io.on("connection", (socket) => {
   });
 
   // IGRANJE KARTE
+  // Provjera prije pitanja za belu; pravila ostaju na serveru.
+  socket.on("validate_card", (data: { card: Card }, callback) => {
+    try {
+      const room = roomManager.getPlayerRoom(socket.id);
+      if (!room) throw new Error("Nisi u sobi.");
+      const state = activeGames.get(room.code);
+      if (!state || state.phase !== "playing") throw new Error("Trenutno nije moguce odigrati kartu.");
+      if (pendingTrickResolutions.has(room.code) || pendingDeclarationReveals.has(room.code)) {
+        throw new Error("Pricekaj da se zavrsi prikaz stiha.");
+      }
+      const player = state.players.find((item) => item.socketId === socket.id);
+      if (!player || player.playerNumber !== state.currentPlayerNumber) {
+        throw new Error("Nisi na potezu.");
+      }
+      const legal = getLegalCards(
+        player.hand,
+        state.currentTrick[0]?.card.suit ?? null,
+        state.trumpSuit!,
+        state.currentTrick,
+      );
+      if (!legal.some((card) => card.suit === data.card?.suit && card.rank === data.card?.rank)) {
+        throw new Error("Ta karta nije dozvoljena.");
+      }
+      callback({ success: true });
+    } catch (error) {
+      callback({ success: false, message: error instanceof Error ? error.message : "Kartu nije moguce odigrati." });
+    }
+  });
+
   socket.on(
     "play_card",
     async (
