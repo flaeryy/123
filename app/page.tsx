@@ -1179,23 +1179,6 @@ function HomeContent() {
     }
     return (
       <main className="game-only-page">
-        <button
-          type="button"
-          onClick={() => {
-            socketRef.current?.emit("test_next_deal");
-          }}
-          style={{
-            background: "#d97706",
-            color: "white",
-            padding: "10px 16px",
-            borderRadius: "8px",
-            marginBottom: "12px",
-            cursor: "pointer",
-          }}
-        >
-          TEST – Nova runda
-        </button>
-
         <GameTable
           players={gameState.players.map((player) => ({
             id: player.socketId,

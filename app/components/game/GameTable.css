@@ -31,14 +31,16 @@
   gap: 0;
   min-width: 0;
   width: 100%;
+  padding: 78px 0 75px;
+  overflow: visible;
 }
 
 /* STOL */
 
 .belot-table {
   position: relative;
-  width: min(100%, 900px);
-  max-width: 900px;
+  width: min(calc(100% - 92px), 850px);
+  max-width: 850px;
   max-height: none;
   height: auto;
   min-height: 0;
@@ -48,7 +50,7 @@
   margin: 0 auto;
   border: 9px solid #e8e5d8;
   border-radius: 50%;
-  overflow: hidden;
+  overflow: visible;
   background: radial-gradient(
     ellipse at 50% 44%,
     #078d63 0%,
@@ -104,100 +106,131 @@
   font-size: 13px;
 }
 
-/* IGRAČI */
-
-.table-player {
+/* IGRACI - AVATARI CENTRIRANI NA RUBU STOLA */
+.belot-table .table-player {
   position: absolute;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  max-width: 42%;
-  padding: 10px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 14px;
-  background: rgba(10, 38, 27, 0.9);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  z-index: 10;
+  display: block;
+  width: 60px;
+  height: 60px;
+  max-width: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-.player-bottom {
-  bottom: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.player-top {
-  top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.player-left {
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.player-right {
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.table-player .player-avatar {
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
-  overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+.belot-table .table-player .player-avatar {
+  width: 60px;
+  height: 60px;
+  border: 4px solid #fff;
   border-radius: 50%;
-  background: #e2f3e8;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.32);
 }
 
-.table-player .player-avatar img {
+.belot-table .table-player .player-avatar img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.table-player .player-info {
+.belot-table .table-player .player-info {
+  position: absolute;
   display: flex;
-  min-width: 0;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 2px;
+  width: max-content;
+  max-width: 145px;
+  text-align: center;
 }
 
-.table-player .player-info strong {
-  color: #ffffff;
-  font-size: 14px;
+.belot-table .table-player .player-info strong {
+  color: #fff;
+  font-size: 12px;
   font-weight: 700;
   overflow-wrap: anywhere;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
 }
 
-.table-player .player-info > span {
-  color: #b6d1bf;
-  font-size: 11px;
+.belot-table .table-player .player-info > span {
+  color: #d7e8dc;
+  font-size: 10px;
 }
 
-/* IGRAČ NA POTEZU */
-
-.table-player.active-player {
-  border: 2px solid #e7c66b;
-  background: #185b39;
-  box-shadow: 0 0 18px rgba(231, 198, 107, 0.2);
+/* Polozaj avatara ne ovisi o sirini imena ili statusa. */
+.belot-table .player-top {
+  top: 0;
+  bottom: auto;
+  left: 50%;
+  right: auto;
+  transform: translate(-50%, -50%);
+}
+.belot-table .player-top .player-info {
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-.table-player.active-player .player-avatar {
+.belot-table .player-bottom {
+  bottom: 0;
+  top: auto;
+  left: 50%;
+  right: auto;
+  transform: translate(-50%, 50%);
+}
+.belot-table .player-bottom .player-info {
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.belot-table .player-left {
+  left: 0;
+  right: auto;
+  top: 50%;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+}
+.belot-table .player-left .player-info {
+  right: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.belot-table .player-right {
+  right: 0;
+  left: auto;
+  top: 50%;
+  bottom: auto;
+  transform: translate(50%, -50%);
+}
+.belot-table .player-right .player-info {
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.belot-table .table-player.active-player {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.belot-table .table-player.active-player .player-avatar {
   border-color: #e7c66b;
+  box-shadow: 0 0 16px rgba(231, 198, 107, 0.7);
 }
-
-.table-player .turn-indicator {
+.belot-table .table-player .turn-indicator {
+  position: absolute;
+  top: -5px;
+  right: -6px;
   color: #f0d477;
-  font-size: 15px;
+  font-size: 14px;
+  line-height: 1;
 }
 
 /* DJELITELJ */
@@ -216,21 +249,22 @@
   font-weight: 800;
 }
 
-/* ODIGRANE KARTE - RAZMAKNUTE I KLIZANJE IZ SMJERA IGRACA */
+/* ==========================================
+   KARTE - ZAJEDNICKA SREDINA STOLA
+   ========================================== */
 
 .belot-table .played-cards {
   position: absolute;
   inset: auto;
   top: 50%;
   left: 50%;
-  z-index: 3;
-  display: block;
-  width: 300px;
-  height: 280px;
+  width: 260px;
+  height: 240px;
   min-width: 0;
   min-height: 0;
   transform: translate(-50%, -50%);
   pointer-events: none;
+  z-index: 5;
 }
 
 .belot-table .played-card {
@@ -239,50 +273,9 @@
   left: 50%;
   right: auto;
   bottom: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   width: 76px;
-  gap: 0;
   transform-origin: center center;
-  animation: belot-card-slide 430ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
-}
-
-/* Zavrsni polozaji ostavljaju vidljiv gornji dio svake karte. */
-.belot-table .played-card-bottom {
-  --offset-x: -12px;
-  --offset-y: 76px;
-  --slide-x: 0px;
-  --slide-y: 160px;
-  --rotation: -8deg;
-  z-index: 4;
-}
-
-.belot-table .played-card-left {
-  --offset-x: -104px;
-  --offset-y: -6px;
-  --slide-x: -190px;
-  --slide-y: 0px;
-  --rotation: -13deg;
-  z-index: 2;
-}
-
-.belot-table .played-card-top {
-  --offset-x: -28px;
-  --offset-y: -95px;
-  --slide-x: 0px;
-  --slide-y: -160px;
-  --rotation: 7deg;
-  z-index: 1;
-}
-
-.belot-table .played-card-right {
-  --offset-x: 78px;
-  --offset-y: -8px;
-  --slide-x: 190px;
-  --slide-y: 0px;
-  --rotation: 12deg;
-  z-index: 3;
+  animation: belot-natural-throw 380ms cubic-bezier(0.2, 0.8, 0.25, 1) both;
 }
 
 .belot-table .played-card .hungarian-card {
@@ -294,7 +287,67 @@
   display: none;
 }
 
-@keyframes belot-card-slide {
+/* 
+   CETIRI KARTE U NEPRAVILNOJ HRPI
+   REDOSLIJED BACANJA ODREDUJE POLOZAJ
+*/
+
+.belot-table .played-card-order-1 {
+  --offset-x: -58px;
+  --offset-y: -48px;
+  --rotation: -13deg;
+  z-index: 1;
+}
+
+.belot-table .played-card-order-2 {
+  --offset-x: 10px;
+  --offset-y: -42px;
+  --rotation: 10deg;
+  z-index: 2;
+}
+
+.belot-table .played-card-order-3 {
+  --offset-x: -48px;
+  --offset-y: 12px;
+  --rotation: -6deg;
+  z-index: 3;
+}
+
+.belot-table .played-card-order-4 {
+  --offset-x: 20px;
+  --offset-y: 18px;
+  --rotation: 8deg;
+  z-index: 4;
+}
+
+/* 
+   POCETAK ANIMACIJE OVISI O IGRACU
+   KONACNI POLOZAJ OVISI O REDOSLIJEDU
+*/
+
+.belot-table .played-card-bottom {
+  --slide-x: 0px;
+  --slide-y: 170px;
+}
+
+.belot-table .played-card-top {
+  --slide-x: 0px;
+  --slide-y: -170px;
+}
+
+.belot-table .played-card-left {
+  --slide-x: -200px;
+  --slide-y: 0px;
+}
+
+.belot-table .played-card-right {
+  --slide-x: 200px;
+  --slide-y: 0px;
+}
+
+/* PRIRODNO BACANJE KARTE */
+
+@keyframes belot-natural-throw {
   from {
     opacity: 0.9;
     transform: translate(
@@ -434,123 +487,121 @@
   }
 }
 
-/* TABLET */
-
+/* RESPONSIVE */
 @media (max-width: 900px) {
   .belot-layout {
     grid-template-columns: minmax(0, 1fr);
   }
-
   .belot-sidebar {
     order: 2;
   }
-
   .belot-main-panel {
     order: 1;
   }
 }
 
-/* MOBITEL */
-
 @media (max-width: 700px) {
   .belot-game {
     padding: 10px;
   }
-
   .belot-layout {
     gap: 12px;
   }
-
-  .belot-table {
-    width: 100%;
+  .belot-main-panel {
+    padding: 60px 0 65px;
+  }
+  .belot-main-panel .belot-table {
+    width: calc(100% - 54px);
+    max-width: 100%;
     aspect-ratio: 1 / 1;
     border-width: 6px;
   }
-
-  .belot-table .played-cards {
-    width: 200px;
-    height: 190px;
+  .belot-table .table-player,
+  .belot-table .table-player .player-avatar {
+    width: 42px;
+    height: 42px;
   }
-
+  .belot-table .table-player .player-avatar {
+    border-width: 3px;
+  }
+  .belot-table .table-player .player-info {
+    max-width: 78px;
+  }
+  .belot-table .table-player .player-info strong {
+    font-size: 10px;
+  }
+  .belot-table .table-player .player-info > span {
+    font-size: 8px;
+  }
+  .belot-table .player-left .player-info {
+    top: calc(100% + 4px);
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .belot-table .player-right .player-info {
+    top: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .belot-table .played-cards {
+    width: 180px;
+    height: 180px;
+  }
   .belot-table .played-card,
   .belot-table .played-card .hungarian-card {
     width: 48px;
   }
-
   .belot-table .played-card .hungarian-card {
     height: 78px;
   }
-
+  .belot-table .played-card-order-1 {
+    --offset-x: -37px;
+    --offset-y: -30px;
+  }
+  .belot-table .played-card-order-2 {
+    --offset-x: 7px;
+    --offset-y: -27px;
+  }
+  .belot-table .played-card-order-3 {
+    --offset-x: -31px;
+    --offset-y: 8px;
+  }
+  .belot-table .played-card-order-4 {
+    --offset-x: 13px;
+    --offset-y: 12px;
+  }
   .belot-table .played-card-bottom {
-    --offset-x: -8px;
-    --offset-y: 48px;
-    --slide-y: 95px;
+    --slide-y: 100px;
   }
-
-  .belot-table .played-card-left {
-    --offset-x: -68px;
-    --offset-y: -4px;
-    --slide-x: -100px;
-  }
-
   .belot-table .played-card-top {
-    --offset-x: -18px;
-    --offset-y: -60px;
-    --slide-y: -95px;
+    --slide-y: -100px;
   }
-
+  .belot-table .played-card-left {
+    --slide-x: -110px;
+  }
   .belot-table .played-card-right {
-    --offset-x: 50px;
-    --offset-y: -5px;
-    --slide-x: 100px;
+    --slide-x: 110px;
   }
-
   .belot-trump-corner {
     top: 5px;
     right: 5px;
     gap: 5px;
     padding: 5px 8px;
   }
-
   .belot-trump-corner img {
     width: 19px;
     height: 19px;
   }
-
   .belot-hand-area {
     margin-top: 12px;
     border-radius: 12px;
   }
-
   .hand-hungarian-card.hidden-hand-card {
     width: clamp(48px, 13vw, 62px);
     height: clamp(76px, 20vw, 98px);
   }
-}
-
-@media (max-width: 600px) {
-  .table-player {
-    max-width: 38%;
-    gap: 6px;
-    padding: 6px 8px;
-    border-radius: 10px;
-  }
-
-  .table-player .player-avatar {
-    width: 34px;
-    height: 34px;
-    flex-basis: 34px;
-  }
-
-  .table-player .player-info strong {
-    font-size: 11px;
-  }
-
-  .table-player .player-info > span {
-    font-size: 9px;
-  }
-
-  .table-player .dealer-badge {
+  .belot-table .table-player .dealer-badge {
     width: 17px;
     height: 17px;
     font-size: 9px;
@@ -558,41 +609,53 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .belot-table .played-card,
-  .round-history {
-    animation: none;
-  }
-
   .belot-table .played-card {
+    animation: none;
     transform: translate(
         calc(-50% + var(--offset-x)),
         calc(-50% + var(--offset-y))
       )
       rotate(var(--rotation));
   }
-}
-/* ISTI KONACNI RASPORED ZA SVE IGRACE */
-
-.belot-table .played-card-order-1 {
-  --offset-x: -75px;
-  --offset-y: -35px;
-  z-index: 1;
+  .round-history {
+    animation: none;
+  }
 }
 
-.belot-table .played-card-order-2 {
-  --offset-x: 25px;
-  --offset-y: -35px;
-  z-index: 2;
+/* ISPRAVAK ODREZANIH AVATARA */
+
+.belot-main-panel,
+.belot-main-panel .belot-table {
+  overflow: visible !important;
 }
 
-.belot-table .played-card-order-3 {
-  --offset-x: -75px;
-  --offset-y: 45px;
-  z-index: 3;
+/* Avatar uvijek iznad ruba stola */
+.belot-table .table-player {
+  z-index: 20;
 }
 
-.belot-table .played-card-order-4 {
-  --offset-x: 25px;
-  --offset-y: 45px;
-  z-index: 4;
+/* Imena igraca vidljiva */
+.belot-table .table-player .player-info {
+  position: relative;
+  z-index: 21;
+  overflow: visible;
+}
+
+/* Dodatni prostor oko stola */
+.belot-main-panel {
+  padding: 90px 85px;
+  box-sizing: border-box;
+}
+
+/* Zadrzi dimenziju stola */
+.belot-main-panel .belot-table {
+  width: min(100%, 850px);
+  max-width: 850px;
+  margin: 0 auto;
+}
+
+@media (max-width: 700px) {
+  .belot-main-panel {
+    padding: 55px 40px;
+  }
 }
