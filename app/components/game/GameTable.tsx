@@ -491,6 +491,7 @@ export default function GameTable({
         </div>
       )}
 
+      {(sortedHand.length > 0 || showHiddenCards) && (
       <footer className="belot-hand-area">
         <div className="belot-hand">
           {sortedHand.map((card, index) => (
@@ -526,7 +527,7 @@ export default function GameTable({
             ))}
         </div>
       </footer>
-
+      )}
 
     </main>
   );
