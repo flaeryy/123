@@ -19,6 +19,7 @@ import {
 import type { Card, Suit } from "./game/cards.js";
 import { getTrickWinner, getLegalCards } from "./game/rules.js";
 import { registerAuthRoutes } from "./auth/auth.routes.js";
+import { finishMatchWithStats } from "./profile/profile-stats.js";
 
 const app = Fastify({
   logger: true,
@@ -1292,29 +1293,49 @@ io.on("connection", (socket) => {
             throw new Error("Konačni rezultat nije ispravno izračunat.");
           }
 
-          const [savedGame] = await db
-            .update(games)
-            .set({
-              status:
-                updatedState.phase === "finished" ? "finished" : "playing",
-              finishedAt: updatedState.phase === "finished" ? new Date() : null,
+          if (updatedState.phase === "finished") {
+            if (updatedState.matchWinnerTeam === null) {
+              throw new Error("Zavrseni mec nema pobjednika.");
+            }
+
+            // Jedna transakcija sprema rezultat i azurira statistiku sva cetiri igraca.
+            await finishMatchWithStats({
+              roomCode: room.code,
+              winnerTeam: updatedState.matchWinnerTeam,
               team1Score: updatedState.team1MatchScore,
               team2Score: updatedState.team2MatchScore,
               callingTeam: updatedState.callingTeam,
               contractMade: updatedState.finalScore?.contractMade ?? null,
-              declarationPoints: updatedState.finalScore?.declarationPoints ?? (updatedState.team1DeclaredPoints + updatedState.team2DeclaredPoints),
+              declarationPoints: updatedState.finalScore?.declarationPoints ??
+                (updatedState.team1DeclaredPoints + updatedState.team2DeclaredPoints),
               team1Bela: updatedState.finalScore?.team1Bela ?? updatedState.team1Bela,
               team2Bela: updatedState.finalScore?.team2Bela ?? updatedState.team2Bela,
-            })
-            .where(
-              and(eq(games.roomCode, room.code), eq(games.status, "playing")),
-            )
-            .returning({ id: games.id });
-
-          if (!savedGame) {
-            throw new Error(
-              "Rezultat nije spremljen. Partija nije pronađena ili je već završena.",
-            );
+            });
+          } else {
+            const [savedGame] = await db
+              .update(games)
+              .set({
+                status:
+                  updatedState.phase === "finished" ? "finished" : "playing",
+                finishedAt: updatedState.phase === "finished" ? new Date() : null,
+                team1Score: updatedState.team1MatchScore,
+                team2Score: updatedState.team2MatchScore,
+                callingTeam: updatedState.callingTeam,
+                contractMade: updatedState.finalScore?.contractMade ?? null,
+                declarationPoints: updatedState.finalScore?.declarationPoints ?? (updatedState.team1DeclaredPoints + updatedState.team2DeclaredPoints),
+                team1Bela: updatedState.finalScore?.team1Bela ?? updatedState.team1Bela,
+                team2Bela: updatedState.finalScore?.team2Bela ?? updatedState.team2Bela,
+              })
+              .where(
+                and(eq(games.roomCode, room.code), eq(games.status, "playing")),
+              )
+              .returning({ id: games.id });
+  
+            if (!savedGame) {
+              throw new Error(
+                "Rezultat nije spremljen. Partija nije pronađena ili je već završena.",
+              );
+            }
           }
 
           console.log("Konačni rezultat spremljen u bazu:", {
