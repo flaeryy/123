@@ -35,6 +35,7 @@ type GameTableProps = {
   currentPlayerId: string | null;
   viewerId: string;
   currentUserId?: number;
+  onOpenProfile?: (username: string) => void;
   messages?: ChatMessage[];
   chatInput?: string;
   onChatInputChange?: (value: string) => void;
@@ -160,6 +161,7 @@ export default function GameTable({
   currentPlayerId,
   viewerId,
   currentUserId,
+  onOpenProfile,
   messages = [],
   chatInput = "",
   onChatInputChange,
@@ -437,10 +439,7 @@ export default function GameTable({
                       </div>
                     ))}
                   <div className="player-info">
-                    <strong>
-                      {player.username}
-
-                    </strong>
+                    <button type="button" className="profile-name-button" onClick={() => onOpenProfile?.(player.username)}><strong>{player.username}</strong></button>
                   </div>
                   {isCurrent && <span className="turn-indicator">●</span>}
                 </div>
