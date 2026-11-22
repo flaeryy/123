@@ -85,6 +85,9 @@ export type Room = {
   createdAt: string;
   isPublic: boolean;
   minRating: number;
+  turnDuration: 15 | 30 | 45;
+  gameType: "prolaz" | "dosta";
+  targetScore: 501 | 701 | 1001;
 };
 
 export type RoomResponse = {
