@@ -58,7 +58,7 @@ export function registerProfileRoutes(app: FastifyInstance) {
     }
 
     const [updated] = await db.update(users).set({ avatarId })
-      .where(eq(users.id, session.id)).returning({ avatarId: users.avatarId });
+      .where(eq(users.id, session.userId)).returning({ avatarId: users.avatarId });
     if (!updated) {
       return reply.code(404).send({ success: false, message: "Igrac nije pronaden." });
     }
