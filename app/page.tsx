@@ -200,6 +200,10 @@ function HomeContent() {
     null,
   );
   const [belaDecisionMade, setBelaDecisionMade] = useState(false);
+  // Pamtimo zadnju rundu za koju smo pustili zvuk, da Socket.IO update
+  // ne pokrene mijesanje vise puta.
+  const lastShuffleRoundRef = useRef<number | null>(null);
+  const shuffleAudioRef = useRef<HTMLAudioElement | null>(null);
   const autoJoinRoomCodeRef = useRef<string | null>(null);
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
   const googleInitializedRef = useRef(false);
@@ -569,6 +573,29 @@ function HomeContent() {
       socket.off("trick_collect", handleTrickCollect);
     };
   }, [user, router, registerChatListeners, clearChat]);
+
+  // Na zavrsetku dijeljenja pustamo oko 2 sekunde mijesanja karata.
+  // Server vec ima pauzu od 3 sekunde prije sljedeceg dijeljenja.
+  useEffect(() => {
+    if (!gameStarted || gameState?.phase !== "round_finished") return;
+    if (lastShuffleRoundRef.current === gameState.roundNumber) return;
+    lastShuffleRoundRef.current = gameState.roundNumber;
+
+    const audio = new Audio("/sound/mjesanje_sounda.mp3");
+    audio.volume = 0.65;
+    shuffleAudioRef.current?.pause();
+    shuffleAudioRef.current = audio;
+    // Preglednik moze blokirati zvuk dok korisnik prvi put ne klikne na stranicu.
+    void audio.play().catch(() => {});
+    const stopSound = window.setTimeout(() => {
+      audio.pause();
+      audio.currentTime = 0;
+    }, 2000);
+    return () => {
+      window.clearTimeout(stopSound);
+      audio.pause();
+    };
+  }, [gameStarted, gameState?.phase, gameState?.roundNumber]);
 
   function sendCardToServer(card: BelotCard) {
     const socket = socketRef.current;
