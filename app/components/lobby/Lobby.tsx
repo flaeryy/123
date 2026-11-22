@@ -313,7 +313,7 @@ export default function Lobby({
             <div className="public-room-list">
               {publicRooms.map((room) => (
                 <RoomCard
-                  key={room.code}
+                  key={`${room.code}-${room.players[0]?.id ?? ""}`}
                   room={room}
                   loading={loading}
                   disabled={currentRoomExists}
