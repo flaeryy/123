@@ -17,13 +17,14 @@ type Profile = {
 };
 
 type Props = {
-  userId: number;
+  userId?: number;
+  username?: string;
   myUserId: number;
   apiUrl: string;
   onClose: () => void;
 };
 
-export default function PlayerProfileModal({ userId, myUserId, apiUrl, onClose }: Props) {
+export default function PlayerProfileModal({ userId, username, myUserId, apiUrl, onClose }: Props) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState(false);
@@ -34,7 +35,7 @@ export default function PlayerProfileModal({ userId, myUserId, apiUrl, onClose }
     setProfile(null);
     setError("");
     setEditing(false);
-    fetch(`${apiUrl}/profiles/${userId}`)
+    fetch(userId !== undefined ? `${apiUrl}/profiles/${userId}` : `${apiUrl}/profiles/by-name/${encodeURIComponent(username ?? "")}`)
       .then(async (response) => {
         if (!response.ok) throw new Error("Profil nije dostupan.");
         return response.json();
@@ -42,7 +43,7 @@ export default function PlayerProfileModal({ userId, myUserId, apiUrl, onClose }
       .then((data) => { if (active) setProfile(data.profile); })
       .catch(() => { if (active) setError("Ne mogu dohvatiti profil igrača."); });
     return () => { active = false; };
-  }, [apiUrl, userId]);
+  }, [apiUrl, userId, username]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
@@ -89,7 +90,7 @@ export default function PlayerProfileModal({ userId, myUserId, apiUrl, onClose }
                 <p>★ Rejting {profile.rating} / 10</p>
                 <small>Član od {new Date(profile.createdAt).toLocaleDateString("hr-HR")}</small>
               </div>
-              {userId === myUserId && (
+              {profile.id === myUserId && (
                 <button className="profile-edit" type="button" onClick={() => setEditing(!editing)}>
                   {editing ? "Odustani" : "Promijeni avatar"}
                 </button>
