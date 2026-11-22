@@ -337,14 +337,11 @@ class RoomManager {
     return room;
   }
 
-  // Dohvaćanje javnih soba koje još primaju igrače
+  // Sve slobodne sobe su vidljive, ali kod privatne sobe ostaje tajan.
   listPublicRooms(): Room[] {
-    return Array.from(this.rooms.values()).filter(
-      (room) =>
-        room.isPublic &&
-        room.status === "waiting" &&
-        room.players.length < room.maxPlayers,
-    );
+    return Array.from(this.rooms.values())
+      .filter((room) => room.status === "waiting" && room.players.length < room.maxPlayers)
+      .map((room) => room.isPublic ? room : { ...room, code: "******" });
   }
 }
 
