@@ -12,6 +12,7 @@ type WaitingRoomProps = {
   availablePlayers: AvailablePlayer[];
   pendingInviteIds: number[];
   onInvitePlayer: (userId: number) => void;
+  onOpenProfile?: (userId: number) => void;
   loading: boolean;
   socketConnected: boolean;
   error?: string;
@@ -39,6 +40,7 @@ export default function WaitingRoom({
   availablePlayers,
   pendingInviteIds,
   onInvitePlayer,
+  onOpenProfile,
   loading,
   socketConnected,
   error,
@@ -206,7 +208,7 @@ export default function WaitingRoom({
                               </div>
 
                               <div className="waiting-player-info">
-                                <strong>{player.username}</strong>
+                                <button type="button" className="profile-name-button" onClick={(event) => { event.stopPropagation(); onOpenProfile?.(player.userId); }}><strong>{player.username}</strong></button>
                                 <span>
                                   {player.isHost ? "Domaćin" : "Igrač"}
                                   {" · "}Rejting {player.rating}
