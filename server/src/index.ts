@@ -112,6 +112,8 @@ const activeGames = new Map<string, GameState>();
 const pendingTrickResolutions = new Set<string>();
 const pendingDeclarationReveals = new Set<string>();
 const pendingRoomOperations = new Set<string>();
+// Jedna aktivna pozivnica po sobi i primatelju; istek nakon 60 sekundi.
+const pendingInvites = new Map<string, { senderSocketId: string; targetUserId: number; timer: ReturnType<typeof setTimeout> }>();
 
 type RoomChatMessage = {
   id: number;
@@ -375,11 +377,38 @@ io.on("connection", (socket) => {
         return user?.userId === data.targetUserId && !roomManager.getUserRoom(user.userId);
       });
       if (!target) throw new Error("Igrac vise nije slobodan.");
+      const inviteKey = `${room.code}:${data.targetUserId}`;
+      if (pendingInvites.has(inviteKey)) throw new Error("Pozivnica je već poslana.");
+      const timer = setTimeout(() => {
+        const pending = pendingInvites.get(inviteKey);
+        if (!pending) return;
+        pendingInvites.delete(inviteKey);
+        io.to(pending.senderSocketId).emit("room_invite_status", { targetUserId: pending.targetUserId, status: "expired" });
+      }, 60000);
+      pendingInvites.set(inviteKey, { senderSocketId: socket.id, targetUserId: data.targetUserId as number, timer });
       target.emit("room_invite", { roomCode: room.code, hostName: sender.username });
       callback?.({ success: true });
     } catch (error) {
       callback?.({ success: false, message: error instanceof Error ? error.message : "Poziv nije poslan." });
     }
+  });
+
+  // Odgovor primatelja otključava gumb Pozovi kod admina.
+  socket.on("respond_room_invite", (data: { roomCode?: string; accepted?: boolean }, callback) => {
+    const user = socket.data.user as AuthenticatedUser | undefined;
+    const inviteKey = `${data?.roomCode}:${user?.userId}`;
+    const pending = pendingInvites.get(inviteKey);
+    if (!user || !pending) {
+      callback?.({ success: false, message: "Pozivnica više nije aktivna." });
+      return;
+    }
+    clearTimeout(pending.timer);
+    pendingInvites.delete(inviteKey);
+    io.to(pending.senderSocketId).emit("room_invite_status", {
+      targetUserId: user.userId,
+      status: data.accepted ? "accepted" : "declined",
+    });
+    callback?.({ success: true });
   });
 
   // KREIRANJE SOBE
