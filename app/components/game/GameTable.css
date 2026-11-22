@@ -37,7 +37,7 @@
 
 /* STOL */
 
-.belot-table {
+.belot-table-wrapper > .belot-table {
   position: relative;
   width: min(calc(100% - 92px), 850px);
   max-width: 850px;
@@ -63,7 +63,7 @@
     0 8px 24px rgba(0, 0, 0, 0.34);
 }
 
-.table-decoration {
+.belot-table-wrapper > .belot-table > .table-decoration {
   position: absolute;
   inset: 14px;
   border: 1px solid rgba(232, 229, 216, 0.27);
@@ -107,7 +107,7 @@
 }
 
 /* IGRACI - AVATARI CENTRIRANI NA RUBU STOLA */
-.belot-table .table-player {
+.belot-table-wrapper .table-player {
   position: absolute;
   z-index: 10;
   display: block;
@@ -121,7 +121,7 @@
   box-shadow: none;
 }
 
-.belot-table .table-player .player-avatar {
+.belot-table-wrapper .table-player .player-avatar {
   width: 60px;
   height: 60px;
   border: 4px solid #fff;
@@ -131,14 +131,14 @@
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.32);
 }
 
-.belot-table .table-player .player-avatar img {
+.belot-table-wrapper .table-player .player-avatar img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.belot-table .table-player .player-info {
+.belot-table-wrapper .table-player .player-info {
   position: absolute;
   display: flex;
   flex-direction: column;
@@ -149,7 +149,7 @@
   text-align: center;
 }
 
-.belot-table .table-player .player-info strong {
+.belot-table-wrapper .table-player .player-info strong {
   color: #fff;
   font-size: 12px;
   font-weight: 700;
@@ -157,74 +157,74 @@
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
 }
 
-.belot-table .table-player .player-info > span {
+.belot-table-wrapper .table-player .player-info > span {
   color: #d7e8dc;
   font-size: 10px;
 }
 
 /* Polozaj avatara ne ovisi o sirini imena ili statusa. */
-.belot-table .player-top {
+.belot-table-wrapper .player-top {
   top: 0;
   bottom: auto;
   left: 50%;
   right: auto;
   transform: translate(-50%, -50%);
 }
-.belot-table .player-top .player-info {
+.belot-table-wrapper .player-top .player-info {
   bottom: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
 }
 
-.belot-table .player-bottom {
+.belot-table-wrapper .player-bottom {
   bottom: 0;
   top: auto;
   left: 50%;
   right: auto;
   transform: translate(-50%, 50%);
 }
-.belot-table .player-bottom .player-info {
+.belot-table-wrapper .player-bottom .player-info {
   top: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
 }
 
-.belot-table .player-left {
+.belot-table-wrapper .player-left {
   left: 0;
   right: auto;
   top: 50%;
   bottom: auto;
   transform: translate(-50%, -50%);
 }
-.belot-table .player-left .player-info {
+.belot-table-wrapper .player-left .player-info {
   right: calc(100% + 8px);
   top: 50%;
   transform: translateY(-50%);
 }
 
-.belot-table .player-right {
+.belot-table-wrapper .player-right {
   right: 0;
   left: auto;
   top: 50%;
   bottom: auto;
   transform: translate(50%, -50%);
 }
-.belot-table .player-right .player-info {
+.belot-table-wrapper .player-right .player-info {
   left: calc(100% + 8px);
   top: 50%;
   transform: translateY(-50%);
 }
 
-.belot-table .table-player.active-player {
+.belot-table-wrapper .table-player.active-player {
   border: 0;
   background: transparent;
   box-shadow: none;
 }
-.belot-table .table-player.active-player .player-avatar {
+.belot-table-wrapper .table-player.active-player .player-avatar {
   border-color: #e7c66b;
   box-shadow: 0 0 16px rgba(231, 198, 107, 0.7);
 }
-.belot-table .table-player .turn-indicator {
+.belot-table-wrapper .table-player .turn-indicator {
   position: absolute;
   top: -5px;
   right: -6px;
@@ -235,7 +235,7 @@
 
 /* DJELITELJ */
 
-.table-player .dealer-badge {
+.belot-table-wrapper .table-player .dealer-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -510,36 +510,36 @@
   .belot-main-panel {
     padding: 60px 0 65px;
   }
-  .belot-main-panel .belot-table {
+  .belot-main-panel .belot-table-wrapper {
     width: calc(100% - 54px);
     max-width: 100%;
     aspect-ratio: 1 / 1;
     border-width: 6px;
   }
-  .belot-table .table-player,
-  .belot-table .table-player .player-avatar {
+  .belot-table-wrapper .table-player,
+  .belot-table-wrapper .table-player .player-avatar {
     width: 42px;
     height: 42px;
   }
-  .belot-table .table-player .player-avatar {
+  .belot-table-wrapper .table-player .player-avatar {
     border-width: 3px;
   }
-  .belot-table .table-player .player-info {
+  .belot-table-wrapper .table-player .player-info {
     max-width: 78px;
   }
-  .belot-table .table-player .player-info strong {
+  .belot-table-wrapper .table-player .player-info strong {
     font-size: 10px;
   }
-  .belot-table .table-player .player-info > span {
+  .belot-table-wrapper .table-player .player-info > span {
     font-size: 8px;
   }
-  .belot-table .player-left .player-info {
+  .belot-table-wrapper .player-left .player-info {
     top: calc(100% + 4px);
     right: auto;
     left: 50%;
     transform: translateX(-50%);
   }
-  .belot-table .player-right .player-info {
+  .belot-table-wrapper .player-right .player-info {
     top: calc(100% + 4px);
     left: 50%;
     transform: translateX(-50%);
@@ -601,7 +601,7 @@
     width: clamp(48px, 13vw, 62px);
     height: clamp(76px, 20vw, 98px);
   }
-  .belot-table .table-player .dealer-badge {
+  .belot-table-wrapper .belot-table-wrapper .table-player .dealer-badge {
     width: 17px;
     height: 17px;
     font-size: 9px;
@@ -622,40 +622,58 @@
   }
 }
 
-/* ISPRAVAK ODREZANIH AVATARA */
-
-.belot-main-panel,
-.belot-main-panel .belot-table {
-  overflow: visible !important;
-}
-
-/* Avatar uvijek iznad ruba stola */
-.belot-table .table-player {
-  z-index: 20;
-}
-
-/* Imena igraca vidljiva */
-.belot-table .table-player .player-info {
+/* Player layer is a sibling of the clipped felt surface. */
+.belot-main-panel .belot-table-wrapper {
   position: relative;
-  z-index: 21;
+  width: min(calc(100% - 92px), 850px);
+  max-width: 850px;
+  margin-inline: auto;
+  flex: 0 0 auto;
   overflow: visible;
 }
 
-/* Dodatni prostor oko stola */
-.belot-main-panel {
-  padding: 90px 85px;
-  box-sizing: border-box;
+.belot-main-panel .belot-table-wrapper > .belot-table {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  min-height: 0;
+  height: auto;
+  aspect-ratio: 1.55 / 1;
+  overflow: hidden;
+  border-radius: 50%;
 }
 
-/* Zadrzi dimenziju stola */
-.belot-main-panel .belot-table {
-  width: min(100%, 850px);
-  max-width: 850px;
-  margin: 0 auto;
+.belot-table-wrapper > .table-players {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.belot-table-wrapper .table-player {
+  pointer-events: auto;
+}
+
+/* Prevent the legacy viewport-height clipping in game.css. */
+.belot-game {
+  height: auto;
+  min-height: 100dvh;
+  overflow: visible;
+}
+
+.belot-main-panel {
+  box-sizing: border-box;
+  overflow: visible;
 }
 
 @media (max-width: 700px) {
-  .belot-main-panel {
-    padding: 55px 40px;
+  .belot-main-panel .belot-table-wrapper {
+    width: calc(100% - 54px);
+    max-width: 100%;
+  }
+  .belot-main-panel .belot-table-wrapper > .belot-table {
+    aspect-ratio: 1 / 1;
   }
 }
