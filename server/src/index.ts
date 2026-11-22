@@ -17,6 +17,7 @@ import {
 } from "./game/game-engine.js";
 
 import type { Card, Suit } from "./game/cards.js";
+import { getTrickWinner } from "./game/rules.js";
 import { registerAuthRoutes } from "./auth/auth.routes.js";
 
 const app = Fastify({
@@ -1149,7 +1150,25 @@ io.on("connection", (socket) => {
           activeGames.set(room.code, revealState);
           broadcastGameState(revealState);
 
-          await new Promise((resolve) => setTimeout(resolve, 2000));
+          // Kratko pokazujemo cijeli stih, zatim svi klijenti istodobno
+          // animiraju cetiri karte prema pobjedniku.
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
+          if (activeGames.get(room.code) !== revealState) {
+            throw new Error("Partija je prekinuta tijekom prikaza stiha.");
+          }
+
+          const winningCard = getTrickWinner(
+            revealState.currentTrick,
+            revealState.trumpSuit!,
+          );
+          for (const gamePlayer of revealState.players) {
+            io.to(gamePlayer.socketId).emit("trick_collect", {
+              winnerPlayerNumber: winningCard.playerNumber,
+            });
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 950));
 
           if (activeGames.get(room.code) !== revealState) {
             throw new Error("Partija je prekinuta tijekom prikaza štiha.");
