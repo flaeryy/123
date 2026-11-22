@@ -696,3 +696,7 @@
 .waiting-invite-button:disabled { opacity: .5; cursor: not-allowed; }
 .waiting-invite-empty { padding: 18px 0; color: #718579; font-size: 13px; }
 @media (max-width: 1050px) { .waiting-room-layout { grid-template-columns: minmax(0, 1fr); } .waiting-invite-panel { margin-top: 0; } }
+
+.waiting-invite-button:disabled { cursor: not-allowed; }
+.waiting-invite-button:disabled:not(:hover) { box-shadow: none; }
+.waiting-invite-button:disabled { background: #d9eae0; border-color: #c4ddcd; color: #397457; }
