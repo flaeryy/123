@@ -458,11 +458,15 @@
 }
 
 .bela-confirmation-card p {
+  display: block;
+  width: 100%;
   margin: 0 0 12px;
+  padding: 0;
   color: #273b39;
   font-size: 16px;
   font-weight: 800;
   line-height: 1.3;
+  text-align: center;
 }
 
 .bela-confirmation-actions {
