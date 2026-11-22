@@ -424,12 +424,17 @@ export default function GameTable({
                       className="man"
                     />
                   </div>
+                  {player.isDealer && (
+                    <div className="dealer-deck" role="img" aria-label="Djelitelj karata" title="Djelitelj">
+                      <span className="dealer-deck-card dealer-deck-card-back" />
+                      <span className="dealer-deck-card dealer-deck-card-middle" />
+                      <span className="dealer-deck-card dealer-deck-card-front" />
+                    </div>
+                  )}
                   <div className="player-info">
                     <strong>
                       {player.username}
-                      {player.isDealer && (
-                        <span className="dealer-badge"> D </span>
-                      )}
+
                     </strong>
                     <span>
                       {isMe ? "Ti" : isCurrent ? "Na potezu" : "Igrač"}
