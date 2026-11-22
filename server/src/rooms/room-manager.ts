@@ -22,7 +22,7 @@ export type Room = {
   targetScore: 501 | 701 | 1001;
 };
 
-const ROOM_CHARACTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const ROOM_CHARACTERS = "0123456789";
 
 class RoomManager {
   private rooms = new Map<string, Room>();
@@ -33,7 +33,7 @@ class RoomManager {
 
     do {
       code = Array.from(
-        { length: 6 },
+        { length: 4 },
         () => ROOM_CHARACTERS[randomInt(ROOM_CHARACTERS.length)],
       ).join("");
     } while (this.rooms.has(code));
@@ -341,7 +341,7 @@ class RoomManager {
   listPublicRooms(): Room[] {
     return Array.from(this.rooms.values())
       .filter((room) => room.status === "waiting" && room.players.length < room.maxPlayers)
-      .map((room) => room.isPublic ? room : { ...room, code: "******" });
+      .map((room) => room.isPublic ? room : { ...room, code: "****" });
   }
 }
 
