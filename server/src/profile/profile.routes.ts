@@ -45,6 +45,15 @@ export function registerProfileRoutes(app: FastifyInstance) {
     };
   });
 
+  // Tijekom partije klijent zna korisnicko ime, ali ne mora znati korisnicki ID.
+  app.get<{ Params: { username: string } }>("/profiles/by-name/:username", async (request, reply) => {
+    const username = request.params.username;
+    if (!username || username.length > 30) return reply.code(400).send({ success: false });
+    const [profile] = await db.select(publicFields).from(users).where(eq(users.username, username)).limit(1);
+    if (!profile) return reply.code(404).send({ success: false, message: "Igrac nije pronaden." });
+    return { success: true, profile: { ...profile, winRate: profile.gamesPlayed > 0 ? Math.round(profile.wins / profile.gamesPlayed * 1000) / 10 : 0 } };
+  });
+
   // Avatar smije mijenjati samo vlasnik valjane sesije.
   app.patch<{ Body: { avatarId?: number } }>("/profiles/me/avatar", async (request, reply) => {
     const session = await getSessionUser(getBearerToken(request.headers.authorization));
