@@ -32,7 +32,7 @@ export default function RoomCard({
       disabled={loading || disabled || isFull}
       aria-label={room.isPublic
         ? `Uđi u sobu ${host?.username ?? room.code}, ${playerCount} od ${room.maxPlayers} igrača`
-        : `Privatna soba korisnika ${host?.username ?? "Domaćin"}; za ulazak je potreban kod sobe`}
+        : `Privatna soba korisnika ${host?.username ?? "Domaćin"}; za ulazak je potrebna šifra sobe`}
     >
       <div className="belot-room-info">
         <div className="belot-room-heading">
