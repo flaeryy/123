@@ -191,6 +191,7 @@ function HomeContent() {
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
   const googleInitializedRef = useRef(false);
   const [gameState, setGameState] = useState<ClientGameState | null>(null);
+  const [trickCollectWinner, setTrickCollectWinner] = useState<number | null>(null);
 
   // Dohvat javnih soba za prijavljene i neprijavljene korisnike.
   useEffect(() => {
@@ -464,8 +465,13 @@ function HomeContent() {
 
     // Ažuriranje stanja partije.
     function handleGameState(state: ClientGameState) {
+      if (state.currentTrick.length !== 4) setTrickCollectWinner(null);
       setGameState(state);
       setGameStarted(true);
+    }
+
+    function handleTrickCollect(data: { winnerPlayerNumber: number }) {
+      setTrickCollectWinner(data.winnerPlayerNumber);
     }
 
     // Registracija svih Socket.IO događaja.
@@ -478,6 +484,7 @@ function HomeContent() {
     socket.on("game_aborted", handleGameAborted);
     socket.on("game_started", handleGameStarted);
     socket.on("game_state", handleGameState);
+    socket.on("trick_collect", handleTrickCollect);
 
     // Vezu pokrećemo tek nakon registracije svih listenera.
     socket.connect();
@@ -495,6 +502,7 @@ function HomeContent() {
       socket.off("game_aborted", handleGameAborted);
       socket.off("game_started", handleGameStarted);
       socket.off("game_state", handleGameState);
+      socket.off("trick_collect", handleTrickCollect);
     };
   }, [user, router, registerChatListeners, clearChat]);
 
@@ -1188,6 +1196,7 @@ function HomeContent() {
           }))}
           hand={gameState.myHand}
           playedCards={gameState.currentTrick}
+          trickCollectWinner={trickCollectWinner}
           currentPlayerId={
             gameState.players.find(
               (player) => player.playerNumber === gameState.currentPlayerNumber,
