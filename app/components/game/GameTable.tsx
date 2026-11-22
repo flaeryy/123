@@ -467,20 +467,6 @@ export default function GameTable({
       )}
 
       <footer className="belot-hand-area">
-        <div className="hand-heading">
-          <div>
-            <strong>Tvoje karte</strong>
-            <span>{hand.length} karata u ruci</span>
-          </div>
-          <span className="hand-hint">
-            {canDeclare
-              ? "Klikni karte koje želiš pozvati"
-              : canPlay
-                ? "Odaberi kartu za igranje"
-                : "Čeka se tvoj potez"}
-          </span>
-        </div>
-
         <div className="belot-hand">
           {sortedHand.map((card, index) => (
             <PlayingCard
