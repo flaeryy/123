@@ -318,6 +318,7 @@ export default function Lobby({
                   loading={loading}
                   disabled={currentRoomExists}
                   onJoin={onJoinRoom}
+                  onPrivateJoin={() => setActivePanel("join")}
                 />
               ))}
             </div>
