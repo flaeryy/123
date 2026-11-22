@@ -506,25 +506,21 @@ export default function GameTable({
       {belaDecisionOpen && pendingBelaCard && (
         <div className="bela-confirmation-overlay">
           <div className="bela-confirmation-card">
-            <div className="bela-confirmation-title">BELA</div>
-            <p>
-              Odigrali ste {SUITS[pendingBelaCard.suit].name}{" "}
-              {pendingBelaCard.rank}. Želite li zvati belu?
-            </p>
+            <p>Želite li zvati belu?</p>
             <div className="bela-confirmation-actions">
               <button
                 type="button"
                 className="primary-button"
                 onClick={() => onConfirmBela?.(true)}
               >
-                DA
+                Bela
               </button>
               <button
                 type="button"
                 className="secondary-button"
                 onClick={() => onConfirmBela?.(false)}
               >
-                NE
+                Ne
               </button>
             </div>
           </div>
