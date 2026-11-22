@@ -16,7 +16,7 @@ type LobbyProps = {
   onPublicChange: (value: boolean) => void;
   onMinRatingChange: (value: string) => void;
   onRoomCodeChange: (value: string) => void;
-  onCreateRoom: () => void;
+  onCreateRoom: (settings: { turnDuration: 15 | 30 | 45; gameType: "prolaz" | "dosta"; targetScore: 501 | 701 | 1001 }) => void;
   onJoinRoom: (code?: string) => void;
 };
 
@@ -130,7 +130,7 @@ export default function Lobby({
                 onSubmit={(event) => {
                   event.preventDefault();
                   if (!loading && socketConnected) {
-                    onCreateRoom();
+                    onCreateRoom({ turnDuration, gameType, targetScore });
                   }
                 }}
               >
