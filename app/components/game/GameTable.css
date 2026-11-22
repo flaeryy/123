@@ -824,7 +824,8 @@
   flex-wrap: nowrap;
   gap: 6px;
   margin: 0;
-  padding: 2px;
+  /* Prostor iznad karata za podignuto zvanje (translateY -20px). */
+  padding: 26px 2px 2px;
   overflow-x: auto;
 }
 
@@ -837,7 +838,7 @@
   }
   .belot-game > .belot-hand-area .belot-hand {
     justify-content: flex-start;
-    padding: 2px;
+    padding: 26px 2px 2px;
   }
 }
 
