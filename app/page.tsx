@@ -541,7 +541,18 @@ function HomeContent() {
       hasTrumpQueen;
 
     if (mustConfirmBela) {
-      setPendingBelaCard(card);
+      // Ne prikazuj pitanje za belu dok server ne potvrdi legalnost karte.
+      socket.emit(
+        "validate_card",
+        { card },
+        (response: { success: boolean; message?: string }) => {
+          if (!response?.success) {
+            alert(response?.message ?? "Ta karta nije dozvoljena.");
+            return;
+          }
+          setPendingBelaCard(card);
+        },
+      );
       return;
     }
 
