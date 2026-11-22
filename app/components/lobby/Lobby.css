@@ -2524,23 +2524,78 @@
   }
 }
 
-/* Pravila sobe vidljiva prije ulaska. */
-.belot-room-settings {
+/* Kartica sobe: zaglavlje i jasno odvojene postavke. */
+.lobby-dashboard .belot-room-card {
+  min-height: 112px;
+  gap: 24px;
+  padding: 16px 22px;
+}
+
+.lobby-dashboard .belot-room-card .belot-room-info {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  gap: 12px;
+}
+
+.lobby-dashboard .belot-room-card .belot-room-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.lobby-dashboard .belot-room-card .belot-room-heading-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+}
+
+.lobby-dashboard .belot-room-card .belot-room-description {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.lobby-dashboard .belot-room-card .belot-room-settings {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
   align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
 }
-.belot-room-settings span {
+
+.lobby-dashboard .belot-room-card .belot-room-setting {
   display: inline-flex;
-  padding: 4px 8px;
-  border-radius: 7px;
-  background: #eaf4ec;
-  color: #276447;
-  font-size: 11px;
-  font-weight: 700;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 4px;
+  padding: 6px 10px;
+  border: 1px solid #d9ebdf;
+  border-radius: 8px;
+  background: #f0f8f2;
+  color: #286347;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.25;
   white-space: nowrap;
 }
+
 @media (max-width: 620px) {
-  .belot-room-settings span { font-size: 10px; padding: 3px 6px; }
+  .lobby-dashboard .belot-room-card {
+    gap: 10px;
+    padding: 12px;
+  }
+  .lobby-dashboard .belot-room-card .belot-room-info { gap: 9px; }
+  .lobby-dashboard .belot-room-card .belot-room-heading { gap: 8px; }
+  .lobby-dashboard .belot-room-card .belot-room-settings { gap: 5px; }
+  .lobby-dashboard .belot-room-card .belot-room-setting {
+    padding: 4px 6px;
+    font-size: 10px;
+  }
 }
