@@ -1162,11 +1162,19 @@ function HomeContent() {
     return (
       <main className="lobby-dashboard">
         {roomInvite && (
-          <div className="room-invite-notice" role="dialog" aria-label="Pozivnica u sobu" style={{ position: "fixed", right: 20, bottom: 20, zIndex: 9999, background: "#fff", color: "#203b2b", padding: 20, border: "1px solid #cfe4d6", borderRadius: 14, boxShadow: "0 8px 30px #0003" }}>
-            <strong>{roomInvite.hostName} te poziva u sobu</strong>
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <button type="button" onClick={() => { const code = roomInvite.roomCode; setRoomInvite(null); joinRoom(code); }}>Prihvati</button>
-              <button type="button" onClick={() => setRoomInvite(null)}>Odbij</button>
+          <div className="room-invite-notice" role="dialog" aria-label="Pozivnica u sobu" aria-live="polite">
+            <div className="room-invite-banner">
+              <span className="room-invite-cards" aria-hidden="true">♣</span>
+              <span className="room-invite-label">POZIVNICA ZA PARTIJU</span>
+              <button className="room-invite-close" type="button" aria-label="Zatvori pozivnicu" onClick={() => setRoomInvite(null)}>×</button>
+            </div>
+            <div className="room-invite-body">
+              <strong>{roomInvite.hostName} te poziva u sobu</strong>
+              <p>Želiš li se pridružiti i zaigrati Belot?</p>
+              <div className="room-invite-actions">
+                <button className="room-invite-decline" type="button" onClick={() => setRoomInvite(null)}>Odbij</button>
+                <button className="room-invite-accept" type="button" onClick={() => { const code = roomInvite.roomCode; setRoomInvite(null); joinRoom(code); }}>Prihvati <span aria-hidden="true">→</span></button>
+              </div>
             </div>
           </div>
         )}
@@ -1326,11 +1334,19 @@ function HomeContent() {
   return (
     <main className="page-shell">
         {roomInvite && (
-          <div className="room-invite-notice" role="dialog" aria-label="Pozivnica u sobu" style={{ position: "fixed", right: 20, bottom: 20, zIndex: 9999, background: "#fff", color: "#203b2b", padding: 20, border: "1px solid #cfe4d6", borderRadius: 14, boxShadow: "0 8px 30px #0003" }}>
-            <strong>{roomInvite.hostName} te poziva u sobu</strong>
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <button type="button" onClick={() => { const code = roomInvite.roomCode; setRoomInvite(null); joinRoom(code); }}>Prihvati</button>
-              <button type="button" onClick={() => setRoomInvite(null)}>Odbij</button>
+          <div className="room-invite-notice" role="dialog" aria-label="Pozivnica u sobu" aria-live="polite">
+            <div className="room-invite-banner">
+              <span className="room-invite-cards" aria-hidden="true">♣</span>
+              <span className="room-invite-label">POZIVNICA ZA PARTIJU</span>
+              <button className="room-invite-close" type="button" aria-label="Zatvori pozivnicu" onClick={() => setRoomInvite(null)}>×</button>
+            </div>
+            <div className="room-invite-body">
+              <strong>{roomInvite.hostName} te poziva u sobu</strong>
+              <p>Želiš li se pridružiti i zaigrati Belot?</p>
+              <div className="room-invite-actions">
+                <button className="room-invite-decline" type="button" onClick={() => setRoomInvite(null)}>Odbij</button>
+                <button className="room-invite-accept" type="button" onClick={() => { const code = roomInvite.roomCode; setRoomInvite(null); joinRoom(code); }}>Prihvati <span aria-hidden="true">→</span></button>
+              </div>
             </div>
           </div>
         )}
