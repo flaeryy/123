@@ -1378,6 +1378,7 @@ function HomeContent() {
 
           <Lobby
             publicRooms={publicRooms}
+            onOpenProfile={(userId) => setProfileTarget({ userId })}
             loading={loading}
             socketConnected={socketConnected}
             currentRoomExists={!!currentRoom}
@@ -1663,6 +1664,7 @@ function HomeContent() {
               ) : (
                 <Lobby
                   publicRooms={publicRooms}
+            onOpenProfile={(userId) => setProfileTarget({ userId })}
                   loading={loading}
                   socketConnected={socketConnected}
                   currentRoomExists={!!currentRoom}
