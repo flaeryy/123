@@ -10,6 +10,7 @@ type WaitingRoomProps = {
   room: Room;
   userId: number;
   availablePlayers: AvailablePlayer[];
+  pendingInviteIds: number[];
   onInvitePlayer: (userId: number) => void;
   loading: boolean;
   socketConnected: boolean;
@@ -36,6 +37,7 @@ export default function WaitingRoom({
   room,
   userId,
   availablePlayers,
+  pendingInviteIds,
   onInvitePlayer,
   loading,
   socketConnected,
@@ -292,9 +294,9 @@ export default function WaitingRoom({
                 </div>
                 {isHost && (
                   <button type="button" className="waiting-invite-button"
-                    disabled={loading || !socketConnected || room.players.length >= room.maxPlayers}
+                    disabled={loading || !socketConnected || room.players.length >= room.maxPlayers || pendingInviteIds.includes(player.userId)}
                     onClick={() => onInvitePlayer(player.userId)}>
-                    Pozovi
+                    {pendingInviteIds.includes(player.userId) ? "Pozvan ✓" : "Pozovi"}
                   </button>
                 )}
               </div>
