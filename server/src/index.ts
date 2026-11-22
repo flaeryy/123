@@ -20,6 +20,7 @@ import type { Card, Suit } from "./game/cards.js";
 import { getTrickWinner, getLegalCards } from "./game/rules.js";
 import { registerAuthRoutes } from "./auth/auth.routes.js";
 import { finishMatchWithStats } from "./profile/profile-stats.js";
+import { registerProfileRoutes } from "./profile/profile.routes.js";
 
 const app = Fastify({
   logger: true,
@@ -35,6 +36,7 @@ await app.register(cors, {
 
 // Registracija ruta za korisničke račune
 registerAuthRoutes(app);
+registerProfileRoutes(app);
 
 const io = new Server(app.server, {
   cors: {
