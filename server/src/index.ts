@@ -350,6 +350,27 @@ io.on("connection", (socket) => {
       });
   });
 
+  // Pozivnice smije slati samo domacin aktivne cekaonice.
+  socket.on("invite_room_player", (data: { targetUserId?: number }, callback) => {
+    try {
+      const room = roomManager.getPlayerRoom(socket.id);
+      if (!room || room.status !== "waiting") throw new Error("Soba nije dostupna.");
+      const sender = room.players.find((player) => player.id === socket.id);
+      if (!sender?.isHost) throw new Error("Samo admin moze pozivati igrace.");
+      if (room.players.length >= room.maxPlayers) throw new Error("Soba je puna.");
+      if (!Number.isInteger(data?.targetUserId) || data.targetUserId === sender.userId) throw new Error("Neispravan igrac.");
+      const target = [...io.sockets.sockets.values()].find((item) => {
+        const user = item.data.user as AuthenticatedUser | undefined;
+        return user?.userId === data.targetUserId && !roomManager.getUserRoom(user.userId);
+      });
+      if (!target) throw new Error("Igrac vise nije slobodan.");
+      target.emit("room_invite", { roomCode: room.code, hostName: sender.username });
+      callback?.({ success: true });
+    } catch (error) {
+      callback?.({ success: false, message: error instanceof Error ? error.message : "Poziv nije poslan." });
+    }
+  });
+
   // KREIRANJE SOBE
   socket.on(
     "create_room",
