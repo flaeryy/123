@@ -717,3 +717,42 @@
     margin-inline: auto;
   }
 }
+
+/* Stih se skuplja prema igracu koji ga je osvojio. */
+.belot-table .played-cards.trick-collecting .played-card {
+  animation: belot-collect-trick 850ms ease-in forwards;
+}
+
+.belot-table .played-cards.trick-winner-top { --collect-x: 0px; --collect-y: -245px; }
+.belot-table .played-cards.trick-winner-bottom { --collect-x: 0px; --collect-y: 245px; }
+.belot-table .played-cards.trick-winner-left { --collect-x: -330px; --collect-y: 0px; }
+.belot-table .played-cards.trick-winner-right { --collect-x: 330px; --collect-y: 0px; }
+
+@keyframes belot-collect-trick {
+  0% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--offset-x)), calc(-50% + var(--offset-y))) rotate(var(--rotation));
+  }
+  22% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.88);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--collect-x)), calc(-50% + var(--collect-y))) rotate(0deg) scale(0.42);
+  }
+}
+
+@media (max-width: 700px) {
+  .belot-table .played-cards.trick-winner-top { --collect-y: -125px; }
+  .belot-table .played-cards.trick-winner-bottom { --collect-y: 125px; }
+  .belot-table .played-cards.trick-winner-left { --collect-x: -125px; }
+  .belot-table .played-cards.trick-winner-right { --collect-x: 125px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .belot-table .played-cards.trick-collecting .played-card {
+    animation: none;
+    opacity: 0;
+  }
+}
