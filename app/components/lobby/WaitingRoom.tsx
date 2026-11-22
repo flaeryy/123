@@ -2,7 +2,7 @@
 
 import type { Room } from "../../types/belot";
 import "./WaitingRoom.css";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export type AvailablePlayer = { userId: number; username: string; rating?: number };
 
@@ -54,6 +54,30 @@ export default function WaitingRoom({
   onKickPlayer,
   onSwapPlayers,
 }: WaitingRoomProps) {
+  const [avatarIds, setAvatarIds] = useState<Record<string, number>>({});
+
+  // Dohvati odabrane avatare za igrace u cekaonici.
+  useEffect(() => {
+    let active = true;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+    Promise.all(room.players.map(async (player) => {
+      try {
+        const response = await fetch(`${apiUrl}/profiles/by-name/${encodeURIComponent(player.username)}`);
+        if (!response.ok) return null;
+        const data = await response.json();
+        return { username: player.username, avatarId: data.profile?.avatarId as number };
+      } catch { return null; }
+    })).then((results) => {
+      if (!active) return;
+      const next: Record<string, number> = {};
+      for (const result of results) {
+        if (result && Number.isInteger(result.avatarId) && result.avatarId >= 1 && result.avatarId <= 12) next[result.username] = result.avatarId;
+      }
+      setAvatarIds(next);
+    });
+    return () => { active = false; };
+  }, [room.players]);
+
   const isHost = room.players.some(
     (player) => player.userId === userId && player.isHost,
   );
@@ -204,7 +228,11 @@ export default function WaitingRoom({
                           {player ? (
                             <>
                               <div className="waiting-player-avatar">
-                                {player.username.slice(0, 1).toUpperCase()}
+                                <img
+                                  src={`/avatars/avatar-${String(avatarIds[player.username] ?? 1).padStart(2, "0")}.png`}
+                                  alt={`Avatar ${player.username}`}
+                                  style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }}
+                                />
                               </div>
 
                               <div className="waiting-player-info">
