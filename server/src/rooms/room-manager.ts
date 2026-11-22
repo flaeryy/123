@@ -203,6 +203,18 @@ class RoomManager {
     return room;
   }
 
+  // Zatvaranje sobe uklanja sve clanove i njihove socket veze iz evidencije.
+  closeRoom(roomCode: string): Room | null {
+    const room = this.getRoom(roomCode);
+    if (!room) return null;
+
+    for (const player of room.players) {
+      this.playerRooms.delete(player.id);
+    }
+    this.rooms.delete(room.code);
+    return room;
+  }
+
   // Dohvaćanje sobe prema kodu
   getRoom(roomCode: string): Room | undefined {
     return this.rooms.get(roomCode.trim().toUpperCase());
