@@ -800,3 +800,52 @@
     scale: 0.8;
   }
 }
+
+/* Okvir prati stvarnu sirinu karata; bez zaglavlja i praznog prostora. */
+.belot-game > .belot-hand-area {
+  display: table;
+  width: max-content;
+  max-width: calc(100% - 16px);
+  margin: 12px auto 0;
+  padding: 8px;
+  box-sizing: border-box;
+  transform: none;
+  border: 1px solid rgba(232, 229, 216, 0.58);
+  border-radius: 12px;
+}
+
+.belot-game > .belot-hand-area .belot-hand {
+  display: flex;
+  width: max-content;
+  max-width: 100%;
+  min-height: 0;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin: 0;
+  padding: 2px;
+  overflow-x: auto;
+}
+
+@media (min-width: 901px) {
+  .belot-game > .belot-hand-area {
+    width: max-content;
+    max-width: calc(100% - 16px);
+    margin: 12px auto 0;
+    transform: none;
+  }
+  .belot-game > .belot-hand-area .belot-hand {
+    justify-content: flex-start;
+    padding: 2px;
+  }
+}
+
+@media (max-width: 900px) {
+  .belot-game > .belot-hand-area {
+    width: max-content;
+    max-width: calc(100% - 12px);
+    padding: 6px;
+    margin: 12px auto 0;
+  }
+}
