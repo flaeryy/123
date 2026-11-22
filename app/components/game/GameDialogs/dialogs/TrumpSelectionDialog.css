@@ -11,7 +11,8 @@
   align-items: center;
   gap: 7px;
 
-  width: min(76%, 340px);
+  width: min(88%, 320px);
+  max-width: 320px;
   margin: 0;
   padding: 0;
 
@@ -98,7 +99,7 @@
 
 @media (max-width: 560px) {
   .in-table-trump-controls {
-    width: 82%;
+    width: min(88%, 300px);
     gap: 6px;
   }
 
@@ -181,3 +182,42 @@
   opacity: 0.5;
 }
 
+
+/* Nadjacava stara globalna .trump-controls pravila iz game.css. */
+.belot-table .trump-controls.in-table-trump-controls {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(88%, 320px);
+  max-width: 320px;
+  margin: 0;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.belot-table .trump-controls.in-table-trump-controls .trump-prompt {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.belot-table .trump-controls.in-table-trump-controls .trump-buttons {
+  width: 100%;
+  max-width: 320px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+
+@media (max-width: 560px) {
+  .belot-table .trump-controls.in-table-trump-controls {
+    width: min(88%, 300px);
+  }
+}
