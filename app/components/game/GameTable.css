@@ -677,3 +677,43 @@
     aspect-ratio: 1 / 1;
   }
 }
+
+/* Centriranje igraceve ruke u odnosu na stol (desktop). */
+@media (min-width: 901px) {
+  .belot-game > .belot-hand-area {
+    width: min(850px, calc(100% - 280px));
+    max-width: none;
+    margin: 12px auto 0;
+    transform: translateX(140px);
+    box-sizing: border-box;
+  }
+
+  .belot-game > .belot-hand-area .belot-hand {
+    display: flex;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 12px 4px;
+  }
+
+  .belot-game > .belot-hand-area .hand-hungarian-card .hungarian-card {
+    width: clamp(60px, 5.8vw, 84px);
+    height: auto;
+    aspect-ratio: 181 / 293;
+  }
+
+  .belot-game > .belot-hand-area .hand-hungarian-card.hidden-hand-card {
+    width: clamp(60px, 5.8vw, 84px);
+    height: auto;
+    aspect-ratio: 181 / 293;
+  }
+}
+
+@media (max-width: 900px) {
+  .belot-game > .belot-hand-area {
+    transform: none;
+    width: min(100%, 850px);
+    margin-inline: auto;
+  }
+}
