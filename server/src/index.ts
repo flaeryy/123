@@ -502,9 +502,9 @@ io.on("connection", (socket) => {
 
         if (
           typeof data.roomCode !== "string" ||
-          !/^[A-HJ-NP-Z2-9]{6}$/.test(data.roomCode.trim().toUpperCase())
+          !/^\d{4}$/.test(data.roomCode.trim().toUpperCase())
         ) {
-          throw new Error("Kod sobe nije ispravan.");
+          throw new Error("Šifra sobe mora imati točno 4 znamenke.");
         }
 
         const userId = authenticatedUser.userId;
