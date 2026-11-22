@@ -31,6 +31,7 @@ type GameTableProps = {
   players: TablePlayer[];
   hand: BelotCard[];
   playedCards: PlayedCard[];
+  trickCollectWinner?: number | null;
   currentPlayerId: string | null;
   viewerId: string;
   currentUserId?: number;
@@ -155,6 +156,7 @@ export default function GameTable({
   players,
   hand,
   playedCards,
+  trickCollectWinner = null,
   currentPlayerId,
   viewerId,
   currentUserId,
@@ -348,7 +350,7 @@ export default function GameTable({
             <section className="belot-table">
               <div className="table-decoration" />
 
-              <div className="played-cards">
+              <div className={`played-cards${trickCollectWinner !== null && playedCards.length === 4 ? " trick-collecting" : ""} trick-winner-${trickCollectWinner !== null ? positions[((trickCollectWinner - 1 - viewerSeat) + 4) % 4] : "none"}`}>
               {playedCards.map((played, index) => {
                 const player = playerByNumber(played.playerNumber);
                 const playerPosition = player
