@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import HungarianCard from "./HungarianCard";
 import "./GameTable.css";
 import { GameDialogs } from "./GameDialogs/GameDialogs";
@@ -200,6 +200,35 @@ export default function GameTable({
   onStartNextDeal,
 }: GameTableProps) {
   const [showRoundHistory, setShowRoundHistory] = useState(false);
+  const [playerAvatars, setPlayerAvatars] = useState<Record<string, number>>({});
+  const playerNamesKey = players.map((player) => player.username).join("|");
+
+  useEffect(() => {
+    let active = true;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+    const names = playerNamesKey.split("|").filter(Boolean);
+    Promise.all(names.map(async (username) => {
+      try {
+        const response = await fetch(`${apiUrl}/profiles/by-name/${encodeURIComponent(username)}`);
+        if (!response.ok) return null;
+        const data = await response.json();
+        return { username, avatarId: data.profile?.avatarId as number };
+      } catch {
+        return null;
+      }
+    })).then((results) => {
+      if (!active) return;
+      const next: Record<string, number> = {};
+      for (const result of results) {
+        if (result && Number.isInteger(result.avatarId) && result.avatarId >= 1 && result.avatarId <= 12) {
+          next[result.username] = result.avatarId;
+        }
+      }
+      setPlayerAvatars(next);
+    });
+    return () => { active = false; };
+  }, [playerNamesKey]);
+
   const [declarationSelection, setDeclarationSelection] = useState<{
     turnKey: string;
     cards: BelotCard[];
@@ -408,9 +437,13 @@ export default function GameTable({
                 >
                   <div className="player-avatar">
                     <img
-                      src="/avatar/man.png"
+                      src={`/avatars/avatar-${String(playerAvatars[player.username] ?? 1).padStart(2, "0")}.png`}
                       alt={player.username}
                       className="man"
+                      onError={(event) => {
+                        const image = event.currentTarget;
+                        if (!image.src.endsWith("/avatars/avatar-01.png")) image.src = "/avatars/avatar-01.png";
+                      }}
                     />
                   </div>
                   {player.isDealer && (
