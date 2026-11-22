@@ -18,6 +18,10 @@ export const users = pgTable("users", {
   gamesPlayed: integer("games_played").notNull().default(0),
   wins: integer("wins").notNull().default(0),
   losses: integer("losses").notNull().default(0),
+  // Odabrani avatar i rekord uzastopnih pobjeda.
+  avatarId: integer("avatar_id").notNull().default(1),
+  currentWinStreak: integer("current_win_streak").notNull().default(0),
+  bestWinStreak: integer("best_win_streak").notNull().default(0),
 });
 
 // Korisnički računi za prijavu
@@ -73,6 +77,9 @@ export const games = pgTable("games", {
   minRating: integer("min_rating").notNull().default(0),
 
   finishedAt: timestamp("finished_at"),
+  // Pobjednik i razlog zavrsetka meca (bez povijesti rundi u profilu).
+  winnerTeam: integer("winner_team"),
+  finishReason: varchar("finish_reason", { length: 20 }),
   team1Score: integer("team1_score"),
   team2Score: integer("team2_score"),
   callingTeam: integer("calling_team"),
