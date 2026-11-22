@@ -12,7 +12,9 @@ import GameTable, {
   type PlayedCard,
 } from "./components/game/GameTable";
 import Lobby from "./components/lobby/Lobby";
-import WaitingRoom, { type AvailablePlayer } from "./components/lobby/WaitingRoom";
+import WaitingRoom, {
+  type AvailablePlayer,
+} from "./components/lobby/WaitingRoom";
 import { useRoomChat } from "./hooks/useRoomChat";
 import { useSocket } from "./hooks/useSocket";
 import { useAuth } from "./hooks/useAuth";
@@ -169,8 +171,13 @@ function HomeContent() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [publicRooms, setPublicRooms] = useState<Room[]>([]);
-  const [availablePlayers, setAvailablePlayers] = useState<AvailablePlayer[]>([]);
-  const [roomInvite, setRoomInvite] = useState<{ roomCode: string; hostName: string } | null>(null);
+  const [availablePlayers, setAvailablePlayers] = useState<AvailablePlayer[]>(
+    [],
+  );
+  const [roomInvite, setRoomInvite] = useState<{
+    roomCode: string;
+    hostName: string;
+  } | null>(null);
   const [pendingInviteIds, setPendingInviteIds] = useState<number[]>([]);
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
   const [roomCode, setRoomCode] = useState("");
@@ -197,7 +204,9 @@ function HomeContent() {
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
   const googleInitializedRef = useRef(false);
   const [gameState, setGameState] = useState<ClientGameState | null>(null);
-  const [trickCollectWinner, setTrickCollectWinner] = useState<number | null>(null);
+  const [trickCollectWinner, setTrickCollectWinner] = useState<number | null>(
+    null,
+  );
 
   // Dohvat javnih soba za prijavljene i neprijavljene korisnike.
   useEffect(() => {
@@ -403,9 +412,12 @@ function HomeContent() {
     function handleConnect() {
       setError("");
 
-      socket!.emit("get_available_players", (response: { success: boolean; players?: AvailablePlayer[] }) => {
-        if (response.success) setAvailablePlayers(response.players ?? []);
-      });
+      socket!.emit(
+        "get_available_players",
+        (response: { success: boolean; players?: AvailablePlayer[] }) => {
+          if (response.success) setAvailablePlayers(response.players ?? []);
+        },
+      );
       socket!.emit("get_public_rooms", (response: RoomResponse) => {
         if (response.success && response.rooms) {
           setPublicRooms(response.rooms);
@@ -458,14 +470,20 @@ function HomeContent() {
     }
 
     // Zavrsen mec: rezultat se prikazuje prije povratka u lobby.
-    function handleMatchFinished(data: { winnerTeam: 1 | 2; team1Score: number; team2Score: number }) {
+    function handleMatchFinished(data: {
+      winnerTeam: 1 | 2;
+      team1Score: number;
+      team2Score: number;
+    }) {
       setGameStarted(false);
       setGameState(null);
       setCurrentRoom(null);
       setTrickCollectWinner(null);
       clearChat();
       setError("");
-      setMessage(`Pobjednik je ekipa ${data.winnerTeam === 1 ? "1 (igraci 1 i 3)" : "2 (igraci 2 i 4)"}! Rezultat: ${data.team1Score} : ${data.team2Score}.`);
+      setMessage(
+        `Pobjednik je ekipa ${data.winnerTeam === 1 ? "1 (igraci 1 i 3)" : "2 (igraci 2 i 4)"}! Rezultat: ${data.team1Score} : ${data.team2Score}.`,
+      );
       router.replace("/lobby");
     }
 
@@ -495,10 +513,19 @@ function HomeContent() {
       setTrickCollectWinner(data.winnerPlayerNumber);
     }
 
-    function handleAvailablePlayers(players: AvailablePlayer[]) { setAvailablePlayers(players); }
-    function handleRoomInvite(invite: { roomCode: string; hostName: string }) { setRoomInvite(invite); }
-    function handleInviteStatus(data: { targetUserId: number; status: string }) {
-      setPendingInviteIds((ids) => ids.filter((id) => id !== data.targetUserId));
+    function handleAvailablePlayers(players: AvailablePlayer[]) {
+      setAvailablePlayers(players);
+    }
+    function handleRoomInvite(invite: { roomCode: string; hostName: string }) {
+      setRoomInvite(invite);
+    }
+    function handleInviteStatus(data: {
+      targetUserId: number;
+      status: string;
+    }) {
+      setPendingInviteIds((ids) =>
+        ids.filter((id) => id !== data.targetUserId),
+      );
       if (data.status === "declined") setMessage("Igrač je odbio pozivnicu.");
       if (data.status === "expired") setMessage("Pozivnica je istekla.");
     }
@@ -825,7 +852,11 @@ function HomeContent() {
     setPassword("");
   }
 
-  function createRoom(settings: { turnDuration: 15 | 30 | 45; gameType: "prolaz" | "dosta"; targetScore: 501 | 701 | 1001 }) {
+  function createRoom(settings: {
+    turnDuration: 15 | 30 | 45;
+    gameType: "prolaz" | "dosta";
+    targetScore: 501 | 701 | 1001;
+  }) {
     const socket = socketRef.current;
 
     if (!socket?.connected) {
@@ -864,14 +895,20 @@ function HomeContent() {
   function invitePlayer(targetUserId: number) {
     const socket = socketRef.current;
     if (!socket?.connected) return;
-    setPendingInviteIds((ids) => ids.includes(targetUserId) ? ids : [...ids, targetUserId]);
-    socket.emit("invite_room_player", { targetUserId }, (response: { success: boolean; message?: string }) => {
-      if (response.success) setMessage("Pozivnica je poslana.");
-      else {
-        setPendingInviteIds((ids) => ids.filter((id) => id !== targetUserId));
-        setError(response.message ?? "Slanje pozivnice nije uspjelo.");
-      }
-    });
+    setPendingInviteIds((ids) =>
+      ids.includes(targetUserId) ? ids : [...ids, targetUserId],
+    );
+    socket.emit(
+      "invite_room_player",
+      { targetUserId },
+      (response: { success: boolean; message?: string }) => {
+        if (response.success) setMessage("Pozivnica je poslana.");
+        else {
+          setPendingInviteIds((ids) => ids.filter((id) => id !== targetUserId));
+          setError(response.message ?? "Slanje pozivnice nije uspjelo.");
+        }
+      },
+    );
   }
 
   function joinRoom(code?: string) {
@@ -1189,18 +1226,64 @@ function HomeContent() {
     return (
       <main className="lobby-dashboard">
         {roomInvite && (
-          <div className="room-invite-notice" role="dialog" aria-label="Pozivnica u sobu" aria-live="polite">
+          <div
+            className="room-invite-notice"
+            role="dialog"
+            aria-label="Pozivnica u sobu"
+            aria-live="polite"
+          >
             <div className="room-invite-banner">
-              <span className="room-invite-cards" aria-hidden="true">♣</span>
+              <span className="room-invite-cards" aria-hidden="true">
+                ♣
+              </span>
               <span className="room-invite-label">POZIVNICA ZA PARTIJU</span>
-              <button className="room-invite-close" type="button" aria-label="Zatvori pozivnicu" onClick={() => { socketRef.current?.emit("respond_room_invite", { roomCode: roomInvite.roomCode, accepted: false }); setRoomInvite(null); }}>×</button>
+              <button
+                className="room-invite-close"
+                type="button"
+                aria-label="Zatvori pozivnicu"
+                onClick={() => {
+                  socketRef.current?.emit("respond_room_invite", {
+                    roomCode: roomInvite.roomCode,
+                    accepted: false,
+                  });
+                  setRoomInvite(null);
+                }}
+              >
+                ×
+              </button>
             </div>
             <div className="room-invite-body">
               <strong>{roomInvite.hostName} te poziva u sobu</strong>
               <p>Želiš li se pridružiti i zaigrati Belot?</p>
               <div className="room-invite-actions">
-                <button className="room-invite-decline" type="button" onClick={() => { socketRef.current?.emit("respond_room_invite", { roomCode: roomInvite.roomCode, accepted: false }); setRoomInvite(null); }}>Odbij</button>
-                <button className="room-invite-accept" type="button" onClick={() => { const code = roomInvite.roomCode; socketRef.current?.emit("respond_room_invite", { roomCode: code, accepted: true }); setRoomInvite(null); joinRoom(code); }}>Prihvati <span aria-hidden="true">→</span></button>
+                <button
+                  className="room-invite-decline"
+                  type="button"
+                  onClick={() => {
+                    socketRef.current?.emit("respond_room_invite", {
+                      roomCode: roomInvite.roomCode,
+                      accepted: false,
+                    });
+                    setRoomInvite(null);
+                  }}
+                >
+                  Odbij
+                </button>
+                <button
+                  className="room-invite-accept"
+                  type="button"
+                  onClick={() => {
+                    const code = roomInvite.roomCode;
+                    socketRef.current?.emit("respond_room_invite", {
+                      roomCode: code,
+                      accepted: true,
+                    });
+                    setRoomInvite(null);
+                    joinRoom(code);
+                  }}
+                >
+                  Prihvati <span aria-hidden="true">→</span>
+                </button>
               </div>
             </div>
           </div>
@@ -1360,23 +1443,69 @@ function HomeContent() {
 
   return (
     <main className="page-shell">
-        {roomInvite && (
-          <div className="room-invite-notice" role="dialog" aria-label="Pozivnica u sobu" aria-live="polite">
-            <div className="room-invite-banner">
-              <span className="room-invite-cards" aria-hidden="true">♣</span>
-              <span className="room-invite-label">POZIVNICA ZA PARTIJU</span>
-              <button className="room-invite-close" type="button" aria-label="Zatvori pozivnicu" onClick={() => { socketRef.current?.emit("respond_room_invite", { roomCode: roomInvite.roomCode, accepted: false }); setRoomInvite(null); }}>×</button>
-            </div>
-            <div className="room-invite-body">
-              <strong>{roomInvite.hostName} te poziva u sobu</strong>
-              <p>Želiš li se pridružiti i zaigrati Belot?</p>
-              <div className="room-invite-actions">
-                <button className="room-invite-decline" type="button" onClick={() => { socketRef.current?.emit("respond_room_invite", { roomCode: roomInvite.roomCode, accepted: false }); setRoomInvite(null); }}>Odbij</button>
-                <button className="room-invite-accept" type="button" onClick={() => { const code = roomInvite.roomCode; socketRef.current?.emit("respond_room_invite", { roomCode: code, accepted: true }); setRoomInvite(null); joinRoom(code); }}>Prihvati <span aria-hidden="true">→</span></button>
-              </div>
+      {roomInvite && (
+        <div
+          className="room-invite-notice"
+          role="dialog"
+          aria-label="Pozivnica u sobu"
+          aria-live="polite"
+        >
+          <div className="room-invite-banner">
+            <span className="room-invite-cards" aria-hidden="true">
+              ♣
+            </span>
+            <span className="room-invite-label">POZIVNICA ZA PARTIJU</span>
+            <button
+              className="room-invite-close"
+              type="button"
+              aria-label="Zatvori pozivnicu"
+              onClick={() => {
+                socketRef.current?.emit("respond_room_invite", {
+                  roomCode: roomInvite.roomCode,
+                  accepted: false,
+                });
+                setRoomInvite(null);
+              }}
+            >
+              ×
+            </button>
+          </div>
+          <div className="room-invite-body">
+            <strong>{roomInvite.hostName} te poziva u sobu</strong>
+            <p>Želiš li se pridružiti i zaigrati Belot?</p>
+            <div className="room-invite-actions">
+              <button
+                className="room-invite-decline"
+                type="button"
+                onClick={() => {
+                  socketRef.current?.emit("respond_room_invite", {
+                    roomCode: roomInvite.roomCode,
+                    accepted: false,
+                  });
+                  setRoomInvite(null);
+                }}
+              >
+                Odbij
+              </button>
+              <button
+                className="room-invite-accept"
+                type="button"
+                onClick={() => {
+                  const code = roomInvite.roomCode;
+                  socketRef.current?.emit("respond_room_invite", {
+                    roomCode: code,
+                    accepted: true,
+                  });
+                  setRoomInvite(null);
+                  joinRoom(code);
+                }}
+              >
+                Prihvati <span aria-hidden="true">→</span>
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
       {GOOGLE_CLIENT_ID && !user && (
         <Script
@@ -1460,7 +1589,6 @@ function HomeContent() {
                   userId={user.id}
                   availablePlayers={availablePlayers}
                   pendingInviteIds={pendingInviteIds}
-        pendingInviteIds={pendingInviteIds}
                   onInvitePlayer={invitePlayer}
                   loading={loading}
                   socketConnected={socketConnected}

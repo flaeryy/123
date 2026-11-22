@@ -15,3 +15,4 @@ zvuk isklju mute ako korisnik zeli..
 
 kreirati +10 korisnika i sve testirat,jesu sobe zauzete,rating moze li se ucit itd...
 admin sobe ne moze sebe mjenjati na poziciju Vi, i kada on napusti sobu svi napuštaju?
+provjeri belu: ako nije dopustena treba to javit , a ne prvo belu pa to
