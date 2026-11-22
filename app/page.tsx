@@ -1076,13 +1076,13 @@ function HomeContent() {
             <div className="belot-home-rooms-content">
               {publicRooms.length === 0 ? (
                 <div className="belot-home-rooms-notice">
-                  <p>Trenutno nema slobodnih javnih soba.</p>
+                  <p>Trenutno nema slobodnih soba.</p>
                 </div>
               ) : (
                 <div className="belot-home-room-list">
                   {publicRooms.map((room) => (
                     <RoomCard
-                      key={room.code}
+                      key={`${room.code}-${room.players[0]?.id ?? ""}`}
                       room={room}
                       loading={loading}
                       disabled={!!currentRoom}
