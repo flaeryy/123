@@ -1286,7 +1286,9 @@ io.on("connection", (socket) => {
           updatedState.phase === "round_finished" ||
           updatedState.phase === "finished"
         ) {
-          if (!updatedState.finalScore || updatedState.callingTeam === null) {
+          // Kod DOSTA partija moze zavrsiti usred dijeljenja bez finalScore.
+          if (updatedState.callingTeam === null ||
+              (updatedState.phase === "round_finished" && !updatedState.finalScore)) {
             throw new Error("Konačni rezultat nije ispravno izračunat.");
           }
 
@@ -1299,10 +1301,10 @@ io.on("connection", (socket) => {
               team1Score: updatedState.team1MatchScore,
               team2Score: updatedState.team2MatchScore,
               callingTeam: updatedState.callingTeam,
-              contractMade: updatedState.finalScore.contractMade,
-              declarationPoints: updatedState.finalScore.declarationPoints,
-              team1Bela: updatedState.finalScore.team1Bela,
-              team2Bela: updatedState.finalScore.team2Bela,
+              contractMade: updatedState.finalScore?.contractMade ?? null,
+              declarationPoints: updatedState.finalScore?.declarationPoints ?? (updatedState.team1DeclaredPoints + updatedState.team2DeclaredPoints),
+              team1Bela: updatedState.finalScore?.team1Bela ?? updatedState.team1Bela,
+              team2Bela: updatedState.finalScore?.team2Bela ?? updatedState.team2Bela,
             })
             .where(
               and(eq(games.roomCode, room.code), eq(games.status, "playing")),
@@ -1329,6 +1331,25 @@ io.on("connection", (socket) => {
 
         // Svaki igrač dobiva vlastiti prikaz partije.
         broadcastGameState(updatedState);
+
+        if (updatedState.phase === "finished" && updatedState.matchWinnerTeam !== null) {
+          // Mec je gotov: svim igracima saljemo pobjednika i vracamo ih u lobby.
+          const winner = updatedState.matchWinnerTeam;
+          io.to(room.code).emit("match_finished", {
+            winnerTeam: winner,
+            team1Score: updatedState.team1MatchScore,
+            team2Score: updatedState.team2MatchScore,
+          });
+          activeGames.delete(room.code);
+          const closedRoom = roomManager.closeRoom(room.code);
+          if (closedRoom) {
+            for (const member of closedRoom.players) {
+              io.sockets.sockets.get(member.id)?.leave(room.code);
+            }
+          }
+          io.emit("public_rooms_updated", roomManager.listPublicRooms());
+          broadcastAvailablePlayers();
+        }
 
         if (updatedState.phase === "round_finished") {
           await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -1458,6 +1479,7 @@ io.on("connection", (socket) => {
           username: player.username,
         })),
         1,
+        { matchSettings: { gameType: room.gameType, targetScore: room.targetScore, turnDuration: room.turnDuration } },
       );
       const seededGameState = seedBelaTestHand(
         gameState,
