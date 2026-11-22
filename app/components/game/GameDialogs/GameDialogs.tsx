@@ -2,10 +2,8 @@
 import "./GameDialogs.css";
 import { TrumpSelectionDialog } from "./dialogs/TrumpSelectionDialog";
 import { DeclarationSelectionDialog } from "./dialogs/DeclarationSelectionDialog";
-import { DeclarationResultDialog } from "./dialogs/DeclarationResultDialog";
 
 import type { BelotSuit, BelotCard } from "../GameTable";
-import type { ReactNode } from "react";
 
 interface GameDialogsProps {
   phase: string;
@@ -31,16 +29,9 @@ interface GameDialogsProps {
   declarationTurnPlayerName: string;
   selectedDeclarationCards: BelotCard[];
 
-  activeDeclarations: {
-    playerNumber: 1 | 2 | 3 | 4;
-    cards: BelotCard[];
-    points: number;
-  }[];
 
   onSubmitDeclarations?: (cards: BelotCard[]) => void;
 
-  getPlayerName: (playerNumber: 1 | 2 | 3 | 4) => string;
-  renderCard: (card: BelotCard) => ReactNode;
 }
 
 export function GameDialogs({
@@ -56,10 +47,7 @@ export function GameDialogs({
   canDeclare,
   declarationTurnPlayerName,
   selectedDeclarationCards,
-  activeDeclarations,
   onSubmitDeclarations,
-  getPlayerName,
-  renderCard,
 }: GameDialogsProps) {
   return (
     <>
@@ -86,13 +74,6 @@ export function GameDialogs({
         />
       )}
 
-      {activeDeclarations.length > 0 && (
-        <DeclarationResultDialog
-          declarations={activeDeclarations}
-          getPlayerName={getPlayerName}
-          renderCard={renderCard}
-        />
-      )}
     </>
   );
 }
