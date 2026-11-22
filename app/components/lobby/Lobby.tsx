@@ -81,7 +81,7 @@ export default function Lobby({
           disabled={loading || currentRoomExists}
         >
           <span aria-hidden="true">⌕</span>
-          Unesi kod
+          Unesi šifru
         </button>
       </div>
 
@@ -110,7 +110,7 @@ export default function Lobby({
                 <p>
                   {activePanel === "create"
                     ? "Odaberi postavke nove partije."
-                    : "Unesi kod privatne sobe."}
+                    : "Unesi šifru privatne sobe."}
                 </p>
               </div>
 
@@ -240,7 +240,7 @@ export default function Lobby({
                 onSubmit={(event) => {
                   event.preventDefault();
                   if (
-                    roomCode.trim().length === 6 &&
+                    /^\d{4}$/.test(roomCode.trim()) &&
                     !loading &&
                     socketConnected
                   ) {
@@ -249,23 +249,25 @@ export default function Lobby({
                 }}
               >
                 <div className="lobby-field">
-                  <label htmlFor="lobby-room-code">Kod sobe</label>
+                  <label htmlFor="lobby-room-code">Šifra sobe</label>
 
                   <input
                     id="lobby-room-code"
                     className="lobby-code-input"
                     value={roomCode}
                     onChange={(event) =>
-                      onRoomCodeChange(event.target.value.toUpperCase())
+                      onRoomCodeChange(event.target.value.replace(/\D/g, "").slice(0, 4))
                     }
-                    placeholder="ABC234"
-                    maxLength={6}
+                    placeholder="1234"
+                    maxLength={4}
+                    inputMode="numeric"
+                    pattern="[0-9]{4}"
                     autoComplete="off"
                     autoFocus
                   />
 
                   <small>
-                    Unesi kod od 6 znakova koji ti je poslao domaćin.
+                    Unesi šifru od 6 znakova koji ti je poslao domaćin.
                   </small>
                 </div>
 
@@ -284,7 +286,7 @@ export default function Lobby({
                     disabled={
                       loading ||
                       !socketConnected ||
-                      roomCode.trim().length !== 6
+                      !/^\d{4}$/.test(roomCode.trim())
                     }
                   >
                     Uđi u sobu
