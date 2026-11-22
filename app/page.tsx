@@ -142,6 +142,9 @@ type Room = {
   createdAt: string;
   isPublic: boolean;
   minRating: number;
+  turnDuration: 15 | 30 | 45;
+  gameType: "prolaz" | "dosta";
+  targetScore: 501 | 701 | 1001;
 };
 
 type RoomResponse = {
@@ -788,7 +791,7 @@ function HomeContent() {
     setPassword("");
   }
 
-  function createRoom() {
+  function createRoom(settings: { turnDuration: 15 | 30 | 45; gameType: "prolaz" | "dosta"; targetScore: 501 | 701 | 1001 }) {
     const socket = socketRef.current;
 
     if (!socket?.connected) {
@@ -805,6 +808,7 @@ function HomeContent() {
       {
         isPublic,
         minRating: Number(minRating),
+        ...settings,
       },
       (response: RoomResponse) => {
         setLoading(false);
