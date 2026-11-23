@@ -464,7 +464,12 @@ export default function GameTable({
                         key={`declaration-${declaration.playerNumber}`}
                         aria-label={`Zvanje: ${declaration.points} bodova`}
                       >
-                        {declaration.cards.map((card, cardIndex) => (
+                        {[...declaration.cards]
+                          .sort((a, b) =>
+                            SUIT_ORDER.indexOf(a.suit) - SUIT_ORDER.indexOf(b.suit) ||
+                            RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank)
+                          )
+                          .map((card, cardIndex) => (
                           <PlayingCard
                             key={`${card.suit}-${card.rank}-${cardIndex}`}
                             card={card}
