@@ -879,6 +879,13 @@
   animation: belot-declaration-show 160ms ease-out both;
 }
 
+/* Zvanja su samo za prikaz: disabled gumb ne smije izblijediti karte. */
+.belot-table-wrapper .player-declaration-cards .hungarian-card:disabled {
+  opacity: 1;
+  filter: none;
+  cursor: default;
+}
+
 .belot-table-wrapper .player-declaration-cards .played-hungarian-card .hungarian-card {
   width: clamp(32px, 3.5vw, 45px);
   height: auto;
