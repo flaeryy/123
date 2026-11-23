@@ -130,6 +130,29 @@ const SUITS: Record<
 const SUIT_ORDER: BelotSuit[] = ["hearts", "diamonds", "clubs", "spades"];
 const RANK_ORDER: BelotRank[] = ["7", "8", "9", "10", "J", "Q", "K", "A"];
 
+// Kod kombiniranih zvanja prvo prikazi cetverac (npr. J J J J),
+// a zatim ostale karte nizova bez ponavljanja iste karte.
+function sortDeclarationCards(cards: BelotCard[]): BelotCard[] {
+  const rankCounts = new Map<BelotRank, number>();
+  for (const card of cards) {
+    rankCounts.set(card.rank, (rankCounts.get(card.rank) ?? 0) + 1);
+  }
+  const fourRanks = [...rankCounts.entries()]
+    .filter(([, count]) => count === 4)
+    .map(([rank]) => rank)
+    .sort((a, b) => RANK_ORDER.indexOf(b) - RANK_ORDER.indexOf(a));
+
+  const fourRankSet = new Set(fourRanks);
+  const bySuitAndRank = (a: BelotCard, b: BelotCard) =>
+    SUIT_ORDER.indexOf(a.suit) - SUIT_ORDER.indexOf(b.suit) ||
+    RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank);
+
+  return [
+    ...fourRanks.flatMap((rank) => cards.filter((card) => card.rank === rank).sort(bySuitAndRank)),
+    ...cards.filter((card) => !fourRankSet.has(card.rank)).sort(bySuitAndRank),
+  ];
+}
+
 function PlayingCard({
   card,
   onClick,
@@ -464,11 +487,7 @@ export default function GameTable({
                         key={`declaration-${declaration.playerNumber}`}
                         aria-label={`Zvanje: ${declaration.points} bodova`}
                       >
-                        {[...declaration.cards]
-                          .sort((a, b) =>
-                            SUIT_ORDER.indexOf(a.suit) - SUIT_ORDER.indexOf(b.suit) ||
-                            RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank)
-                          )
+                        {sortDeclarationCards(declaration.cards)
                           .map((card, cardIndex) => (
                           <PlayingCard
                             key={`${card.suit}-${card.rank}-${cardIndex}`}
