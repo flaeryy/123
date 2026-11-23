@@ -1064,7 +1064,7 @@ io.on("connection", (socket) => {
           revealRoomCode = room.code;
           pendingDeclarationReveals.add(room.code);
 
-          await new Promise((resolve) => setTimeout(resolve, 2000));
+          await new Promise((resolve) => setTimeout(resolve, 3000));
 
           if (activeGames.get(room.code) !== updatedState) {
             throw new Error("Partija je prekinuta tijekom prikaza zvanja.");
