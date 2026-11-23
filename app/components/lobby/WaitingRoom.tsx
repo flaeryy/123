@@ -2,6 +2,7 @@
 
 import type { Room } from "../../types/belot";
 import "./WaitingRoom.css";
+import SharedIpWarning from "../common/SharedIpWarning";
 import { useEffect, useMemo, useState } from "react";
 
 export type AvailablePlayer = { userId: number; username: string; rating?: number };
@@ -227,12 +228,16 @@ export default function WaitingRoom({
 
                           {player ? (
                             <>
+                              <div className="waiting-avatar-with-warning">
                               <div className="waiting-player-avatar">
                                 <img
                                   src={`/avatars/avatar-${String(avatarIds[player.username] ?? 1).padStart(2, "0")}.png`}
                                   alt={`Avatar ${player.username}`}
                                   style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }}
                                 />
+                              </div>
+
+                              <SharedIpWarning visible={player.sameIpWarning} />
                               </div>
 
                               <div className="waiting-player-info">
