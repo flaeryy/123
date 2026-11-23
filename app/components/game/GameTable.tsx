@@ -5,6 +5,7 @@ import HungarianCard from "./HungarianCard";
 import "./GameTable.css";
 import { GameDialogs } from "./GameDialogs/GameDialogs";
 import ChatPanel from "../chat/ChatPanel";
+import SharedIpWarning from "../common/SharedIpWarning";
 import type { ChatMessage } from "../chat/chat.types";
 
 export type BelotSuit = "hearts" | "diamonds" | "clubs" | "spades";
@@ -20,6 +21,7 @@ export type TablePlayer = {
   username: string;
   seat: 0 | 1 | 2 | 3;
   isDealer?: boolean;
+  sameIpWarning?: boolean;
 };
 
 export type PlayedCard = {
@@ -446,6 +448,7 @@ export default function GameTable({
                       }}
                     />
                   </div>
+                  <SharedIpWarning visible={player.sameIpWarning} />
                   {player.isDealer && (
                     <div className="dealer-deck" role="img" aria-label="Djelitelj karata" title="Djelitelj">
                       <span className="dealer-deck-card dealer-deck-card-back" />
