@@ -21,6 +21,8 @@ import { getTrickWinner, getLegalCards } from "./game/rules.js";
 import { registerAuthRoutes } from "./auth/auth.routes.js";
 import { finishMatchWithStats } from "./profile/profile-stats.js";
 import { registerProfileRoutes } from "./profile/profile.routes.js";
+import { normalizeSocketIp } from "./security/ip-utils.js";
+import { sharedIpSocketIds } from "./security/shared-ip.js";
 
 const app = Fastify({
   logger: true,
@@ -74,6 +76,24 @@ io.use(async (socket, next) => {
 
 // Povezuje Socket.IO igrača s ID-em korisnika u bazi
 const socketUsers = new Map<string, number>();
+// IP ostaje samo u memoriji servera.
+const socketIps = new Map<string, string>();
+
+function flaggedSocketIds(socketIds: string[]): Set<string> {
+  return sharedIpSocketIds(socketIds, socketIps);
+}
+
+function roomWithIpWarnings(room: Room) {
+  const flagged = flaggedSocketIds(room.players.map((player) => player.id));
+  return {
+    ...room,
+    players: room.players.map((player) => ({
+      ...player,
+      sameIpWarning: flagged.has(player.id),
+    })),
+  };
+}
+
 
 type OnlinePlayer = {
   userId: number;
@@ -178,6 +198,7 @@ function getPlayerGameView(state: GameState, socketId: string) {
     ...publicState,
     remainingCards: [],
     players: state.players.map((item) => ({
+      sameIpWarning: flaggedSocketIds(state.players.map((p) => p.socketId)).has(item.socketId),
       playerNumber: item.playerNumber,
       socketId: item.socketId,
       username: item.username,
@@ -279,6 +300,8 @@ app.get("/health", async () => {
 // Kreiranje i pridruživanje sobama
 io.on("connection", (socket) => {
   console.log("Igrač spojen:", socket.id);
+  const normalizedIp = normalizeSocketIp(socket.handshake.address);
+  if (normalizedIp) socketIps.set(socket.id, normalizedIp);
 
   socket.on("get_available_players", (callback) => {
     callback?.({
@@ -526,10 +549,10 @@ io.on("connection", (socket) => {
 
         callback?.({
           success: true,
-          room: createdRoom,
+          room: roomWithIpWarnings(createdRoom),
         });
 
-        io.to(createdRoom.code).emit("room_updated", createdRoom);
+        io.to(createdRoom.code).emit("room_updated", roomWithIpWarnings(createdRoom));
         io.emit("public_rooms_updated", roomManager.listPublicRooms());
       } catch (error) {
         if (room) {
@@ -649,12 +672,12 @@ io.on("connection", (socket) => {
         const roomHistory = await fetchRoomChatHistory(joinedRoom.code);
         socket.emit("room_chat_history", roomHistory);
 
-        io.to(joinedRoom.code).emit("room_updated", joinedRoom);
+        io.to(joinedRoom.code).emit("room_updated", roomWithIpWarnings(joinedRoom));
         io.emit("public_rooms_updated", roomManager.listPublicRooms());
 
         callback?.({
           success: true,
-          room: joinedRoom,
+          room: roomWithIpWarnings(joinedRoom),
         });
       } catch (error) {
         if (room) {
@@ -756,7 +779,7 @@ io.on("connection", (socket) => {
             throw error;
           }
 
-          io.to(room.code).emit("room_updated", updatedRoom);
+          io.to(room.code).emit("room_updated", roomWithIpWarnings(updatedRoom));
 
           callback?.({ success: true });
         } finally {
@@ -848,7 +871,7 @@ io.on("connection", (socket) => {
           });
           targetSocket?.leave(room.code);
 
-          io.to(room.code).emit("room_updated", updatedRoom);
+          io.to(room.code).emit("room_updated", roomWithIpWarnings(updatedRoom));
           io.emit("public_rooms_updated", roomManager.listPublicRooms());
           broadcastAvailablePlayers();
 
@@ -1458,8 +1481,12 @@ io.on("connection", (socket) => {
   // PREKID VEZE
   socket.on("disconnect", async () => {
     console.log("Igrač odspojen:", socket.id);
-    await removePlayerFromRoom(socket);
-    broadcastAvailablePlayers();
+    try {
+      await removePlayerFromRoom(socket);
+    } finally {
+      socketIps.delete(socket.id);
+      broadcastAvailablePlayers();
+    }
   });
   // DOHVAT JAVNIH SOBA
   socket.on("get_public_rooms", (callback) => {
@@ -1543,7 +1570,7 @@ io.on("connection", (socket) => {
       }
 
       // Obavještavanje sobe o promjeni statusa.
-      io.to(room.code).emit("room_updated", room);
+      io.to(room.code).emit("room_updated", roomWithIpWarnings(room));
 
       // Uklanjanje sobe iz javnog popisa.
       io.emit("public_rooms_updated", roomManager.listPublicRooms());
@@ -1739,12 +1766,12 @@ async function removeRoomMember(
       if (gameWasInProgress) {
         const message = `${departingPlayer?.username ?? "Igrač"} je napustio igru. Partija je prekinuta.`;
         io.to(roomCode).emit("game_aborted", {
-          room: updatedRoom,
+          room: roomWithIpWarnings(updatedRoom),
           message,
         });
       }
 
-      io.to(roomCode).emit("room_updated", updatedRoom);
+      io.to(roomCode).emit("room_updated", roomWithIpWarnings(updatedRoom));
       io.emit("public_rooms_updated", roomManager.listPublicRooms());
 
       return true;
@@ -1756,12 +1783,12 @@ async function removeRoomMember(
       } else {
         if (gameWasInProgress) {
           io.to(roomCode).emit("game_aborted", {
-            room: updatedRoom,
+            room: roomWithIpWarnings(updatedRoom),
             message: `${departingPlayer?.username ?? "Igrač"} je napustio igru. Partija je prekinuta.`,
           });
         }
 
-        io.to(roomCode).emit("room_updated", updatedRoom);
+        io.to(roomCode).emit("room_updated", roomWithIpWarnings(updatedRoom));
       }
 
       io.emit("public_rooms_updated", roomManager.listPublicRooms());
