@@ -64,6 +64,7 @@ type ClientGamePlayer = {
   team: 1 | 2;
   hand: BelotCard[];
   isDealer: boolean;
+  sameIpWarning?: boolean;
 };
 
 type ClientGameState = {
@@ -135,6 +136,7 @@ type Player = {
   isHost: boolean;
   rating: number;
   seat: 1 | 2 | 3 | 4;
+  sameIpWarning?: boolean;
 };
 
 type Room = {
@@ -1413,6 +1415,7 @@ function HomeContent() {
             username: player.username,
             seat: (player.playerNumber - 1) as 0 | 1 | 2 | 3,
             isDealer: player.isDealer,
+            sameIpWarning: player.sameIpWarning,
           }))}
           hand={gameState.myHand}
           playedCards={gameState.currentTrick}
