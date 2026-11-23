@@ -147,8 +147,25 @@ function sortDeclarationCards(cards: BelotCard[]): BelotCard[] {
     SUIT_ORDER.indexOf(a.suit) - SUIT_ORDER.indexOf(b.suit) ||
     RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank);
 
+  // Kartu koja pripada i cetvercu i nizu stavimo zadnju u cetvercu.
+  // Tako J J J J(herc) Q(herc) K(herc) ostaje vizualno povezan niz.
+  const orderedFourCards = fourRanks.flatMap((rank) => {
+    const matching = cards.filter((card) => card.rank === rank).sort(bySuitAndRank);
+    const sharedSuit = SUIT_ORDER.find((suit) => {
+      const suitRanks = new Set(cards.filter((card) => card.suit === suit).map((card) => card.rank));
+      return Array.from({ length: RANK_ORDER.length - 2 }, (_, start) =>
+        RANK_ORDER.slice(start, start + 3)
+      ).some((sequence) => sequence.includes(rank) && sequence.every((item) => suitRanks.has(item)));
+    });
+    if (!sharedSuit) return matching;
+    return [
+      ...matching.filter((card) => card.suit !== sharedSuit),
+      ...matching.filter((card) => card.suit === sharedSuit),
+    ];
+  });
+
   return [
-    ...fourRanks.flatMap((rank) => cards.filter((card) => card.rank === rank).sort(bySuitAndRank)),
+    ...orderedFourCards,
     ...cards.filter((card) => !fourRankSet.has(card.rank)).sort(bySuitAndRank),
   ];
 }
