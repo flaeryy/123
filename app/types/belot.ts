@@ -11,6 +11,7 @@ export type ClientGamePlayer = {
   team: 1 | 2;
   hand: BelotCard[];
   isDealer: boolean;
+  sameIpWarning?: boolean;
 };
 
 export type ClientGameState = {
@@ -75,6 +76,7 @@ export type Player = {
   isHost: boolean;
   rating: number;
   seat: 1 | 2 | 3 | 4;
+  sameIpWarning?: boolean;
 };
 
 export type Room = {
