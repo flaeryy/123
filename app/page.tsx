@@ -21,6 +21,7 @@ import { useAuth } from "./hooks/useAuth";
 import RoomCard from "./components/lobby/RoomCard";
 import LobbyHeader from "./components/lobby/LobbyHeader";
 import PlayerProfileModal from "./components/profile/PlayerProfileModal";
+import GameToast from "./components/game/GameToast";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -187,6 +188,18 @@ function HomeContent() {
   const [isPublic, setIsPublic] = useState(true);
   const [minRating, setMinRating] = useState("0");
   const [gameStarted, setGameStarted] = useState(false);
+  const [gameNotice, setGameNotice] = useState<{ message: string } | null>(null);
+  useEffect(() => {
+    if (!gameNotice) return;
+    const timeout = window.setTimeout(() => setGameNotice(null), 3000);
+    return () => window.clearTimeout(timeout);
+  }, [gameNotice]);
+  useEffect(() => {
+    if (!gameStarted) setGameNotice(null);
+  }, [gameStarted]);
+  function showGameNotice(message: string) {
+    setGameNotice({ message: message === "Ta karta nije dozvoljena." ? "Tu kartu trenutačno ne možeš odigrati." : message });
+  }
   // Upravljanje Socket.IO vezom izdvojeno je u zaseban hook.
   const [profileTarget, setProfileTarget] = useState<{ userId?: number; username?: string } | null>(null);
   const { socketRef, socketConnected } = useSocket(user, API_URL);
@@ -606,7 +619,7 @@ function HomeContent() {
     const currentGame = gameState;
 
     if (!socket) {
-      alert("Nema veze s poslužiteljem.");
+      showGameNotice("Nema veze s poslužiteljem.");
       return;
     }
 
@@ -642,7 +655,7 @@ function HomeContent() {
         { card },
         (response: { success: boolean; message?: string }) => {
           if (!response?.success) {
-            alert(response?.message ?? "Ta karta nije dozvoljena.");
+            showGameNotice(response?.message ?? "Ta karta nije dozvoljena.");
             return;
           }
           setPendingBelaCard(card);
@@ -656,7 +669,7 @@ function HomeContent() {
       { card, announceBela: false },
       (response: { success: boolean; message?: string }) => {
         if (!response?.success) {
-          alert(response?.message ?? "Kartu nije moguće odigrati.");
+          showGameNotice(response?.message ?? "Kartu nije moguće odigrati.");
         }
       },
     );
@@ -679,7 +692,7 @@ function HomeContent() {
       { card, announceBela },
       (response: { success: boolean; message?: string }) => {
         if (!response?.success) {
-          alert(response?.message ?? "Kartu nije moguće odigrati.");
+          showGameNotice(response?.message ?? "Kartu nije moguće odigrati.");
         }
       },
     );
@@ -695,7 +708,7 @@ function HomeContent() {
       { trumpSuit },
       (response: { success: boolean; message?: string }) => {
         if (!response?.success) {
-          alert(response?.message ?? "Odabir aduta nije uspio.");
+          showGameNotice(response?.message ?? "Odabir aduta nije uspio.");
         }
       },
     );
@@ -710,7 +723,7 @@ function HomeContent() {
       "pass_trump",
       (response: { success: boolean; message?: string }) => {
         if (!response?.success) {
-          alert(response?.message ?? "Prolaz nije uspio.");
+          showGameNotice(response?.message ?? "Prolaz nije uspio.");
         }
       },
     );
@@ -1408,6 +1421,7 @@ function HomeContent() {
     }
     return withProfile(
       <main className="game-only-page">
+        {gameNotice && <GameToast message={gameNotice.message} onClose={() => setGameNotice(null)} />}
         <GameTable
           onOpenProfile={(username) => setProfileTarget({ username })}
           players={gameState.players.map((player) => ({
