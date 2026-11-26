@@ -1071,3 +1071,24 @@
     bottom: -30px;
   }
 }
+
+
+/* Veci avatari svih igraca, uz zadrzavanje njihovih sidrista. */
+.belot-game .belot-table-wrapper .table-player,
+.belot-game .belot-table-wrapper .table-player .player-avatar {
+  width: 80px;
+  height: 80px;
+}
+.belot-game .belot-table-wrapper .table-player .player-info strong {
+  font-size: 14px;
+}
+@media (max-width: 700px) {
+  .belot-game .belot-table-wrapper .table-player,
+  .belot-game .belot-table-wrapper .table-player .player-avatar {
+    width: 50px;
+    height: 50px;
+  }
+  .belot-game .belot-table-wrapper .table-player .player-info strong {
+    font-size: 11px;
+  }
+}
