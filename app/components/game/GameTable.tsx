@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import HungarianCard from "./HungarianCard";
+import GameToast from "./GameToast";
 import "./GameTable.css";
 import { GameDialogs } from "./GameDialogs/GameDialogs";
 import ChatPanel from "../chat/ChatPanel";
@@ -30,6 +31,8 @@ export type PlayedCard = {
 };
 
 type GameTableProps = {
+  gameNotice?: string;
+  onCloseGameNotice?: () => void;
   players: TablePlayer[];
   hand: BelotCard[];
   playedCards: PlayedCard[];
@@ -196,6 +199,8 @@ function PlayingCard({
 }
 
 export default function GameTable({
+  gameNotice,
+  onCloseGameNotice,
   players,
   hand,
   playedCards,
@@ -465,6 +470,20 @@ export default function GameTable({
               onSubmitDeclarations={onSubmitDeclarations}
             />
             </section>
+            {activeDeclarations
+              .filter((declaration) => declaration.playerNumber === viewerSeat + 1)
+              .map((declaration) => (
+                <div className="player-declaration-cards local-declaration-cards"
+                  key={`local-declaration-${declaration.playerNumber}`}
+                  aria-label={`Zvanje: ${declaration.points} bodova`}>
+                  {sortDeclarationCards(declaration.cards).map((card, index) => (
+                    <PlayingCard key={`${card.suit}-${card.rank}-${index}`} card={card} small disabled />
+                  ))}
+                </div>
+              ))}
+            {gameNotice && <div className="game-hand-notice">
+              <GameToast message={gameNotice} onClose={() => onCloseGameNotice?.()} />
+            </div>}
             <div className="table-players">
             {sortedPlayers.map((player, index) => {
               const position = positions[index];
@@ -497,7 +516,7 @@ export default function GameTable({
                     </div>
                   )}
                   {activeDeclarations
-                    .filter((declaration) => declaration.playerNumber === player.seat + 1)
+                    .filter((declaration) => position !== "bottom" && declaration.playerNumber === player.seat + 1)
                     .map((declaration) => (
                       <div
                         className="player-declaration-cards"
