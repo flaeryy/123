@@ -548,25 +548,6 @@ export default function GameTable({
                     </div>
                   )}
           </div>
-        </section>
-      </div>
-
-      {(phase === "round_finished" || phase === "finished") && (
-        <div className="game-finished-message">
-          <strong>
-            {phase === "finished"
-              ? `Meč je završio. Pobjeđuje ekipa ${matchWinnerTeam ?? ""}!`
-              : `Dijeljenje ${roundNumber} je završeno.`}
-          </strong>
-          <span>
-            Ova runda: {finalScore?.team1 ?? 0} : {finalScore?.team2 ?? 0}
-          </span>
-          <span>
-            Meč do 1001: {team1MatchScore} : {team2MatchScore}
-          </span>
-        </div>
-      )}
-
       {(sortedHand.length > 0 || showHiddenCards) && (
       <footer className="belot-hand-area">
         <div className="belot-hand">
@@ -604,6 +585,26 @@ export default function GameTable({
         </div>
       </footer>
       )}
+        </section>
+      </div>
+
+      {(phase === "round_finished" || phase === "finished") && (
+        <div className="game-finished-message">
+          <strong>
+            {phase === "finished"
+              ? `Meč je završio. Pobjeđuje ekipa ${matchWinnerTeam ?? ""}!`
+              : `Dijeljenje ${roundNumber} je završeno.`}
+          </strong>
+          <span>
+            Ova runda: {finalScore?.team1 ?? 0} : {finalScore?.team2 ?? 0}
+          </span>
+          <span>
+            Meč do 1001: {team1MatchScore} : {team2MatchScore}
+          </span>
+        </div>
+      )}
+
+
 
     </main>
   );
