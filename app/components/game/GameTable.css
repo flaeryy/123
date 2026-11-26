@@ -1131,3 +1131,17 @@
 @media (prefers-reduced-motion: reduce) {
   .game-hand-notice > .game-toast { animation: none; }
 }
+
+
+/* Bunt vlastitog djelitelja nalazi se na zelenom stolu. */
+.belot-table-wrapper > .dealer-deck.local-dealer-deck {
+  left: 50%;
+  bottom: 65px;
+  transform: translateX(-50%);
+  z-index: 13;
+}
+@media (max-width: 700px) {
+  .belot-table-wrapper > .dealer-deck.local-dealer-deck {
+    bottom: 42px;
+  }
+}
