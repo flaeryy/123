@@ -21,7 +21,6 @@ import { useAuth } from "./hooks/useAuth";
 import RoomCard from "./components/lobby/RoomCard";
 import LobbyHeader from "./components/lobby/LobbyHeader";
 import PlayerProfileModal from "./components/profile/PlayerProfileModal";
-import GameToast from "./components/game/GameToast";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -1421,8 +1420,9 @@ function HomeContent() {
     }
     return withProfile(
       <main className="game-only-page">
-        {gameNotice && <GameToast message={gameNotice.message} onClose={() => setGameNotice(null)} />}
         <GameTable
+          gameNotice={gameNotice?.message}
+          onCloseGameNotice={() => setGameNotice(null)}
           onOpenProfile={(username) => setProfileTarget({ username })}
           players={gameState.players.map((player) => ({
             id: player.socketId,
