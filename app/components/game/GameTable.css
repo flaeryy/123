@@ -988,3 +988,30 @@
     gap: 3px;
   }
 }
+
+
+/* Lokalni avatar mora ostati vidljiv uz podignutu ruku. */
+.belot-main-panel > .belot-hand-area {
+  margin-top: -54px;
+  max-width: calc(100% - 190px);
+  margin-left: auto;
+  margin-right: 0;
+}
+.belot-table-wrapper > .table-players {
+  z-index: 12;
+}
+.belot-table-wrapper .player-bottom {
+  left: -12px;
+  bottom: -35px;
+}
+@media (max-width: 700px) {
+  .belot-main-panel > .belot-hand-area {
+    margin-top: -32px;
+    max-width: calc(100% - 82px);
+    margin-right: 4px;
+  }
+  .belot-table-wrapper .player-bottom {
+    left: -5px;
+    bottom: -30px;
+  }
+}
