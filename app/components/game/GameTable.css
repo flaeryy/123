@@ -1092,3 +1092,42 @@
     font-size: 11px;
   }
 }
+
+
+/* Vlastita zvanja sidrena su na stol, ne na pomaknuti avatar. */
+.belot-table-wrapper > .local-declaration-cards {
+  left: 50%;
+  bottom: 90px;
+  transform: translateX(-50%);
+  z-index: 16;
+}
+
+/* Obavijest neposredno iznad ruke, centrirana prema stolu. */
+.belot-table-wrapper > .game-hand-notice {
+  position: absolute;
+  left: 50%;
+  bottom: 66px;
+  transform: translateX(-50%);
+  z-index: 25;
+  width: max-content;
+  max-width: 100%;
+}
+.game-hand-notice > .game-toast {
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
+  animation: game-hand-notice-in 180ms ease-out;
+  max-width: 100%;
+}
+@keyframes game-hand-notice-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 700px) {
+  .belot-table-wrapper > .local-declaration-cards { bottom: 62px; }
+  .belot-table-wrapper > .game-hand-notice { bottom: 42px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-hand-notice > .game-toast { animation: none; }
+}
