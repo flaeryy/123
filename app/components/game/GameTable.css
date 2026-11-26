@@ -1015,3 +1015,59 @@
     bottom: -30px;
   }
 }
+
+
+/* Ruka je centrirana prema stolu; avatar prati lijevi rub ruke. */
+.belot-game .belot-main-panel {
+  --local-hand-width: min(850px, calc(100% - 180px));
+}
+.belot-game .belot-main-panel > .belot-hand-area {
+  width: var(--local-hand-width);
+  max-width: none;
+  margin: -54px auto 0;
+  left: 0;
+}
+.belot-game .belot-main-panel > .belot-hand-area .belot-hand {
+  width: 100%;
+  justify-content: center;
+}
+.belot-game .belot-main-panel > .belot-hand-area .hand-hungarian-card {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.belot-game .belot-main-panel > .belot-hand-area .hand-hungarian-card .hungarian-card,
+.belot-game .belot-main-panel > .belot-hand-area .hand-hungarian-card.hidden-hand-card {
+  width: clamp(24px, calc((100vw - 500px) / 8), 100px);
+  height: auto;
+  aspect-ratio: 181 / 293;
+}
+.belot-game .belot-table-wrapper .player-bottom {
+  left: max(0px, calc(50% - 425px));
+  bottom: -35px;
+  transform: translateX(calc(-100% - 15px));
+}
+@media (max-width: 900px) {
+  .belot-game .belot-main-panel {
+    --local-hand-width: calc(100% - 110px);
+  }
+  .belot-game .belot-main-panel > .belot-hand-area .hand-hungarian-card .hungarian-card,
+  .belot-game .belot-main-panel > .belot-hand-area .hand-hungarian-card.hidden-hand-card {
+    width: clamp(20px, calc((100vw - 160px) / 8), 85px);
+  }
+  .belot-game .belot-table-wrapper .player-bottom {
+    left: 28px;
+    transform: translateX(-100%);
+  }
+}
+@media (max-width: 700px) {
+  .belot-game .belot-main-panel {
+    --local-hand-width: calc(100% - 100px);
+  }
+  .belot-game .belot-main-panel > .belot-hand-area {
+    margin-top: -32px;
+  }
+  .belot-game .belot-table-wrapper .player-bottom {
+    left: 16px;
+    bottom: -30px;
+  }
+}
