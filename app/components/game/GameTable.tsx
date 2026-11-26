@@ -484,6 +484,13 @@ export default function GameTable({
             {gameNotice && <div className="game-hand-notice">
               <GameToast message={gameNotice} onClose={() => onCloseGameNotice?.()} />
             </div>}
+            {viewer?.isDealer && (
+              <div className="dealer-deck local-dealer-deck" role="img" aria-label="Djelitelj karata" title="Djelitelj">
+                      <span className="dealer-deck-card dealer-deck-card-back" />
+                      <span className="dealer-deck-card dealer-deck-card-middle" />
+                      <span className="dealer-deck-card dealer-deck-card-front" />
+                    </div>
+            )}
             <div className="table-players">
             {sortedPlayers.map((player, index) => {
               const position = positions[index];
@@ -508,7 +515,7 @@ export default function GameTable({
                     />
                   </div>
                   <SharedIpWarning visible={player.sameIpWarning} />
-                  {player.isDealer && (
+                  {player.isDealer && position !== "bottom" && (
                     <div className="dealer-deck" role="img" aria-label="Djelitelj karata" title="Djelitelj">
                       <span className="dealer-deck-card dealer-deck-card-back" />
                       <span className="dealer-deck-card dealer-deck-card-middle" />
